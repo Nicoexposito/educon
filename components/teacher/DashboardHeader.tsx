@@ -2,12 +2,13 @@ import React from 'react';
 import { Search, Bell, Menu } from 'lucide-react';
 
 interface DashboardHeaderProps {
-    role: 'teacher' | 'student';
+    role: string;
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
+    user?: { full_name?: string; email?: string; avatar_url?: string };
 }
 
-export function DashboardHeader({ role, isSidebarOpen, toggleSidebar }: DashboardHeaderProps) {
+export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: DashboardHeaderProps) {
     return (
         <header className="h-16 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 px-6 flex items-center justify-between transition-all duration-300">
             <div className="flex items-center gap-4">
@@ -40,7 +41,9 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar }: Dashboar
                 </button>
                 
                 <div className="h-9 w-9 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20">
-                    {role === 'teacher' ? 'P' : 'A'}
+                    {user?.full_name 
+                        ? user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+                        : (role === 'teacher' ? 'P' : 'A')}
                 </div>
             </div>
         </header>

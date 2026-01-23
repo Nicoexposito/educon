@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { MessageSquare, FileText, CheckCircle2 } from 'lucide-react';
 
 export function RecentActivityLevel() {
@@ -50,10 +51,15 @@ export function RecentActivityLevel() {
                 </button>
             </div>
             
+            {/* Scrollable list */}
             <div className="flex-1 overflow-y-auto">
                 <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
                     {activities.map((activity) => (
-                        <div key={activity.id} className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors flex gap-4 items-start group cursor-pointer">
+                        <Link 
+                            key={activity.id} 
+                            href={activity.type === 'submission' ? '/dashboard/assignments' : '/dashboard/news'}
+                            className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors flex gap-4 items-start group cursor-pointer block"
+                        >
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${activity.type === 'submission' ? 'bg-indigo-100 text-indigo-600' : 'bg-zinc-100 text-zinc-600'}`}>
                                 {activity.avatar}
                             </div>
@@ -65,17 +71,17 @@ export function RecentActivityLevel() {
                             </div>
                              {activity.type === 'submission' && (
                                 <div className="hidden group-hover:flex">
-                                    <button className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2 py-1 rounded-md transition-colors font-medium">
+                                    <span className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2 py-1 rounded-md transition-colors font-medium">
                                         Revisar
-                                    </button>
+                                    </span>
                                 </div>
                             )}
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>
              <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 text-center">
-                 <button className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors">Ve toda la actividad</button>
+                 <Link href="/dashboard/news" className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors block w-full">Ve toda la actividad</Link>
             </div>
         </div>
     );
