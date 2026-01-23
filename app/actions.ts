@@ -42,13 +42,13 @@ export async function authenticateUser(email: string, password: string, institut
     // 2. Check User credentials
     const { data: user } = await supabase
         .from('users')
-        .select('password, role')
+        .select('id, password, role')
         .eq('email', email)
         .eq('institute_id', institute.id)
         .single();
 
     if (user && await bcrypt.compare(password, user.password)) {
-        await createSession(user.role);
+        await createSession(user.id, user.role);
         return { success: true };
     } else {
         return { success: false, error: 'Invalid credentials' };
