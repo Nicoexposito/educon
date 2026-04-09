@@ -1,76 +1,94 @@
 import React from 'react';
-import { Users, BookOpen, Clock, AlertCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Users, BookOpen, Clock, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function TeacherStats({ stats }: { stats: any }) {
-    // Mock data if stats are missing
     const pendingTasks = stats?.assignmentsPending || 12;
-    const activeStudents = 24; // Mock
-    const avgAttendance = "94%"; // Mock
-    
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <StatsCard 
-                title="Estudiantes Activos" 
-                value={activeStudents.toString()} 
-                icon={<Users className="w-5 h-5 text-indigo-600" />}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <KpiCard
+                title="Estudiantes Activos"
+                value="24"
+                icon={<Users className="w-4 h-4" aria-hidden="true" />}
                 trend="+2.5%"
                 trendUp={true}
-                color="indigo"
+                color="navy"
             />
-             <StatsCard 
-                title="Asistencia Media" 
-                value={avgAttendance}
-                icon={<Clock className="w-5 h-5 text-emerald-600" />}
+            <KpiCard
+                title="Asistencia Media"
+                value="94%"
+                icon={<Clock className="w-4 h-4" aria-hidden="true" />}
                 trend="+0.8%"
+                trendUp={true}
+                color="amber"
+            />
+            <KpiCard
+                title="Tareas Pendientes"
+                value={pendingTasks.toString()}
+                icon={<BookOpen className="w-4 h-4" aria-hidden="true" />}
+                trend="-4"
                 trendUp={true}
                 color="emerald"
             />
-             <StatsCard 
-                title="Tareas Pendientes" 
-                value={pendingTasks.toString()} 
-                icon={<BookOpen className="w-5 h-5 text-amber-600" />}
-                trend="-4"
-                trendUp={false} // Less is better for pending tasks, but contextually "down"
-                correction={true}
-                color="amber"
-            />
-             <StatsCard 
-                title="Incidencias" 
-                value="3" 
-                icon={<AlertCircle className="w-5 h-5 text-rose-600" />}
+            <KpiCard
+                title="Incidencias"
+                value="3"
+                icon={<AlertCircle className="w-4 h-4" aria-hidden="true" />}
                 trend="+1"
-                trendUp={false} // More is bad
+                trendUp={false}
                 color="rose"
             />
         </div>
     );
 }
 
-function StatsCard({ title, value, icon, trend, trendUp, color, correction }: any) {
-    const colorStyles = {
-        indigo: "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
-        emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
-        amber: "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
-        rose: "bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400",
-    }[color as string] || "bg-zinc-100 text-zinc-600";
+function KpiCard({ title, value, icon, trend, trendUp, color }: {
+    title: string;
+    value: string;
+    icon: React.ReactNode;
+    trend: string;
+    trendUp: boolean;
+    color: 'navy' | 'amber' | 'emerald' | 'rose';
+}) {
+    const iconColors = {
+        navy:    'bg-blue-950/10 text-blue-900 dark:bg-blue-400/10 dark:text-blue-300',
+        amber:   'bg-amber-50 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
+        emerald: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-400',
+        rose:    'bg-rose-50 text-rose-700 dark:bg-rose-400/10 dark:text-rose-400',
+    }[color];
+
+    const borderColors = {
+        navy:    'border-l-blue-900 dark:border-l-blue-500',
+        amber:   'border-l-amber-500',
+        emerald: 'border-l-emerald-500',
+        rose:    'border-l-rose-500',
+    }[color];
 
     return (
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs hover:shadow-md transition-shadow group">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-2.5 rounded-xl ${colorStyles}`}>
+        <div className={`bg-card rounded-2xl border border-border border-l-4 ${borderColors} p-5 shadow-xs hover:shadow-sm transition-shadow duration-200`}>
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-2 rounded-lg ${iconColors}`}>
                     {icon}
                 </div>
-                {trend && (
-                    <div className={`flex items-center text-xs font-medium px-2 py-1 rounded-full ${trendUp ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'} ${correction ? 'bg-amber-50 text-amber-700' : ''}`}>
-                        {trendUp ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
-                        {trend}
-                    </div>
-                )}
+                <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    trendUp
+                        ? 'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-400/10'
+                        : 'text-rose-700 bg-rose-50 dark:text-rose-400 dark:bg-rose-400/10'
+                }`}>
+                    {trendUp
+                        ? <TrendingUp className="w-3 h-3" aria-hidden="true" />
+                        : <TrendingDown className="w-3 h-3" aria-hidden="true" />
+                    }
+                    <span>{trend}</span>
+                </div>
             </div>
-            <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{title}</p>
-                <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{value}</h3>
-            </div>
+            <p className="text-xs font-medium text-muted-foreground mb-1 truncate">{title}</p>
+            <p
+                className="text-2xl font-bold text-foreground tabular-nums"
+                style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
+            >
+                {value}
+            </p>
         </div>
-    )
+    );
 }

@@ -14,7 +14,9 @@ import {
     Menu,
     Newspaper,
     CalendarDays,
-    Bell
+    Bell,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import { logout } from "@/app/actions";
 
@@ -28,13 +30,11 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Common Nav Items
     const commonItems = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Calendar, label: "Horario", href: "/dashboard/schedule" },
     ];
 
-    // Role Specific Items
     const roleItems = role === 'teacher' ? [
         { icon: BookOpen, label: "Mis Clases", href: "/dashboard/subjects" },
         { icon: FileText, label: "Tareas", href: "/dashboard/assignments" },
@@ -59,34 +59,49 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
         <>
             {/* Mobile Overlay */}
             {isMobileOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
                     onClick={() => setIsMobileOpen(false)}
+                    aria-hidden="true"
                 />
             )}
 
-            <aside 
+            <aside
                 className={`
                     fixed lg:static inset-y-0 left-0 z-40
-                    bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 
-                    transition-all duration-300 flex flex-col
-                    ${isCollapsed ? 'w-20' : 'w-72'}
+                    flex flex-col
+                    bg-[var(--sidebar)] text-[var(--sidebar-foreground)]
+                    border-r border-[var(--sidebar-border)]
+                    transition-[width,transform] duration-300 ease-in-out
+                    ${isCollapsed ? 'w-[68px]' : 'w-64'}
                     ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
+                aria-label="Navegació principal"
             >
-                <div className="p-6 h-20 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
-                         <GraduationCap className="text-white w-5 h-5" />
+                {/* Logo */}
+                <div className={`flex items-center gap-3 px-4 h-16 border-b border-[var(--sidebar-border)] shrink-0 ${isCollapsed ? 'justify-center' : ''}`}>
+                    <div className="w-8 h-8 rounded-lg bg-[var(--sidebar-primary)] flex items-center justify-center shrink-0 shadow-sm">
+                        <GraduationCap className="w-4.5 h-4.5 text-[var(--sidebar-primary-foreground)]" aria-hidden="true" />
                     </div>
-                    <div className={`font-bold text-xl bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 transition-opacity duration-200 ${isCollapsed ? 'opacity-0 hidden' : ''}`}>
-                        Educon
-                    </div>
+                    {!isCollapsed && (
+                        <span
+                            className="font-semibold text-lg tracking-tight text-white"
+                            style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
+                        >
+                            Educon
+                        </span>
+                    )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-                    <p className={`text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 px-3 ${isCollapsed && 'hidden'}`}>Académico</p>
+                {/* Nav */}
+                <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5" aria-label="Menú principal">
+                    {!isCollapsed && (
+                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40 px-3 mb-2 mt-1">
+                            Acadèmic
+                        </p>
+                    )}
                     {commonItems.concat(roleItems).map((item) => (
-                        <NavItem 
+                        <SidebarNavItem
                             key={item.href}
                             icon={item.icon}
                             label={item.label}
@@ -96,43 +111,56 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
                         />
                     ))}
 
-                    <div className="pt-4 mt-4 border-t border-zinc-100 dark:border-zinc-800">
-                        <p className={`text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 px-3 ${isCollapsed && 'hidden'}`}>Comunidad</p>
-                        {extraItems.map((item) => (
-                            <NavItem 
-                                key={item.href}
-                                icon={item.icon}
-                                label={item.label}
-                                href={item.href}
-                                isActive={isActive(item.href)}
-                                isCollapsed={isCollapsed}
-                            />
-                        ))}
-                    </div>
-                </div>
+                    <div className={`${isCollapsed ? 'my-3' : 'my-4'} border-t border-[var(--sidebar-border)]`} />
 
-                <div className="p-3 mt-auto border-t border-zinc-200 dark:border-zinc-800 space-y-2">
-                     <NavItem 
+                    {!isCollapsed && (
+                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40 px-3 mb-2">
+                            Comunitat
+                        </p>
+                    )}
+                    {extraItems.map((item) => (
+                        <SidebarNavItem
+                            key={item.href}
+                            icon={item.icon}
+                            label={item.label}
+                            href={item.href}
+                            isActive={isActive(item.href)}
+                            isCollapsed={isCollapsed}
+                        />
+                    ))}
+                </nav>
+
+                {/* Footer */}
+                <div className="px-2 pb-3 pt-2 border-t border-[var(--sidebar-border)] space-y-0.5">
+                    <SidebarNavItem
                         icon={Settings}
                         label="Configuración"
                         href="/dashboard/profile"
                         isActive={isActive('/dashboard/profile')}
                         isCollapsed={isCollapsed}
                     />
-                    
-                    <button 
+                    <button
                         onClick={async () => await logout()}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors group ${isCollapsed ? 'justify-center' : ''}`}
+                        title="Cerrar Sesión"
+                        aria-label="Cerrar Sesión"
+                        className={`
+                            w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                            text-rose-300/80 hover:text-rose-300 hover:bg-rose-500/10
+                            transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:outline-none
+                            ${isCollapsed ? 'justify-center' : ''}
+                        `}
                     >
-                        <LogOut className="w-5 h-5" />
-                        {!isCollapsed && <span className="font-medium">Cerrar Sesión</span>}
+                        <LogOut className="w-5 h-5 shrink-0" aria-hidden="true" />
+                        {!isCollapsed && <span className="text-sm font-medium">Cerrar Sesión</span>}
                     </button>
 
-                    <button 
+                    {/* Collapse toggle — desktop only */}
+                    <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="hidden lg:flex w-full items-center justify-center p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors mt-2"
+                        aria-label={isCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'}
+                        className="hidden lg:flex w-full items-center justify-center p-2 mt-1 rounded-xl text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--sidebar-ring)] focus-visible:outline-none"
                     >
-                        <Menu className="w-5 h-5" />
+                        {isCollapsed ? <ChevronRight className="w-4 h-4" aria-hidden="true" /> : <ChevronLeft className="w-4 h-4" aria-hidden="true" />}
                     </button>
                 </div>
             </aside>
@@ -140,22 +168,41 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     );
 }
 
-function NavItem({ icon: Icon, label, href, isActive, isCollapsed }: any) {
+function SidebarNavItem({ icon: Icon, label, href, isActive, isCollapsed }: {
+    icon: React.ElementType;
+    label: string;
+    href: string;
+    isActive: boolean;
+    isCollapsed: boolean;
+}) {
     return (
-        <Link 
+        <Link
             href={href}
+            title={isCollapsed ? label : undefined}
+            aria-label={isCollapsed ? label : undefined}
+            aria-current={isActive ? 'page' : undefined}
             className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group
-                ${isActive 
-                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-semibold shadow-xs' 
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                relative flex items-center gap-3 px-3 py-2.5 rounded-xl
+                transition-colors duration-150 text-sm group
+                focus-visible:ring-2 focus-visible:ring-[var(--sidebar-ring)] focus-visible:outline-none
+                ${isActive
+                    ? 'bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)] font-semibold shadow-sm'
+                    : 'text-white/60 hover:bg-[var(--sidebar-accent)] hover:text-white'
                 }
                 ${isCollapsed ? 'justify-center' : ''}
             `}
         >
-            <Icon className={`w-5 h-5 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-500 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'}`} />
-            {!isCollapsed && <span>{label}</span>}
-            {isCollapsed && isActive && <div className="absolute left-16 bg-indigo-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">{label}</div>}
+            <Icon
+                className={`w-5 h-5 shrink-0 ${isActive ? 'text-[var(--sidebar-primary-foreground)]' : 'text-white/50 group-hover:text-white'}`}
+                aria-hidden="true"
+            />
+            {!isCollapsed && <span className="truncate">{label}</span>}
+            {/* Active bar indicator */}
+            {isActive && !isCollapsed && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--sidebar-primary-foreground)] opacity-70" aria-hidden="true" />
+            )}
         </Link>
     );
 }
+
+
