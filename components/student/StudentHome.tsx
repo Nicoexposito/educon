@@ -108,4 +108,3 @@ export default function StudentHome({ data }: { data: any }) {
         </main>
     );
 }
-}

@@ -5,55 +5,67 @@ import { Clock, MapPin, ArrowRight } from "lucide-react";
 import Link from 'next/link';
 
 export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
-    // Logic to find current class based on time
-    // For demo purposes, we'll pick the first subject as "Current" or "Next"
-    // In a real app, we'd compare `new Date()` with schedule times.
-    
-    // Mocking "Now" as 10:00 AM on Monday for demo consistency if needed, 
-    // or just showing the first available class from the list as "Coming Up / Now"
-    
     const currentClass = useMemo(() => {
         if (!subjects || subjects.length === 0) return null;
-        // Just pick the first one for the demo
         return subjects[0];
     }, [subjects]);
 
     if (!currentClass) {
         return (
-             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm flex items-center justify-center text-zinc-500 h-full">
-                <p>No tienes clases activas en este momento.</p>
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex items-center justify-center text-muted-foreground h-full">
+                <p className="text-sm text-center">No tens classes actives en aquest moment.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-linear-to-br from-indigo-600 to-violet-700 rounded-2xl p-6 text-white shadow-lg shadow-indigo-500/20 relative overflow-hidden h-full flex flex-col">
-            {/* Background Pattern */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-900/20 rounded-full blur-xl -ml-5 -mb-5" />
+        <div className="rounded-2xl p-6 text-white shadow-lg relative overflow-hidden h-full flex flex-col"
+            style={{
+                background: 'linear-gradient(135deg, var(--primary) 0%, oklch(0.26 0.06 258) 100%)',
+            }}
+        >
+            {/* Decorative geometry */}
+            <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10"
+                style={{ background: 'var(--accent)', filter: 'blur(40px)' }}
+                aria-hidden="true"
+            />
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full opacity-10 border-2 border-white"
+                aria-hidden="true"
+            />
 
             <div className="relative z-10 flex flex-col h-full">
-                <div className="flex items-center gap-2 mb-4">
-                    <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider animate-pulse border border-white/10">
-                        En curso
+                {/* Status badge */}
+                <div className="flex items-center gap-3 mb-5">
+                    <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" aria-hidden="true" />
+                        En curs
                     </span>
-                    <span className="text-indigo-100 text-sm font-medium flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        10:00 - 11:30
+                    <span className="text-white/70 text-xs font-medium flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                        <time>10:00&nbsp;&ndash;&nbsp;11:30</time>
                     </span>
                 </div>
 
-                <h3 className="text-2xl font-bold mb-1">{currentClass.name}</h3>
-                <p className="text-indigo-100 opacity-90 mb-6">Grupo A • Bachillerato</p>
+                <h2
+                    className="text-2xl font-bold leading-tight mb-1"
+                    style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
+                >
+                    {currentClass.name}
+                </h2>
+                <p className="text-white/60 text-sm mb-6">Grup A &nbsp;&bull;&nbsp; Batxillerat</p>
 
                 <div className="mt-auto flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-indigo-100 bg-black/10 px-3 py-1.5 rounded-lg border border-white/10">
-                        <MapPin className="w-4 h-4" />
+                    <div className="flex items-center gap-2 text-xs text-white/70 bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg">
+                        <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>Aula 204</span>
                     </div>
 
-                    <Link href={`/dashboard/subjects/${currentClass.id}`} className="p-2 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors shadow-sm">
-                        <ArrowRight className="w-5 h-5" />
+                    <Link
+                        href={`/dashboard/subjects/${currentClass.id}`}
+                        aria-label={`Veure detalls de ${currentClass.name}`}
+                        className="p-2.5 bg-[var(--accent)] text-[var(--accent-foreground)] rounded-xl hover:opacity-90 transition-opacity shadow-sm focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                    >
+                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
                     </Link>
                 </div>
             </div>

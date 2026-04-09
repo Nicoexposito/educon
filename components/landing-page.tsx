@@ -137,9 +137,9 @@ export default function LandingPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-sans selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-background text-foreground font-sans selection:bg-[var(--accent)]/20">
             {/* Navigation */}
-            <nav className="fixed w-full z-50 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 supports-backdrop-filter:bg-white/60">
+            <nav className="fixed w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
@@ -151,7 +151,10 @@ export default function LandingPage() {
                                     className="object-contain"
                                 />
                             </div>
-                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 tracking-tight">
+                            <span
+                                className="text-2xl font-bold tracking-tight text-[var(--primary)] dark:text-white"
+                                style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
+                            >
                                 Educon
                             </span>
                         </div>
@@ -178,7 +181,7 @@ export default function LandingPage() {
 
                             <button
                                 onClick={() => setIsLoginOpen(true)}
-                                className="bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                                className="bg-[var(--primary)] hover:opacity-90 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-opacity shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                             >
                                 {t.nav.login}
                             </button>
@@ -195,7 +198,7 @@ export default function LandingPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold mb-8 border border-indigo-100 dark:border-indigo-500/20"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--primary)] dark:text-[var(--accent)] text-sm font-bold mb-8 border border-[var(--accent)]/20"
                         >
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -209,11 +212,12 @@ export default function LandingPage() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
                             className="text-5xl lg:text-7xl font-black tracking-tight mb-6 leading-[1.1]"
+                            style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
                         >
                             {t.hero.title.split(' ').map((word, i) => (
                                 <span key={i} className="inline-block mr-3">
                                     {i > 1 ? (
-                                        <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
+                                        <span className="text-[var(--accent)]">
                                             {word}
                                         </span>
                                     ) : word}
@@ -236,11 +240,11 @@ export default function LandingPage() {
                             transition={{ delay: 0.3 }}
                             className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
                         >
-                            <button className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                            <button className="h-14 px-8 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white font-bold text-lg shadow-lg hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                                 {t.hero.cta_primary}
-                                <ArrowRight className="h-5 w-5" />
+                                <ArrowRight className="h-5 w-5" aria-hidden="true" />
                             </button>
-                            <button className="h-14 px-8 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-bold text-lg transition-all hover:-translate-y-1">
+                            <button className="h-14 px-8 rounded-2xl bg-card border border-border hover:bg-secondary text-foreground font-bold text-lg transition-colors duration-150 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                                 {t.hero.cta_secondary}
                             </button>
                         </motion.div>
@@ -254,8 +258,8 @@ export default function LandingPage() {
                         className="flex-1 relative z-10 w-full max-w-2xl"
                     >
                         {/* Decorative Elements */}
-                        <div className="absolute -top-20 -right-20 w-72 h-72 bg-indigo-500/30 rounded-full blur-[80px] -z-10 animate-pulse" />
-                        <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-violet-500/30 rounded-full blur-[80px] -z-10 animate-pulse delay-700" />
+                        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-[80px] -z-10" style={{ background: 'var(--accent)', opacity: 0.2 }} aria-hidden="true" />
+                        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full blur-[80px] -z-10" style={{ background: 'var(--primary)', opacity: 0.15 }} aria-hidden="true" />
 
                         {/* Main Dashboard Card */}
                         <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-2 transform rotate-3 hover:rotate-0 transition-transform duration-500">
@@ -303,9 +307,9 @@ export default function LandingPage() {
             </section>
 
             {/* Stats Section */}
-            <section className="border-y border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm">
+            <section className="border-y border-border bg-card/60 backdrop-blur-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                    <div className="grid grid-cols-3 gap-8 text-center divide-x divide-zinc-200 dark:divide-zinc-800">
+                    <div className="grid grid-cols-3 gap-8 text-center divide-x divide-border">
                         {stats.map((stat, i) => (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -315,7 +319,10 @@ export default function LandingPage() {
                                 key={i}
                                 className="px-4"
                             >
-                                <div className="text-4xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400 mb-2 tracking-tighter">
+                                <div
+                                    className="text-4xl md:text-5xl font-black mb-2 tracking-tighter text-[var(--accent)]"
+                                    style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
+                                >
                                     {stat.value}
                                 </div>
                                 <div className="text-sm md:text-base text-zinc-500 dark:text-zinc-500 font-semibold uppercase tracking-wider">
