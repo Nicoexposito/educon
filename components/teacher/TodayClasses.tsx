@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Clock, MapPin, MoreHorizontal, ArrowRight } from 'lucide-react';
 
 export function TodayClasses({ subjects }: { subjects: any[] }) {
@@ -20,9 +21,10 @@ export function TodayClasses({ subjects }: { subjects: any[] }) {
                     <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">Clases de Hoy</h3>
                     <p className="text-sm text-zinc-500">{new Date().toLocaleDateString('es-ES', { weekday: 'long' })}</p>
                 </div>
-                <button className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
+                <Link href="/dashboard/schedule" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 transition-colors">
                     Ver horario
-                </button>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
             </div>
             
             <div className="p-2 flex-1 overflow-y-auto">

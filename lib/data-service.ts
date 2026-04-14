@@ -13,7 +13,7 @@ export async function getDashboardData(userId: string, role: string) {
     if (role === 'teacher') {
         const { data: subjects } = await supabase
             .from('subjects')
-            .select('*')
+            .select('*, schedules:subject_schedules(*)')
             .eq('teacher_id', userId);
 
         const { data: events } = await supabase
@@ -52,7 +52,7 @@ export async function getDashboardData(userId: string, role: string) {
         // Student
         const { data: enrollments } = await supabase
             .from('enrollments')
-            .select('subject:subjects(*)')
+            .select('subject:subjects(*, schedules:subject_schedules(*))')
             .eq('student_id', userId);
 
         // Transform to list of subjects
