@@ -1,5 +1,7 @@
+"use client";
+
 import React from 'react';
-import { BookOpen, GraduationCap, Clock, AlertCircle, ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
+import { BookOpen, CalendarCheck, Clock, AlertCircle, ArrowUpRight, ArrowDownRight, TrendingUp, CheckCircle2 } from 'lucide-react';
 
 export function StudentStats({ stats }: { stats: any }) {
     const assignmentsPending = stats?.assignmentsPending || 0;
@@ -7,6 +9,15 @@ export function StudentStats({ stats }: { stats: any }) {
     
     // Mock trends for demo
     const gradeTrend = "+0.2";
+
+    // Calculate remaining days until June 22, 2026
+    const endDate = new Date(2026, 5, 22); // Month is 0-indexed, so 5 = June
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+    const diffTime = endDate.getTime() - today.getTime();
+    const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const courseFinished = daysRemaining <= 0;
     
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -36,12 +47,15 @@ export function StudentStats({ stats }: { stats: any }) {
                 color="emerald"
             />
              <StatsCard 
-                title="Créditos" 
-                value="12/60" 
-                icon={<GraduationCap className="w-5 h-5 text-violet-600" />}
-                trend="20%"
+                title="Días Restantes de Curso" 
+                value={courseFinished ? "Acabado" : `${daysRemaining} días`}
+                icon={courseFinished 
+                    ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> 
+                    : <CalendarCheck className="w-5 h-5 text-violet-600" />
+                }
+                trend={courseFinished ? "Curso finalizado" : `Hasta 22 Jun`}
                 trendUp={true}
-                color="violet"
+                color={courseFinished ? "emerald" : "violet"}
             />
         </div>
     );
