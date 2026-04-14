@@ -133,15 +133,16 @@ export async function getSubjectDetails(subjectId: string, role: string) {
 
 export async function getAllAssignments(userId: string, role: string) {
     if (role === 'teacher') {
-        const { data: assignments } = await supabase
+        // For teachers: get assignments with full submission details
+        const { data: assignments, error } = await supabase
             .from('assignments')
-            .select('*, subject:subjects(name), submissions(count)')
+            .select('*, subject:subjects(name), submissions(id, student_id, grade, feedback, file_url, submitted_at, status, student:users(full_name, email))')
             .eq('teacher_id', userId)
             .order('due_date', { ascending: true });
+        if (error) console.error('Teacher assignments query error:', error);
         return assignments || [];
     } else {
         // For students, get assignments for their enrolled subjects
-        // First get subject IDs
         const { data: enrollments } = await supabase
             .from('enrollments')
             .select('subject_id')
@@ -157,21 +158,47 @@ export async function getAllAssignments(userId: string, role: string) {
             .in('subject_id', subjectIds)
             .order('due_date', { ascending: true });
 
-        // Filter out those already submitted? Or show status?
-        // Let's get submissions status for these assignments
+        // Get submissions status for these assignments
         const { data: submissions } = await supabase
             .from('submissions')
-            .select('assignment_id, grade')
+            .select('assignment_id, grade, status, file_url, feedback, submitted_at')
             .eq('student_id', userId)
             .in('assignment_id', assignments?.map((a: any) => a.id) || []);
 
-        const submittedIds = new Set(submissions?.map((s: any) => s.assignment_id));
+        const submissionMap = new Map(submissions?.map((s: any) => [s.assignment_id, s]) || []);
 
         // Enhance assignments with status
-        return assignments?.map((a: any) => ({
-            ...a,
-            status: submittedIds.has(a.id) ? 'submitted' : 'pending',
-            grade: submissions?.find((s: any) => s.assignment_id === a.id)?.grade
-        })) || [];
+        return assignments?.map((a: any) => {
+            const sub = submissionMap.get(a.id);
+            let status = 'pending';
+            if (sub) {
+                if (sub.status === 'returned') status = 'returned';
+                else if (sub.grade !== null && sub.grade !== undefined) status = 'graded';
+                else status = 'submitted';
+            }
+            return {
+                ...a,
+                status,
+                grade: sub?.grade
+            };
+        }) || [];
     }
 }
+
+export async function getTeacherSubjects(teacherId: string) {
+    const { data } = await supabase
+        .from('subjects')
+        .select('id, name')
+        .eq('teacher_id', teacherId)
+        .order('name');
+    return data || [];
+}
+
+export async function getSubjectStudents(subjectId: string) {
+    const { data: enrollments } = await supabase
+        .from('enrollments')
+        .select('student:users(id, full_name, email)')
+        .eq('subject_id', subjectId);
+    return enrollments?.map((e: any) => e.student) || [];
+}
+

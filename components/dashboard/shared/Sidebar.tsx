@@ -7,7 +7,6 @@ import {
     LayoutDashboard,
     BookOpen,
     Calendar,
-    Settings,
     LogOut,
     GraduationCap,
     FileText,
@@ -132,13 +131,6 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
 
                 {/* Footer */}
                 <div className="px-2 pb-3 pt-2 border-t border-[var(--sidebar-border)] space-y-0.5">
-                    <SidebarNavItem
-                        icon={Settings}
-                        label="Configuración"
-                        href="/dashboard/profile"
-                        isActive={isActive('/dashboard/profile')}
-                        isCollapsed={isCollapsed}
-                    />
                     <button
                         onClick={async () => await logout()}
                         title="Cerrar Sesión"

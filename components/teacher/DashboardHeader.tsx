@@ -1,11 +1,12 @@
 import React from 'react';
-import { Search, Bell, Menu } from 'lucide-react';
+import { Bell, Menu, School } from 'lucide-react';
+import Link from 'next/link';
 
 interface DashboardHeaderProps {
     role: string;
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
-    user?: { full_name?: string; email?: string; avatar_url?: string };
+    user?: { full_name?: string; email?: string; avatar_url?: string; institute?: { name?: string } };
 }
 
 export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: DashboardHeaderProps) {
@@ -25,14 +26,18 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                 </div>
             </div>
 
-            <div className="flex items-center gap-3">
-                <div className="relative hidden md:block group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 group-focus-within:text-indigo-500 transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Buscar..."
-                        className="pl-10 pr-4 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-indigo-500/20 text-sm w-48 focus:w-64 transition-all duration-300"
-                    />
+            <div className="flex items-center gap-4">
+                {/* User info & institute */}
+                <div className="hidden md:flex flex-col items-end">
+                    <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
+                        {user?.full_name || (role === 'teacher' ? 'Profesor' : 'Alumno')}
+                    </span>
+                    {user?.institute?.name && (
+                        <span className="flex items-center gap-1 text-xs text-zinc-500">
+                            <School className="w-3 h-3" />
+                            {user.institute.name}
+                        </span>
+                    )}
                 </div>
                 
                 <button className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full relative transition-colors">
@@ -40,11 +45,11 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                     <span className="absolute top-2 right-2 h-2 w-2 bg-rose-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
                 </button>
                 
-                <div className="h-9 w-9 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20">
+                <Link href="/dashboard/profile" className="h-9 w-9 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 hover:scale-105 transition-transform">
                     {user?.full_name 
                         ? user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
                         : (role === 'teacher' ? 'P' : 'A')}
-                </div>
+                </Link>
             </div>
         </header>
     );
