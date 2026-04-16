@@ -25,6 +25,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { X, Building2, Mail, Lock, ArrowLeft, Loader2, Search } from "lucide-react";
 import { searchInstitutes, checkInstituteExists, authenticateUser } from "@/app/actions";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LandingPage() {
     const [lang, setLang] = useState<Language>('ca');
@@ -92,7 +93,7 @@ export default function LandingPage() {
         e.preventDefault();
         setError('');
         setIsLoading(true);
-
+        console.log(email, password, instituteName);
         const result = await authenticateUser(email, password, instituteName);
 
         if (result.success) {
@@ -100,6 +101,24 @@ export default function LandingPage() {
         } else {
             // @ts-ignore
             setError(t.login_modal.error_creds);
+            setIsLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setIsLoading(true);
+        setError('');
+        const supabase = createClient();
+
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        });
+
+        if (error) {
+            setError('Error en l\'autenticació amb Google.');
             setIsLoading(false);
         }
     };
@@ -861,7 +880,9 @@ export default function LandingPage() {
 
                                             <button
                                                 type="button"
-                                                className="w-full py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-semibold text-sm flex items-center justify-center gap-2"
+                                                onClick={handleGoogleLogin}
+                                                disabled={isLoading}
+                                                className="w-full py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                                             >
                                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                                                     <path

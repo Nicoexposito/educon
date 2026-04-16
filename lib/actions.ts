@@ -5,23 +5,43 @@ import { revalidatePath } from "next/cache";
 
 // --- Assignments ---
 
-export async function createAssignmentFull({
-    title,
-    description,
-    due_date,
-    late_due_date,
-    subject_id,
-    teacher_id,
-}: {
-    title: string;
-    description: string;
-    due_date: string;
-    late_due_date?: string;
-    subject_id: string;
-    teacher_id: string;
-}) {
+export async function createAssignment(formData: FormData) {
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const due_date = formData.get("due_date") as string;
+    const late_due_date = formData.get("late_due_date") as string;
+    const subject_id = formData.get("subject_id") as string;
+    const teacher_id = formData.get("teacher_id") as string;
+    const file = formData.get("file") as File | null;
+
     if (!title || !due_date || !subject_id || !teacher_id) {
         return { success: false, error: "Faltan campos obligatorios." };
+    }
+
+    let content_url = null;
+
+    if (file && file.size > 0 && file.name !== 'undefined') {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `${subject_id}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+            .from('assignments')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error("Error uploading assignment file:", uploadError);
+            return { success: false, error: "Error al subir el archivo de material." };
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from('assignments')
+            .getPublicUrl(filePath);
+
+        content_url = publicUrlData.publicUrl;
     }
 
     const { data, error } = await supabase.from("assignments").insert({
@@ -31,6 +51,7 @@ export async function createAssignmentFull({
         late_due_date: late_due_date || null,
         subject_id,
         teacher_id,
+        content_url,
     }).select("id").single();
 
     if (error) {
@@ -46,14 +67,57 @@ export async function createAssignmentFull({
 export async function submitAssignment(formData: FormData) {
     const assignment_id = formData.get("assignment_id") as string;
     const student_id = formData.get("student_id") as string;
-    const file_url = formData.get("content") as string; // We map 'content' from form to 'file_url'
+    let file_url = formData.get("content") as string; 
+    const file = formData.get("file") as File | null;
 
-    const { error } = await supabase.from("submissions").insert({
-        assignment_id,
-        student_id,
-        file_url,
-        status: "submitted",
-    });
+    if (file && file.size > 0 && file.name !== 'undefined') {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `${assignment_id}/${student_id}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+            .from('submissions')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error("Error uploading submission file:", uploadError);
+            return { success: false, error: "Error al subir el archivo de entrega." };
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from('submissions')
+            .getPublicUrl(filePath);
+
+        file_url = publicUrlData.publicUrl;
+    }
+
+    // Check if the user already submitted to just update
+    const { data: existing } = await supabase.from('submissions')
+        .select('id')
+        .eq('assignment_id', assignment_id)
+        .eq('student_id', student_id)
+        .single();
+        
+    let error;
+    if (existing) {
+        const { error: updateError } = await supabase.from('submissions').update({
+            file_url,
+            status: "submitted",
+            submitted_at: new Date().toISOString()
+        }).eq('id', existing.id);
+        error = updateError;
+    } else {
+        const { error: insertError } = await supabase.from("submissions").insert({
+            assignment_id,
+            student_id,
+            file_url,
+            status: "submitted",
+        });
+        error = insertError;
+    }
 
     if (error) {
         console.error("Error submitting assignment:", error);
@@ -61,6 +125,7 @@ export async function submitAssignment(formData: FormData) {
     }
 
     revalidatePath("/dashboard/assignments");
+    revalidatePath(`/dashboard/assignments/${assignment_id}`);
     return { success: true };
 }
 

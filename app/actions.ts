@@ -1,17 +1,19 @@
 'use server'
 
-import { supabase } from "@/lib/supabase";
-import bcrypt from 'bcryptjs';
+import { supabase as legacySupabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { createSession, deleteSession } from "@/lib/session";
 
 export async function logout() {
-    await deleteSession();
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    await deleteSession(); // Keep old session as fallback cleanup
 }
 
 export async function searchInstitutes(query: string) {
     if (!query) return [];
 
-    const { data } = await supabase
+    const { data } = await legacySupabase
         .from('institutes')
         .select('id, name')
         .ilike('name', `%${query}%`)
@@ -21,7 +23,7 @@ export async function searchInstitutes(query: string) {
 }
 
 export async function checkInstituteExists(name: string) {
-    const { count } = await supabase
+    const { count } = await legacySupabase
         .from('institutes')
         .select('*', { count: 'exact', head: true })
         .eq('name', name);
@@ -31,7 +33,7 @@ export async function checkInstituteExists(name: string) {
 
 export async function authenticateUser(email: string, password: string, instituteName: string) {
     // 1. Get Institute ID
-    const { data: institute } = await supabase
+    const { data: institute } = await legacySupabase
         .from('institutes')
         .select('id')
         .eq('name', instituteName)
@@ -39,20 +41,33 @@ export async function authenticateUser(email: string, password: string, institut
 
     if (!institute) return { success: false, error: 'Institut not found' };
 
-    // 2. Check User credentials
-    const { data: user } = await supabase
-        .from('users')
-        .select('id, password, role')
-        .eq('email', email)
-        .eq('institute_id', institute.id)
-        .single();
+    // 2. We use Supabase Auth to check the password (this replaces the old bcrypt check)
+    const supabase = await createClient();
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+    });
 
-    if (user && await bcrypt.compare(password, user.password)) {
-        await createSession(user.id, user.role);
-        return { success: true };
-    } else {
+    if (authError || !authData.user) {
         return { success: false, error: 'Invalid credentials' };
     }
+
+    // 3. Verify user belongs to the specified institute
+    const { data: user } = await supabase
+        .from('users')
+        .select('id, role, institute_id')
+        .eq('id', authData.user.id)
+        .single();
+
+    if (!user || user.institute_id !== institute.id) {
+        await supabase.auth.signOut();
+        return { success: false, error: 'User does not belong to this institute' };
+    }
+
+    // Keep backwards compatibility with our custom session if other components still rely on it
+    await createSession(user.id, user.role);
+
+    return { success: true };
 }
 
 export async function changePassword(userId: string, currentPassword: string, newPassword: string) {
@@ -60,28 +75,26 @@ export async function changePassword(userId: string, currentPassword: string, ne
         return { success: false, error: 'La contraseña debe tener al menos 6 caracteres.' };
     }
 
-    // 1. Get current hash
-    const { data: user } = await supabase
-        .from('users')
-        .select('password')
-        .eq('id', userId)
-        .single();
+    const supabase = await createClient();
 
-    if (!user) return { success: false, error: 'Usuario no encontrado.' };
+    // We attempt to sign in to verify current password
+    // NOTE: This assumes the user's email is needed, we should fetch it first.
+    const { data: userRecord } = await legacySupabase.from('users').select('email').eq('id', userId).single();
+    if (!userRecord) return { success: false, error: 'Usuario no encontrado.' };
 
-    // 2. Check current password
-    const isValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isValid) return { success: false, error: 'La contraseña actual es incorrecta.' };
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userRecord.email,
+        password: currentPassword
+    });
 
-    // 3. Hash new password & update
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (signInError) return { success: false, error: 'La contraseña actual es incorrecta.' };
 
-    const { error } = await supabase
-        .from('users')
-        .update({ password: hashedPassword })
-        .eq('id', userId);
+    // Update password
+    const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+    });
 
-    if (error) return { success: false, error: 'Error al actualizar la contraseña.' };
+    if (updateError) return { success: false, error: 'Error al actualizar la contraseña.' };
 
     return { success: true };
 }
@@ -91,7 +104,7 @@ export async function updateProfile(userId: string, fullName: string) {
         return { success: false, error: 'El nombre debe tener al menos 2 caracteres.' };
     }
 
-    const { error } = await supabase
+    const { error } = await legacySupabase
         .from('users')
         .update({ full_name: fullName.trim() })
         .eq('id', userId);

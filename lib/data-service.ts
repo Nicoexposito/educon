@@ -1,8 +1,9 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 export async function getDashboardData(userId: string, role: string) {
+    const supabase = await createClient();
     // Get user profile first
     const { data: profile } = await supabase
         .from('users')
@@ -93,6 +94,7 @@ export async function getDashboardData(userId: string, role: string) {
 }
 
 export async function getSubjectDetails(subjectId: string, role: string) {
+    const supabase = await createClient();
     // Get subject metadata
     const { data: subject } = await supabase
         .from('subjects')
@@ -132,6 +134,7 @@ export async function getSubjectDetails(subjectId: string, role: string) {
 }
 
 export async function getAllAssignments(userId: string, role: string) {
+    const supabase = await createClient();
     if (role === 'teacher') {
         // For teachers: get assignments with full submission details
         const { data: assignments, error } = await supabase
@@ -186,6 +189,7 @@ export async function getAllAssignments(userId: string, role: string) {
 }
 
 export async function getTeacherSubjects(teacherId: string) {
+    const supabase = await createClient();
     const { data } = await supabase
         .from('subjects')
         .select('id, name')
@@ -195,6 +199,7 @@ export async function getTeacherSubjects(teacherId: string) {
 }
 
 export async function getSubjectStudents(subjectId: string) {
+    const supabase = await createClient();
     const { data: enrollments } = await supabase
         .from('enrollments')
         .select('student:users(id, full_name, email)')

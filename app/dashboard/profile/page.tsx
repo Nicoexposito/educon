@@ -1,10 +1,11 @@
 import { getSession } from "@/lib/session";
-import { supabase } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import ProfileClient from "@/components/dashboard/shared/ProfileClient";
+import { createClient } from "@/lib/supabase/server";
 
 async function getProfileData(userId: string, role: string) {
-    // 1. User + institute (use SELECT * to match the rest of the codebase)
+    const supabase = await createClient();
+    // 1. User + institute
     const { data: user, error: userError } = await supabase
         .from('users')
         .select('*, institute:institutes(name)')

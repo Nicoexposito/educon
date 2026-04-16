@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
     FileText, Plus, ArrowUpDown, ArrowUp, ArrowDown,
     CheckCircle2, Clock, AlertCircle, RotateCcw, Filter
 } from "lucide-react";
-import GradeModal from "./GradeModal";
-import CreateAssignmentModal from "./CreateAssignmentModal";
-import StudentAssignmentModal from "./StudentAssignmentModal";
 
 type SortKey = "title" | "subject" | "due_date" | "status";
 type SortDir = "asc" | "desc";
@@ -65,14 +63,10 @@ function getAssignmentStatusForTab(assignment: any, role: string): TabKey {
 }
 
 export default function AssignmentsClient({ assignments, role, userId, subjects }: AssignmentsClientProps) {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabKey>("pending");
     const [sortKey, setSortKey] = useState<SortKey>("due_date");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
-
-    // Modals
-    const [gradeAssignment, setGradeAssignment] = useState<any>(null);
-    const [studentViewAssignment, setStudentViewAssignment] = useState<any>(null);
-    const [showCreateModal, setShowCreateModal] = useState(false);
 
     const tabs = role === "teacher" ? TEACHER_TABS : STUDENT_TABS;
 
@@ -147,7 +141,7 @@ export default function AssignmentsClient({ assignments, role, userId, subjects 
                 </div>
                 {role === "teacher" && (
                     <button
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={() => router.push('/dashboard/assignments/new')}
                         className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 active:scale-95 self-start"
                     >
                         <Plus className="w-5 h-5" />
@@ -232,21 +226,12 @@ export default function AssignmentsClient({ assignments, role, userId, subjects 
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        {role === "teacher" ? (
-                                            <button
-                                                onClick={() => setGradeAssignment(assignment)}
-                                                className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm hover:underline transition-colors"
-                                            >
-                                                Calificar
-                                            </button>
-                                        ) : (
-                                            <button 
-                                                onClick={() => setStudentViewAssignment(assignment)}
-                                                className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm hover:underline transition-colors"
-                                            >
-                                                {assignment.status === "graded" ? "Ver nota" : assignment.status === "submitted" ? "Ver entrega" : "Entregar"}
-                                            </button>
-                                        )}
+                                        <button 
+                                            onClick={() => router.push(`/dashboard/assignments/${assignment.id}`)}
+                                            className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm hover:underline transition-colors"
+                                        >
+                                            {role === "teacher" ? "Ver Tarea" : (assignment.status === "graded" ? "Ver nota" : assignment.status === "submitted" ? "Ver entrega" : "Entregar")}
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -263,30 +248,6 @@ export default function AssignmentsClient({ assignments, role, userId, subjects 
                     </table>
                 </div>
             </div>
-
-            {/* Modals */}
-            {gradeAssignment && (
-                <GradeModal
-                    assignment={gradeAssignment}
-                    onClose={() => setGradeAssignment(null)}
-                />
-            )}
-
-            {showCreateModal && (
-                <CreateAssignmentModal
-                    subjects={subjects}
-                    teacherId={userId}
-                    onClose={() => setShowCreateModal(false)}
-                />
-            )}
-
-            {studentViewAssignment && (
-                <StudentAssignmentModal
-                    assignment={studentViewAssignment}
-                    userId={userId}
-                    onClose={() => setStudentViewAssignment(null)}
-                />
-            )}
         </div>
     );
 }

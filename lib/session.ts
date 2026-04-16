@@ -1,5 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
+import { supabase as legacySupabase } from "@/lib/supabase";
 
 const secretKey = process.env.SESSION_SECRET || 'default_secret_key_change_me';
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -43,6 +45,31 @@ export async function deleteSession() {
 }
 
 export async function getSession() {
+    // 1. First try Supabase Auth
+    try {
+        const supabase = await createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (user && !error) {
+            // Need to fetch user role from legacy db 
+            const { data: dbUser } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+
+            if (dbUser) {
+                return {
+                    userId: user.id,
+                    role: dbUser.role
+                };
+            }
+        }
+    } catch(e) {
+        // Fallback or ignore
+    }
+
+    // 2. Fallback to old custom cookie session
     const cookieStore = await cookies();
     const session = cookieStore.get('session')?.value;
     const payload = await decrypt(session);
