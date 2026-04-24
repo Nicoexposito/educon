@@ -109,8 +109,8 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                     <Calendar className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold">{dueDate.toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                    <p className="text-xs text-zinc-500">{dueDate.toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit' })}</p>
+                                    <p className="text-sm font-semibold" suppressHydrationWarning>{dueDate.toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                    <p className="text-xs text-zinc-500" suppressHydrationWarning>{dueDate.toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                             </div>
                         </div>
@@ -123,8 +123,8 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         <Clock className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold">{new Date(assignment.late_due_date).toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                        <p className="text-xs text-amber-600/70">{new Date(assignment.late_due_date).toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit' })}</p>
+                                        <p className="text-sm font-semibold" suppressHydrationWarning>{new Date(assignment.late_due_date).toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                        <p className="text-xs text-amber-600/70" suppressHydrationWarning>{new Date(assignment.late_due_date).toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
                                 </div>
                             </div>
@@ -211,7 +211,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                 {isSubmitted && assignment.submitted_at && (
                                      <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800">
                                         <span className="text-sm font-medium text-zinc-500">Entregado el</span>
-                                        <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                                        <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200" suppressHydrationWarning>
                                             {new Date(assignment.submitted_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"})}
                                         </span>
                                     </div>

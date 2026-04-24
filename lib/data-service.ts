@@ -37,7 +37,12 @@ export async function getDashboardData(userId: string, role: string) {
             .order('submitted_at', { ascending: true })
             .limit(5);
 
-        const activeStudents = 24;
+        // Get unique active students
+        const { data: enrollments } = await supabase
+            .from('enrollments')
+            .select('student_id')
+            .in('subject_id', subjects?.map((s: any) => s.id) || []);
+        const uniqueStudents = new Set(enrollments?.map((e: any) => e.student_id)).size;
 
         return {
             profile,
@@ -46,7 +51,9 @@ export async function getDashboardData(userId: string, role: string) {
             pendingSubmissions: pendingSubmissions || [],
             stats: {
                 assignmentsPending: assignmentsPending || 0,
-                activeUsers: activeStudents
+                activeUsers: uniqueStudents,
+                totalSubjects: subjects?.length || 0,
+                upcomingEvents: events?.length || 0
             }
         };
     } else {

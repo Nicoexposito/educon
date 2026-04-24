@@ -3,6 +3,7 @@
 import { supabase as legacySupabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
 import { createSession, deleteSession } from "@/lib/session";
+import { revalidatePath } from "next/cache";
 
 export async function logout() {
     const supabase = await createClient();
@@ -79,7 +80,7 @@ export async function changePassword(userId: string, currentPassword: string, ne
 
     // We attempt to sign in to verify current password
     // NOTE: This assumes the user's email is needed, we should fetch it first.
-    const { data: userRecord } = await legacySupabase.from('users').select('email').eq('id', userId).single();
+    const { data: userRecord } = await supabase.from('users').select('email').eq('id', userId).single();
     if (!userRecord) return { success: false, error: 'Usuario no encontrado.' };
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -104,12 +105,31 @@ export async function updateProfile(userId: string, fullName: string) {
         return { success: false, error: 'El nombre debe tener al menos 2 caracteres.' };
     }
 
-    const { error } = await legacySupabase
+    const supabase = await createClient();
+
+    // Verify the user has a valid Supabase Auth session (not just the fallback cookie)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user || user.id !== userId) {
+        return { 
+            success: false, 
+            error: 'Sesión obsoleta. Por favor, CIERRA SESIÓN y vuelve a entrar para guardar los cambios.' 
+        };
+    }
+
+    const { data, error } = await supabase
         .from('users')
         .update({ full_name: fullName.trim() })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select()
+        .single();
 
-    if (error) return { success: false, error: 'Error al actualizar el perfil.' };
+    if (error || !data) {
+        console.error("Update profile error:", error);
+        return { success: false, error: 'Error al actualizar el perfil.' };
+    }
+
+    revalidatePath('/dashboard/profile');
+    revalidatePath('/dashboard');
 
     return { success: true };
 }

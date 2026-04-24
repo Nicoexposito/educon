@@ -54,7 +54,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                     <div className="mt-6 flex flex-wrap gap-4">
                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700">
                              <Calendar className="w-4 h-4 text-indigo-500" />
-                             Cierra el {dueDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                             <span suppressHydrationWarning>Cierra el {dueDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</span>
                          </div>
                     </div>
                 </div>
@@ -160,7 +160,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-zinc-500 text-xs font-medium">
-                                        {sub?.submitted_at ? new Date(sub.submitted_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' }) : '-'}
+                                        <span suppressHydrationWarning>{sub?.submitted_at ? new Date(sub.submitted_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' }) : '-'}</span>
                                     </td>
                                     <td className="px-6 py-4 font-bold text-zinc-900 dark:text-zinc-100">
                                         {isGraded ? <span className={sub.grade >= 5 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>{sub.grade}/10</span> : '-'}
