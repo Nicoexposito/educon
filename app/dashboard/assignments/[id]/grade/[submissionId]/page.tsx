@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { supabase as legacySupabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import GradeSubmissionForm from "@/components/dashboard/shared/GradeSubmissionForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -13,9 +13,10 @@ export default async function GradeSubmissionPage({ params }: { params: { id: st
     }
 
     const { id, submissionId } = await params;
+    const supabase = await createClient();
 
     // Fetch submission with student and assignment details
-    const { data: submission, error } = await legacySupabase
+    const { data: submission, error } = await supabase
         .from('submissions')
         .select(`
             *,

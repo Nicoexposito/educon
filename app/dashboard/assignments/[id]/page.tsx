@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { supabase as legacySupabase } from "@/lib/supabase";
+
 import StudentAssignmentView from "@/components/dashboard/shared/StudentAssignmentView";
 import TeacherAssignmentView from "@/components/dashboard/shared/TeacherAssignmentView";
 import Link from "next/link";
@@ -35,14 +35,14 @@ export default async function AssignmentPage({ params }: { params: { id: string 
 
     if (session.role === 'teacher') {
         // Fetch all students in the subject and their submissions
-        const { data: enrollments } = await legacySupabase
+        const { data: enrollments } = await supabase
             .from('enrollments')
             .select('student:users(id, full_name, email, avatar_url)')
             .eq('subject_id', assignment.subject_id);
 
         const students = enrollments?.map((e: any) => e.student).filter(Boolean) || [];
 
-        const { data: submissions } = await legacySupabase
+        const { data: submissions } = await supabase
             .from('submissions')
             .select('*')
             .eq('assignment_id', assignment.id);
@@ -68,7 +68,7 @@ export default async function AssignmentPage({ params }: { params: { id: string 
         );
     } else {
         // Fetch student's submission
-        const { data: submission } = await legacySupabase
+        const { data: submission } = await supabase
             .from('submissions')
             .select('*')
             .eq('assignment_id', assignment.id)
