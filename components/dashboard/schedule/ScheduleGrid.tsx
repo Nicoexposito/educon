@@ -2,11 +2,114 @@
 
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export function ScheduleGrid({ subjects, events, assignments }: { subjects: any[], events: any[], assignments: any[] }) {
-    const [selectedSlot, setSelectedSlot] = useState<{ day: string, subject: any, timeId: string } | null>(null);
+    const [selectedSlot, setSelectedSlot] = useState<{ day: string, subject: any, timeId: string, fullDate: Date } | null>(null);
+    const [weekOffset, setWeekOffset] = useState(0);
 
     const days = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
+
+    const getWeekDateRange = (offset: number) => {
+        if (offset === 0) return "Semana Actual";
+        const today = new Date();
+        const day = today.getDay() || 7; 
+        const mondayStr = new Date(today);
+        mondayStr.setDate(today.getDate() - day + 1 + (offset * 7));
+        
+        const sundayStr = new Date(mondayStr);
+        sundayStr.setDate(mondayStr.getDate() + 6);
+
+        const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+        return `${mondayStr.toLocaleDateString('es-ES', options)} - ${sundayStr.toLocaleDateString('es-ES', options)}`;
+    };
+
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedDate = new Date(e.target.value);
+        if (!isNaN(selectedDate.getTime())) {
+            const today = new Date();
+            const getMonday = (d: Date) => {
+                const day = d.getDay() || 7;
+                const result = new Date(d);
+                result.setDate(d.getDate() - day + 1);
+                result.setHours(0, 0, 0, 0);
+                return result;
+            };
+            const todayMonday = getMonday(today);
+            const selectedMonday = getMonday(selectedDate);
+            const diffTime = selectedMonday.getTime() - todayMonday.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            setWeekOffset(Math.round(diffDays / 7));
+        }
+    };
+
+    const checkDayStatus = (date: Date) => {
+        const month = date.getMonth() + 1; // 1 to 12
+        const day = date.getDate();
+
+        // Vacaciones de verano (aprox 22 de Junio a 12 de Septiembre)
+        if (
+            (month === 6 && day >= 22) ||
+            month === 7 ||
+            month === 8 ||
+            (month === 9 && day <= 12)
+        ) {
+            return { isHoliday: true, name: "Vacaciones de Verano" };
+        }
+
+        // Vacaciones de Navidad (aprox 22 de Diciembre a 7 de Enero)
+        if (
+            (month === 12 && day >= 22) ||
+            (month === 1 && day <= 7)
+        ) {
+            return { isHoliday: true, name: "Vacaciones de Navidad" };
+        }
+
+        // Festivos de Cataluña (Fechas fijas)
+        const fixedHolidays = [
+            { m: 1, d: 1, name: "Año Nuevo" },
+            { m: 1, d: 6, name: "Reyes" },
+            { m: 5, d: 1, name: "Día del Trabajador" },
+            { m: 6, d: 24, name: "Sant Joan" },
+            { m: 8, d: 15, name: "Asunción" },
+            { m: 9, d: 11, name: "La Diada" },
+            { m: 10, d: 12, name: "Día de la Hispanidad" },
+            { m: 11, d: 1, name: "Tots Sants" },
+            { m: 12, d: 6, name: "Día de la Constitución" },
+            { m: 12, d: 8, name: "Inmaculada" },
+            { m: 12, d: 25, name: "Nadal" },
+            { m: 12, d: 26, name: "Sant Esteve" },
+        ];
+        
+        const holiday = fixedHolidays.find(h => h.m === month && h.d === day);
+        if (holiday) {
+            return { isHoliday: true, name: holiday.name };
+        }
+
+        return { isHoliday: false, name: "" };
+    };
+
+    const getDaysWithDates = () => {
+        const today = new Date();
+        const day = today.getDay() || 7;
+        const mondayStr = new Date(today);
+        mondayStr.setDate(today.getDate() - day + 1 + (weekOffset * 7));
+        
+        return days.map((dayName, index) => {
+            const dateStr = new Date(mondayStr);
+            dateStr.setDate(mondayStr.getDate() + index);
+            const status = checkDayStatus(dateStr);
+            return {
+                name: dayName,
+                date: dateStr.getDate(),
+                fullDate: dateStr,
+                isToday: dateStr.toDateString() === today.toDateString(),
+                status
+            };
+        });
+    };
+    
+    const daysWithDates = getDaysWithDates();
     const timeSlots = [
         { time: '08:00 - 09:00', id: '08:00' },
         { time: '09:00 - 10:00', id: '09:00' },
@@ -28,10 +131,16 @@ export function ScheduleGrid({ subjects, events, assignments }: { subjects: any[
     };
 
     // Filter assignments/events by selected subject if one is selected
-    const getSubjectDetails = (subjObj: any) => {
+    const getSubjectDetails = (subjObj: any, selectedDate: Date) => {
         // In a completely real app, we'd filter by checking if assignment.subject_id === subjObj.id
         // Here we do that if the subject is real
-        const relatedAssignments = assignments.filter(a => a.subject_id === subjObj.id || a.subject?.name === subjObj.name);
+        const relatedAssignments = assignments.filter(a => {
+            const isMatch = a.subject_id === subjObj.id || a.subject?.name === subjObj.name;
+            if (!isMatch) return false;
+            
+            const dueDate = new Date(a.due_date);
+            return dueDate.toDateString() === selectedDate.toDateString();
+        });
         return relatedAssignments;
     };
 
@@ -42,14 +151,45 @@ export function ScheduleGrid({ subjects, events, assignments }: { subjects: any[
                     <h1 className="text-3xl font-bold tracking-tight mb-2">Horario Escolar</h1>
                     <p className="text-zinc-500">Vista semanal de clases y eventos.</p>
                 </div>
-                <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                    <button className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors">
-                        <ChevronLeft className="w-5 h-5 text-zinc-500" />
-                    </button>
-                    <span className="text-sm font-medium px-2">Semana Actual</span>
-                    <button className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors">
-                        <ChevronRight className="w-5 h-5 text-zinc-500" />
-                    </button>
+                <div className="flex items-center gap-2">
+                    {weekOffset !== 0 && (
+                        <button 
+                            onClick={() => setWeekOffset(0)}
+                            className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 mr-2 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors"
+                        >
+                            Hoy
+                        </button>
+                    )}
+                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                        <button 
+                            onClick={() => setWeekOffset(prev => prev - 1)}
+                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+                            title="Semana anterior"
+                        >
+                            <ChevronLeft className="w-5 h-5 text-zinc-500" />
+                        </button>
+                        <span className="text-sm font-medium px-2 min-w-[120px] text-center" suppressHydrationWarning>
+                            {getWeekDateRange(weekOffset)}
+                        </span>
+                        <button 
+                            onClick={() => setWeekOffset(prev => prev + 1)}
+                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+                            title="Semana siguiente"
+                        >
+                            <ChevronRight className="w-5 h-5 text-zinc-500" />
+                        </button>
+                        <div className="relative flex items-center border-l border-zinc-200 dark:border-zinc-800 pl-1 ml-1">
+                            <input 
+                                type="date" 
+                                onChange={handleDateChange}
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                                title="Seleccionar fecha"
+                            />
+                            <button className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors pointer-events-none">
+                                <CalendarIcon className="w-5 h-5 text-zinc-500" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -59,9 +199,19 @@ export function ScheduleGrid({ subjects, events, assignments }: { subjects: any[
                         <div className="p-4 text-center text-xs font-semibold text-zinc-400 uppercase flex items-center justify-center border-r border-zinc-200 dark:border-zinc-800">
                             Hora
                         </div>
-                        {days.map(day => (
-                            <div key={day} className="p-4 text-center text-sm font-bold text-zinc-700 dark:text-zinc-300 border-r border-zinc-200 dark:border-zinc-800 last:border-r-0">
-                                {day}
+                        {daysWithDates.map(dayObj => (
+                            <div key={dayObj.name} className={`p-4 text-center flex flex-col items-center justify-center border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 ${dayObj.status.isHoliday ? 'bg-red-50/50 dark:bg-red-900/10' : dayObj.isToday ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}>
+                                <span className={`text-sm font-bold ${dayObj.status.isHoliday ? 'text-red-700 dark:text-red-400' : dayObj.isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
+                                    {dayObj.name}
+                                </span>
+                                <span className={`text-xs mt-0.5 ${dayObj.status.isHoliday ? 'text-red-500/80 dark:text-red-500/60 font-medium' : dayObj.isToday ? 'text-indigo-500 dark:text-indigo-400 font-medium' : 'text-zinc-400'}`} suppressHydrationWarning>
+                                    {dayObj.date}
+                                </span>
+                                {dayObj.status.isHoliday && (
+                                    <span className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1 uppercase tracking-wider text-center leading-tight">
+                                        Festivo
+                                    </span>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -88,21 +238,52 @@ export function ScheduleGrid({ subjects, events, assignments }: { subjects: any[
                                     <div className="p-4 text-center text-xs text-zinc-500 font-medium border-r border-zinc-200 dark:border-zinc-800 flex items-center justify-center bg-zinc-50/50 dark:bg-zinc-900/10">
                                         {slot.time}
                                     </div>
-                                    {days.map((day) => {
-                                        const actualSubject = findSubjectForSlot(day, slot.id);
+                                    {daysWithDates.map((dayObj) => {
+                                        const day = dayObj.name;
 
+                                        if (dayObj.status.isHoliday) {
+                                            return (
+                                                <div key={day} className="border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 p-2 relative bg-red-50/30 dark:bg-red-900/5 flex items-center justify-center overflow-hidden">
+                                                    <span className="text-red-400/60 dark:text-red-500/30 text-[10px] font-bold uppercase tracking-widest text-center leading-tight">
+                                                        {dayObj.status.name}
+                                                    </span>
+                                                </div>
+                                            );
+                                        }
+
+                                        const actualSubject = findSubjectForSlot(day, slot.id);
                                         const isSelected = selectedSlot?.day === day && selectedSlot?.timeId === slot.id;
 
+                                        let hasDeliveries = false;
+                                        if (actualSubject) {
+                                            hasDeliveries = assignments.some(a => {
+                                                if (a.subject_id !== actualSubject.id && a.subject?.name !== actualSubject.name) return false;
+                                                const dueDate = new Date(a.due_date);
+                                                return dueDate.toDateString() === dayObj.fullDate.toDateString();
+                                            });
+                                        }
+
                                         return (
-                                            <div key={day} className="border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 p-1 relative">
+                                            <div key={day} className={`border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 p-1 relative ${dayObj.isToday ? 'bg-indigo-50/10 dark:bg-indigo-900/5' : ''}`}>
                                                 {actualSubject ? (
                                                     <div 
-                                                        onClick={() => setSelectedSlot({ day, subject: actualSubject, timeId: slot.id })}
-                                                        className={`h-full w-full rounded-lg p-2 flex flex-col justify-center items-center text-center transition-all cursor-pointer select-none ${isSelected ? 'ring-2 ring-indigo-500 bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800' : 'bg-indigo-50/50 hover:bg-indigo-100/50  dark:bg-indigo-950/20 dark:hover:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-900/50 hover:border-indigo-200 dark:hover:border-indigo-800'} `}
+                                                        onClick={() => setSelectedSlot({ day, subject: actualSubject, timeId: slot.id, fullDate: dayObj.fullDate })}
+                                                        className={`h-full w-full rounded-lg p-2 flex flex-col justify-center items-center text-center transition-all cursor-pointer select-none 
+                                                        ${isSelected 
+                                                            ? 'ring-2 ring-indigo-500 bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800' 
+                                                            : hasDeliveries 
+                                                                ? 'bg-orange-100/80 hover:bg-orange-200/80 dark:bg-orange-900/40 dark:hover:bg-orange-800/50 border border-orange-200 dark:border-orange-800 shadow-sm'
+                                                                : 'bg-indigo-50/50 hover:bg-indigo-100/50 dark:bg-indigo-950/20 dark:hover:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-900/50 hover:border-indigo-200 dark:hover:border-indigo-800'} 
+                                                        `}
                                                     >
-                                                        <div className={`font-bold text-xs ${isSelected ? 'text-indigo-900 dark:text-indigo-200' : 'text-indigo-700 dark:text-indigo-300'}`}>
+                                                        <div className={`font-bold text-xs ${isSelected ? 'text-indigo-900 dark:text-indigo-200' : hasDeliveries ? 'text-orange-900 dark:text-orange-200' : 'text-indigo-700 dark:text-indigo-300'}`}>
                                                             {actualSubject.name}
                                                         </div>
+                                                        {hasDeliveries && (
+                                                            <div className="mt-1 flex items-center justify-center">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ) : null}
                                             </div>
@@ -140,14 +321,14 @@ export function ScheduleGrid({ subjects, events, assignments }: { subjects: any[
                                     Tareas Relacionadas
                                 </h4>
                                 <div className="space-y-3">
-                                    {getSubjectDetails(selectedSlot.subject).length > 0 ? (
-                                        getSubjectDetails(selectedSlot.subject).map((task: any, idx: number) => {
+                                    {getSubjectDetails(selectedSlot.subject, selectedSlot.fullDate).length > 0 ? (
+                                        getSubjectDetails(selectedSlot.subject, selectedSlot.fullDate).map((task: any, idx: number) => {
                                             const isDelivered = task.status === 'submitted' || task.status === 'entregado';
                                             const isDelayed = new Date(task.due_date) < new Date() && !isDelivered;
 
                                             return (
-                                                <div key={idx} className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                                                    <p className="font-medium text-sm mb-1">{task.title}</p>
+                                                <Link href={`/dashboard/assignments/${task.id}`} key={idx} className="block p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group">
+                                                    <p className="font-medium text-sm mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{task.title}</p>
                                                     <div className="flex items-center justify-between mt-2">
                                                         <span className="text-xs text-zinc-500">
                                                             Vence: {new Date(task.due_date).toLocaleDateString()}
@@ -167,11 +348,11 @@ export function ScheduleGrid({ subjects, events, assignments }: { subjects: any[
                                                             </span>
                                                         )}
                                                     </div>
-                                                </div>
+                                                </Link>
                                             )
                                         })
                                     ) : (
-                                        <p className="text-sm text-zinc-500 italic">No hay tareas para esta asignatura.</p>
+                                        <p className="text-sm text-zinc-500 italic">No entrega nada ese dia.</p>
                                     )}
                                 </div>
                             </div>
