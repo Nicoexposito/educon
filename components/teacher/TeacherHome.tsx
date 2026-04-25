@@ -9,8 +9,11 @@ import { RecentActivityLevel } from "@/components/teacher/RecentActivityLevel";
 import { TodayClasses } from "@/components/teacher/TodayClasses";
 import { CurrentClassWidget } from "@/components/dashboard/shared/CurrentClassWidget";
 import { AssignmentsListWidget } from "@/components/dashboard/shared/AssignmentsListWidget";
+import { useTeacherDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
 
-export default function TeacherHome({ data }: { data: any }) {
+export default function TeacherHome({ data: initialData }: { data: any }) {
+    const data = useTeacherDashboardRealtime(initialData);
+    
     const subjects = data?.subjects || [];
     const stats = data?.stats;
     const profile = data?.profile;

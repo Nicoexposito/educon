@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { ClientLayoutWrapper } from "./ClientLayoutWrapper";
 import { supabase } from "@/lib/supabase";
+import { NotificationListener } from "@/components/notifications/NotificationListener";
 
 export default async function DashboardLayout({
   children,
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
 
     return (
         <ClientLayoutWrapper session={session} profile={profile}>
+            <NotificationListener userId={session.userId as string} />
             {children}
         </ClientLayoutWrapper>
     );

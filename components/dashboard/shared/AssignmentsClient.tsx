@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
     FileText, Plus, ArrowUpDown, ArrowUp, ArrowDown,
     CheckCircle2, Clock, AlertCircle, RotateCcw, Filter
 } from "lucide-react";
+import { useRealtimeTable } from "@/lib/hooks/useRealtimeTable";
+import { createClient } from "@/lib/supabase/client";
 
 type SortKey = "title" | "subject" | "due_date" | "status";
 type SortDir = "asc" | "desc";
@@ -56,17 +58,77 @@ function getAssignmentStatusForTab(assignment: any, role: string): TabKey {
             return "not_submitted"; // Pestaña "Sin entregar" (Vencida definitivamente)
         }
 
-        // Si no ha pasado el límite total, sigue en "Por entregar"
-        // (Aunque el badge saldrá en rojo si ya pasó la dueDate original)
         return "pending"; 
     }
 }
 
-export default function AssignmentsClient({ assignments, role, userId, subjects }: AssignmentsClientProps) {
+export default function AssignmentsClient({ assignments: initialAssignments, role, userId, subjects }: AssignmentsClientProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabKey>("pending");
     const [sortKey, setSortKey] = useState<SortKey>("due_date");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
+    
+    // Realtime state
+    const [assignments, setAssignments] = useState(initialAssignments);
+    const supabase = createClient();
+
+    useEffect(() => {
+        setAssignments(initialAssignments);
+    }, [initialAssignments]);
+
+    useEffect(() => {
+        // Listen for new assignments
+        const assignmentsChannel = supabase.channel('realtime:assignments_client')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, (payload) => {
+                if (payload.eventType === 'INSERT') {
+                    setAssignments(prev => {
+                        if (prev.some(a => a.id === payload.new.id)) return prev;
+                        // For a new assignment, we don't have the subject join, so this is a simplified approach.
+                        // In a real robust implementation, we might fetch the specific relation or invalidate cache.
+                        return [...prev, { ...payload.new, subject: subjects.find(s => s.id === payload.new.subject_id), submissions: [] }];
+                    });
+                } else if (payload.eventType === 'UPDATE') {
+                    setAssignments(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a));
+                } else if (payload.eventType === 'DELETE') {
+                    setAssignments(prev => prev.filter(a => a.id !== payload.old.id));
+                }
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, (payload) => {
+                // When a submission happens, update the assignment's submissions list
+                if (role === 'teacher') {
+                    setAssignments(prev => prev.map(a => {
+                        if (a.id === payload.new.assignment_id || (payload.old && a.id === payload.old.assignment_id)) {
+                            const submissions = a.submissions ? [...a.submissions] : [];
+                            if (payload.eventType === 'INSERT') {
+                                if (!submissions.some((s: any) => s.id === payload.new.id)) submissions.push(payload.new);
+                            } else if (payload.eventType === 'UPDATE') {
+                                const idx = submissions.findIndex((s: any) => s.id === payload.new.id);
+                                if (idx > -1) submissions[idx] = { ...submissions[idx], ...payload.new };
+                            }
+                            return { ...a, submissions };
+                        }
+                        return a;
+                    }));
+                } else {
+                    // For student, update status
+                    setAssignments(prev => prev.map(a => {
+                        if (a.id === payload.new.assignment_id) {
+                            return { 
+                                ...a, 
+                                status: payload.new.grade !== null ? 'graded' : 'submitted',
+                                grade: payload.new.grade
+                            };
+                        }
+                        return a;
+                    }));
+                }
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(assignmentsChannel);
+        };
+    }, [supabase, subjects, role]);
 
     const tabs = role === "teacher" ? TEACHER_TABS : STUDENT_TABS;
 
