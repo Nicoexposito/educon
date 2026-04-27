@@ -85,7 +85,7 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {[
-                                { label: 'Crear Evento', href: '/dashboard/events' },
+                                { label: 'Crear Evento', href: '/dashboard/events/new' },
                                 { label: 'Subir Notas', href: '/dashboard/subjects' },
                             ].map(({ label, href }) => (
                                 <Link

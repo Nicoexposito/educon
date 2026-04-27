@@ -20,6 +20,7 @@ export async function getDashboardData(userId: string, role: string) {
         const { data: events } = await supabase
             .from('events')
             .select('*')
+            .gte('end_time', new Date().toISOString())
             .order('start_time', { ascending: true })
             .limit(5);
 
@@ -69,6 +70,7 @@ export async function getDashboardData(userId: string, role: string) {
         const { data: events } = await supabase
             .from('events')
             .select('*')
+            .gte('end_time', new Date().toISOString())
             .order('start_time', { ascending: true })
             .limit(5);
 
