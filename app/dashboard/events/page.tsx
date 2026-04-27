@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/session";
 import { getAllEvents } from "@/app/actions/events";
 import { redirect } from "next/navigation";
+import { EventsClient } from "./EventsClient";
 import { Calendar, MapPin, ArrowRight, Pencil } from "lucide-react";
 import Link from "next/link";
 
@@ -8,7 +9,11 @@ export default async function EventsPage() {
     const session = await getSession();
     if (!session) redirect('/');
 
-    const events = await getAllEvents();
+    if (!session) {
+        redirect('/');
+    }
+
+    const { events } = await getDashboardData(session.userId as string, session.role as string);
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-8 max-w-7xl mx-auto">
@@ -27,6 +32,7 @@ export default async function EventsPage() {
                 )}
             </div>
 
+            <EventsClient initialEvents={events || []} />
             {events.length === 0 && (
                 <div className="flex flex-col items-center justify-center text-center py-24 text-zinc-400">
                     <Calendar className="w-16 h-16 mb-4 opacity-30" />

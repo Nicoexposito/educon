@@ -7,8 +7,11 @@ import { CurrentClassWidget } from "@/components/dashboard/shared/CurrentClassWi
 import { AssignmentsListWidget } from "@/components/dashboard/shared/AssignmentsListWidget";
 import Link from "next/link";
 import { Upload } from "lucide-react";
+import { useStudentDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
 
-export default function StudentHome({ data }: { data: any }) {
+export default function StudentHome({ data: initialData }: { data: any }) {
+    const data = useStudentDashboardRealtime(initialData);
+    
     const subjects = data?.subjects || [];
     const stats = data?.stats || { assignmentsPending: 0, avgGrade: "0.0" };
     const profile = data?.profile;
