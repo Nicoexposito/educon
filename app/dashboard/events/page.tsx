@@ -1,7 +1,6 @@
 import { getSession } from "@/lib/session";
-import { getAllEvents } from "@/app/actions/events";
+import { getDashboardData } from "@/lib/data-service";
 import { redirect } from "next/navigation";
-import { EventsClient } from "./EventsClient";
 import { Calendar, MapPin, ArrowRight, Pencil } from "lucide-react";
 import Link from "next/link";
 
@@ -32,7 +31,6 @@ export default async function EventsPage() {
                 )}
             </div>
 
-            <EventsClient initialEvents={events || []} />
             {events.length === 0 && (
                 <div className="flex flex-col items-center justify-center text-center py-24 text-zinc-400">
                     <Calendar className="w-16 h-16 mb-4 opacity-30" />
@@ -49,8 +47,14 @@ export default async function EventsPage() {
                 {events.map((evt: any) => {
                     const isOwner = session.role === 'teacher' && evt.created_by === session.userId;
                     return (
-                        <div key={evt.id} className="group bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg transition-all hover:border-indigo-200 dark:hover:border-indigo-800 flex flex-col">
-                            {/* Image or placeholder */}
+                        <Link
+                            key={evt.id}
+                            href={`/dashboard/events/${evt.id}`}
+                            className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
+                            title="Ver detalles"
+                        >
+                            <div className="group bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg transition-all hover:border-indigo-200 dark:hover:border-indigo-800 flex flex-col">
+                                {/* Image or placeholder */}
                             {evt.image_url ? (
                                 <div
                                     className="h-44 bg-cover bg-center relative"
@@ -103,24 +107,15 @@ export default async function EventsPage() {
                                         <MapPin className="w-4 h-4 shrink-0" />
                                         <span className="truncate">{evt.location || "Por confirmar"}</span>
                                     </div>
-                                    <Link
-                                        href={`/dashboard/events/${evt.id}`}
-                                        className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
-                                        title="Ver detalles"
-                                    >
+                                    
                                         <ArrowRight className="w-5 h-5 text-zinc-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
-                                    </Link>
+                                    
                                 </div>
                             </div>
-                        </div>
+                        </div></Link>
                     );
                 })}
 
-                {/* Placeholder trailing card */}
-                <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 flex flex-col items-center justify-center text-center text-zinc-400 min-h-[300px]">
-                    <Calendar className="w-10 h-10 mb-4 opacity-40" />
-                    <p className="font-medium">Más eventos próximamente</p>
-                </div>
             </div>
         </div>
     );

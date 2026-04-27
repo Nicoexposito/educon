@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
 import { useRealtimeTable } from '@/lib/hooks/useRealtimeTable';
-
+import Link from 'next/link';
 export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents, assignments: initialAssignments }: { subjects: any[], events: any[], assignments: any[] }) {
     const { data: subjects } = useRealtimeTable({ table: 'subjects', initialData: initialSubjects });
     const { data: events } = useRealtimeTable({ table: 'events', initialData: initialEvents });
     const { data: assignments } = useRealtimeTable({ table: 'assignments', initialData: initialAssignments });
-    
-    const [selectedSlot, setSelectedSlot] = useState<{ day: string, subject: any, timeId: string } | null>(null);
+        const [weekOffset, setWeekOffset] = useState(0);
+    const [selectedSlot, setSelectedSlot] = useState<{ day: string, subject: any, timeId: string, fullDate: Date } | null>(null);
 
     const days = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
 

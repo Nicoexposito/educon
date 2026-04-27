@@ -106,9 +106,10 @@ export function useRealtimeTable<T extends Record<string, any>>({
   }, [table, filter, schema, pk, supabase]);
 
   // Actualiza los datos internos si initialData cambia drásticamente desde SSR
+  const initialDataStr = JSON.stringify(initialData);
   useEffect(() => {
     setData(initialData);
-  }, [initialData]);
+  }, [initialDataStr]);
 
   return { data, isConnected, error };
 }
