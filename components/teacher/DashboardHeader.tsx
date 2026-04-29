@@ -70,16 +70,16 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
     };
 
     return (
-        <header className="h-16 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 px-6 flex items-center justify-between transition-all duration-300">
-            <div className="flex items-center gap-4">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-zinc-200 bg-white/80 px-3 backdrop-blur-md transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900/80 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                  <button onClick={toggleSidebar} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg lg:hidden">
                     <Menu className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
                 </button>
                 <Link href="/dashboard" className="relative h-10 w-10 shrink-0">
                     <Image src="/logo-transparent.png" alt="Educon" fill className="object-contain drop-shadow-sm" sizes="40px" priority />
                 </Link>
-                <div className="flex flex-col">
-                     <span className="font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
+                <div className="flex min-w-0 flex-col">
+                     <span className="truncate font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
                         {role === 'teacher' ? 'Panell del professor' : "Panell de l'alumne"}
                     </span>
                     <span className="text-xs text-zinc-500 hidden sm:block">
@@ -88,7 +88,7 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-4">
                 {/* User info & institute */}
                 <div className="hidden md:flex flex-col items-end">
                     <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">

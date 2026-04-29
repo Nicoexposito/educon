@@ -79,19 +79,19 @@ export function SubjectDetailsClient({
     return (
         <>
             {/* Header */}
-            <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 mb-8 border border-zinc-200 dark:border-zinc-800 relative overflow-hidden shadow-sm">
+            <div className="relative mb-8 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/10 rounded-full -mr-20 -mt-20 blur-3xl opacity-60" />
 
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start">
-                        <div>
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
                              <span className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">
                                 Curs 2024-25
                              </span>
-                            <h1 className="text-4xl font-bold mb-2">{initialSubject.name}</h1>
+                            <h1 className="mb-2 text-3xl font-bold sm:text-4xl">{initialSubject.name}</h1>
                             <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl">{initialSubject.description || "No hi ha cap descripció disponible."}</p>
 
-                            <div className="flex items-center gap-6 mt-6 text-sm font-medium">
+                            <div className="mt-6 grid gap-3 text-sm font-medium sm:grid-cols-3 lg:flex lg:items-center lg:gap-6">
                                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                                     <BookOpen className="w-4 h-4" />
                                     <span>{filteredAssignments.length} Tasques</span>
@@ -108,7 +108,7 @@ export function SubjectDetailsClient({
                         </div>
 
                         {role === 'teacher' && (
-                             <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
+                             <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 sm:w-auto">
                                 <Plus className="w-5 h-5" />
                                 Crear tasca
                             </Link>
@@ -117,12 +117,12 @@ export function SubjectDetailsClient({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
                 {/* Main Column: Content & Assignments */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Assignments */}
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-indigo-600" />
                                 Tasques y Lliuraments
@@ -137,8 +137,8 @@ export function SubjectDetailsClient({
                         <div className="space-y-3">
                             {filteredAssignments.map((assignment: any) => (
                                 <Link href={`/dashboard/assignments/${assignment.id}`} key={assignment.id} className="block group p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-800 bg-zinc-50/50 dark:bg-zinc-800/30 transition-all">
-                                    <div className="flex justify-between items-start">
-                                        <div>
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="min-w-0">
                                             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">{assignment.title}</h3>
                                             <p className="text-sm text-zinc-500 mt-1 line-clamp-1">{assignment.description}</p>
                                         </div>
@@ -156,7 +156,7 @@ export function SubjectDetailsClient({
 
                     {/* Resources */}
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-                         <div className="flex justify-between items-center mb-6">
+                         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <LinkIcon className="w-5 h-5 text-emerald-600" />
                                 Continguts i recursos
@@ -186,13 +186,13 @@ export function SubjectDetailsClient({
                         {resourceMsg && <p className="mb-4 text-sm text-emerald-600 dark:text-emerald-400">{resourceMsg}</p>}
                         <div className="space-y-3">
                              {filteredResources.map((resource: any) => (
-                                <div key={resource.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                                    <div className="flex items-center gap-3">
+                                <div key={resource.id} className="flex items-center justify-between gap-3 rounded-lg p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                                    <div className="flex min-w-0 items-center gap-3">
                                         <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
                                             {resource.type === 'pdf' ? <FileText className="w-5 h-5" /> : <LinkIcon className="w-5 h-5" />}
                                         </div>
-                                        <div>
-                                            <div className="font-medium text-sm">{resource.title}</div>
+                                        <div className="min-w-0">
+                                            <div className="truncate text-sm font-medium">{resource.title}</div>
                                             <div className="text-xs text-zinc-500 capitalize">{resource.type}</div>
                                         </div>
                                     </div>

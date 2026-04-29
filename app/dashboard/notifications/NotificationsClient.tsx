@@ -14,7 +14,7 @@ export function NotificationsClient({ initialNotifications, userId }: { initialN
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end">
+            <div className="flex justify-start sm:justify-end">
                 <button
                     disabled={isPending || sortedNotifications.every((notification) => notification.read)}
                     onClick={() => startTransition(async () => { await markAllNotificationsRead(userId); })}
@@ -28,14 +28,14 @@ export function NotificationsClient({ initialNotifications, userId }: { initialN
                 <div
                     key={notification.id}
                     className={`
-                        p-6 rounded-2xl border transition-all flex gap-4 items-start
+                        rounded-2xl border p-4 transition-all sm:flex sm:items-start sm:gap-4 sm:p-6
                         ${notification.read
                             ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800'
                             : 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30 shadow-sm'}
                     `}
                 >
                     <div className={`
-                        w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                        mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:mb-0
                         ${notification.type === 'success' ? 'bg-emerald-100 text-emerald-600' :
                           notification.type === 'warning' ? 'bg-amber-100 text-amber-600' :
                           notification.type === 'system' ? 'bg-zinc-100 text-zinc-600' :
@@ -47,12 +47,12 @@ export function NotificationsClient({ initialNotifications, userId }: { initialN
                          <Bell className="w-5 h-5" />}
                     </div>
 
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                             <h3 className={`font-semibold ${!notification.read ? 'text-indigo-900 dark:text-indigo-100' : ''}`}>
                                 {notification.type === 'success' ? 'Acció completada' : notification.type === 'warning' ? 'Avís' : notification.type === 'system' ? 'Sistema' : 'Notificació'}
                             </h3>
-                            <span className="text-xs text-zinc-400 whitespace-nowrap ml-4">
+                            <span className="text-xs text-zinc-400 sm:ml-4 sm:whitespace-nowrap">
                                 {formatDateTime(notification.created_at)}
                             </span>
                         </div>
@@ -65,7 +65,7 @@ export function NotificationsClient({ initialNotifications, userId }: { initialN
                         <button
                             disabled={isPending}
                             onClick={() => startTransition(async () => { await markNotificationRead(notification.id); })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 bg-white dark:bg-zinc-900 border border-indigo-100 dark:border-indigo-900/40 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                            className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-indigo-100 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-900/40 dark:bg-zinc-900 dark:hover:bg-indigo-900/20 sm:mt-0"
                         >
                             <CheckCheck className="w-3.5 h-3.5" />
                             Leída

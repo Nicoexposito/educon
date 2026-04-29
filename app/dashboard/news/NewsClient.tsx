@@ -9,18 +9,18 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
     const sortedNews = [...news].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return (
-        <div className="p-8 max-w-7xl mx-auto">
-             <div className="mb-8 flex justify-between items-center">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Notícies i anuncis</h1>
+                    <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">Notícies i anuncis</h1>
                     <p className="text-zinc-500">Últimes novetats del centre educatiu.</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-8">
                 {/* Featured / Hero News */}
                 {sortedNews.length > 0 && (
-                    <div className="md:col-span-2 relative h-96 rounded-3xl overflow-hidden group cursor-pointer shadow-sm hover:shadow-xl transition-shadow">
+                    <div className="group relative h-80 cursor-pointer overflow-hidden rounded-3xl shadow-sm transition-shadow hover:shadow-xl md:col-span-2 md:h-96">
                         <div className="absolute inset-0 bg-zinc-900/40 group-hover:bg-zinc-900/30 transition-colors z-10" />
                         <div className="absolute inset-0 bg-linear-to-t from-zinc-900/90 via-zinc-900/20 to-transparent z-10" />
 
@@ -28,13 +28,13 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
                            <Newspaper className="w-20 h-20 text-indigo-300 opacity-20" />
                         </div>
 
-                        <div className="absolute bottom-0 left-0 p-8 z-20 max-w-3xl">
+                        <div className="absolute bottom-0 left-0 z-20 max-w-3xl p-5 sm:p-8">
                              <div className="flex items-center gap-3 mb-4">
                                 <span className="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Destacado</span>
                                 <span suppressHydrationWarning className="text-zinc-300 text-sm">{formatDate(sortedNews[0].created_at)}</span>
                              </div>
-                             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 group-hover:underline underline-offset-4 decoration-2">{sortedNews[0].title}</h2>
-                             <p className="text-zinc-200 line-clamp-2 md:line-clamp-3 text-lg">{sortedNews[0].content}</p>
+                             <h2 className="mb-4 text-2xl font-bold text-white underline-offset-4 decoration-2 group-hover:underline md:text-4xl">{sortedNews[0].title}</h2>
+                             <p className="line-clamp-2 text-base text-zinc-200 md:line-clamp-3 md:text-lg">{sortedNews[0].content}</p>
                         </div>
                     </div>
                 )}

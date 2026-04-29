@@ -25,13 +25,13 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 sm:p-12">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4 py-6 dark:bg-zinc-950 sm:px-6 lg:px-12">
             <div className="w-full max-w-3xl">
                 <div className="mb-10 text-center sm:text-left">
-                    <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 mb-3">
+                    <h1 className="mb-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
                         Editar esdeveniment
                     </h1>
-                    <p className="text-lg text-zinc-500 dark:text-zinc-400">
+                    <p className="text-base text-zinc-500 dark:text-zinc-400 sm:text-lg">
                         Modifica els detalls de <span className="font-semibold text-zinc-700 dark:text-zinc-300">{event.title}</span>.
                     </p>
                 </div>

@@ -17,10 +17,10 @@ export default async function NotificationsPage() {
         .order('created_at', { ascending: false });
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-8 max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+        <div className="mx-auto min-h-screen max-w-4xl bg-zinc-50 px-4 py-5 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 sm:px-6 lg:px-8 lg:py-8">
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Notificacions</h1>
+                    <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">Notificacions</h1>
                     <p className="text-zinc-500">Estigues al dia de les darreres novetats.</p>
                 </div>
             </div>

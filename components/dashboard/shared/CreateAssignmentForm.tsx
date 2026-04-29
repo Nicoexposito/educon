@@ -58,19 +58,19 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
     return (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/20">
-                <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-5 dark:border-zinc-800 dark:bg-zinc-800/20 sm:px-8 sm:py-6">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <Link href="/dashboard/assignments" className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-500">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <div>
+                    <div className="min-w-0">
                         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Crear tasca nova</h2>
                         <p className="text-sm text-zinc-500">Configura els detalls de l'activitat per als teus alumnes.</p>
                     </div>
                 </div>
             </div>
 
-            <div className="p-8">
+            <div className="p-4 sm:p-8">
                 {msg && (
                     <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${
                         msg.type === "success"

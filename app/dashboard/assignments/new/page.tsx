@@ -14,7 +14,7 @@ export default async function NewAssignmentPage({ searchParams }: { searchParams
     const params = searchParams ? await searchParams : {};
 
     return (
-        <div className="max-w-4xl mx-auto py-8">
+        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
             <CreateAssignmentForm subjects={subjects} teacherId={session.userId as string} initialSubjectId={params?.subject} />
         </div>
     );

@@ -18,14 +18,14 @@ export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any
     }, {});
 
     return (
-        <div className="p-8 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Les meves assignatures</h1>
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Les meves assignatures</h1>
                     <p className="text-zinc-500 mt-2">Gestiona els teus cursos i el contingut acadèmic.</p>
                 </div>
                 {role === 'teacher' && (
-                    <button className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-xl font-medium hover:opacity-90 transition-opacity shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+                    <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 font-medium text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto">
                         <Plus className="w-5 h-5" />
                         Assignatura nova
                     </button>

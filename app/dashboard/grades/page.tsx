@@ -35,11 +35,11 @@ export default async function GradesPage() {
         : "—";
 
     return (
-        <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-6 md:p-8 max-w-6xl mx-auto">
-            <header className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <main className="mx-auto min-h-screen max-w-6xl bg-zinc-50 px-4 py-5 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 sm:px-6 lg:px-8 lg:py-8">
+            <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-2">Finestra de qualificacions</p>
-                    <h1 className="text-3xl font-bold tracking-tight">Notes finals</h1>
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Notes finals</h1>
                     <p className="text-zinc-500 mt-2">Totes les teves notes publicades per assignatura i treballs corregits.</p>
                 </div>
                 <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-6 py-4 shadow-sm">
@@ -48,9 +48,29 @@ export default async function GradesPage() {
                 </div>
             </header>
 
-            <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+            <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                 {allGrades.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <>
+                    <div className="grid gap-3 p-4 md:hidden">
+                        {allGrades.map((grade) => (
+                            <article key={grade.id} className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">{grade.subject}</p>
+                                        <p className="mt-1 line-clamp-2 text-sm text-zinc-500">{grade.title}</p>
+                                    </div>
+                                    <span className={`inline-flex shrink-0 justify-center rounded-full px-3 py-1 text-sm font-bold ${grade.score >= grade.max / 2 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" : "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400"}`}>
+                                        {grade.score}/{grade.max}
+                                    </span>
+                                </div>
+                                {grade.feedback && <p className="mt-3 line-clamp-2 text-xs text-zinc-500">{grade.feedback}</p>}
+                                <p className="mt-3 text-xs font-semibold text-zinc-400">
+                                    {grade.date ? new Date(grade.date).toLocaleDateString("ca-ES") : "—"}
+                                </p>
+                            </article>
+                        ))}
+                    </div>
+                    <div className="hidden overflow-x-auto md:block">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-zinc-50 dark:bg-zinc-800/40 text-zinc-500">
                                 <tr>
@@ -81,6 +101,7 @@ export default async function GradesPage() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 ) : (
                     <div className="p-14 text-center text-zinc-500">
                         <Award className="w-12 h-12 mx-auto mb-3 text-zinc-300" />

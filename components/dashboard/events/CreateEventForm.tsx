@@ -56,14 +56,14 @@ export function CreateEventForm({ subjects }: { subjects: { id: string; name: st
     }
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 sm:p-10 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-zinc-100 dark:border-zinc-800 transition-all">
+        <form onSubmit={handleSubmit} className="rounded-[2rem] border border-zinc-100 bg-white p-5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] transition-all dark:border-zinc-800 dark:bg-zinc-900 sm:p-10">
             {error && (
                 <div className="mb-8 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 rounded-2xl text-sm font-medium">
                     {error}
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
                 {/* Left Column: Form Fields */}
                 <div className="space-y-6">
 
@@ -96,7 +96,7 @@ export function CreateEventForm({ subjects }: { subjects: { id: string; name: st
                     </div>
 
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
                                 <CalendarDays className="w-4 h-4 text-indigo-500" /> Inici
@@ -122,7 +122,7 @@ export function CreateEventForm({ subjects }: { subjects: { id: string; name: st
                     </div>
 
                     {/* Type & Subject */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Tipus</label>
                             <select

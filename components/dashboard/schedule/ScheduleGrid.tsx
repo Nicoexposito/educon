@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
 import { useRealtimeTable } from '@/lib/hooks/useRealtimeTable';
 import Link from 'next/link';
+
 export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents, assignments: initialAssignments }: { subjects: any[], events: any[], assignments: any[] }) {
     const { data: subjects } = useRealtimeTable({ table: 'subjects', initialData: initialSubjects });
     const { data: events } = useRealtimeTable({ table: 'events', initialData: initialEvents });
     const { data: assignments } = useRealtimeTable({ table: 'assignments', initialData: initialAssignments });
-        const [weekOffset, setWeekOffset] = useState(0);
+    const [weekOffset, setWeekOffset] = useState(0);
     const [selectedSlot, setSelectedSlot] = useState<{ day: string, subject: any, timeId: string, fullDate: Date } | null>(null);
 
     const days = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
@@ -147,48 +148,60 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
         return relatedAssignments;
     };
 
+    const hasDeliveriesForSlot = (subject: any, date: Date) => {
+        if (!subject) return false;
+        return assignments.some(a => {
+            if (a.subject_id !== subject.id && a.subject?.name !== subject.name) return false;
+            const dueDate = new Date(a.due_date);
+            return dueDate.toDateString() === date.toDateString();
+        });
+    };
+
+    const selectedTasks = selectedSlot ? getSubjectDetails(selectedSlot.subject, selectedSlot.fullDate) : [];
+    const selectedTimeLabel = selectedSlot ? timeSlots.find(t => t.id === selectedSlot.timeId)?.time || "" : "";
+
     return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Horari Escolar</h1>
-                    <p className="text-zinc-500">Vista setmanal de classes i esdeveniments.</p>
+        <div className="space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Horari Escolar</h1>
+                    <p className="mt-2 text-sm text-zinc-500 sm:text-base">Vista setmanal de classes i esdeveniments.</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                     {weekOffset !== 0 && (
                         <button
                             onClick={() => setWeekOffset(0)}
-                            className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 mr-2 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors"
+                            className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-600 transition-colors hover:text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:text-indigo-300"
                         >
                             Avui
                         </button>
                     )}
-                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                    <div className="flex min-w-0 flex-1 items-center justify-between gap-1 rounded-xl border border-zinc-200 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:flex-none sm:gap-2">
                         <button
                             onClick={() => setWeekOffset(prev => prev - 1)}
-                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+                            className="rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                             title="Setmana anterior"
                         >
                             <ChevronLeft className="w-5 h-5 text-zinc-500" />
                         </button>
-                        <span className="text-sm font-medium px-2 min-w-[120px] text-center" suppressHydrationWarning>
+                        <span className="min-w-0 flex-1 px-2 text-center text-sm font-semibold sm:min-w-[120px]" suppressHydrationWarning>
                             {getWeekDateRange(weekOffset)}
                         </span>
                         <button
                             onClick={() => setWeekOffset(prev => prev + 1)}
-                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+                            className="rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                             title="Setmana següent"
                         >
                             <ChevronRight className="w-5 h-5 text-zinc-500" />
                         </button>
-                        <div className="relative flex items-center border-l border-zinc-200 dark:border-zinc-800 pl-1 ml-1">
+                        <div className="relative ml-1 flex items-center border-l border-zinc-200 pl-1 dark:border-zinc-800">
                             <input
                                 type="date"
                                 onChange={handleDateChange}
                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                                 title="Seleccionar data"
                             />
-                            <button className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors pointer-events-none">
+                            <button className="pointer-events-none rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800">
                                 <CalendarIcon className="w-5 h-5 text-zinc-500" />
                             </button>
                         </div>
@@ -196,7 +209,85 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                 </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6">
+            <div className="grid gap-4 lg:hidden">
+                {daysWithDates.map((dayObj) => (
+                    <section key={dayObj.name} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                        <div className={`flex items-center justify-between border-b border-zinc-100 p-4 dark:border-zinc-800 ${dayObj.status.isHoliday ? 'bg-red-50/70 dark:bg-red-900/10' : dayObj.isToday ? 'bg-indigo-50/70 dark:bg-indigo-900/10' : 'bg-zinc-50 dark:bg-zinc-800/30'}`}>
+                            <div>
+                                <h2 className={`text-base font-black ${dayObj.status.isHoliday ? 'text-red-700 dark:text-red-400' : dayObj.isToday ? 'text-indigo-700 dark:text-indigo-300' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                                    {dayObj.name}
+                                </h2>
+                                <p className="text-sm font-semibold text-zinc-500" suppressHydrationWarning>{dayObj.date}</p>
+                            </div>
+                            {dayObj.status.isHoliday && (
+                                <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-black text-red-700 dark:bg-red-500/10 dark:text-red-400">
+                                    Festiu
+                                </span>
+                            )}
+                            {dayObj.isToday && !dayObj.status.isHoliday && (
+                                <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-black text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
+                                    Avui
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            {timeSlots.map((slot) => {
+                                if (slot.isBreak) {
+                                    return (
+                                        <div key={slot.id} className="flex items-center justify-between bg-zinc-50 px-4 py-3 text-xs font-black uppercase tracking-[0.22em] text-zinc-400 dark:bg-zinc-950/30">
+                                            <span className="tracking-normal">{slot.time}</span>
+                                            <span>{slot.label}</span>
+                                        </div>
+                                    );
+                                }
+
+                                const actualSubject = !dayObj.status.isHoliday ? findSubjectForSlot(dayObj.name, slot.id) : null;
+                                const hasDeliveries = actualSubject ? hasDeliveriesForSlot(actualSubject, dayObj.fullDate) : false;
+                                const isSelected = selectedSlot?.day === dayObj.name && selectedSlot?.timeId === slot.id;
+
+                                return (
+                                    <button
+                                        key={slot.id}
+                                        type="button"
+                                        disabled={!actualSubject}
+                                        onClick={() => actualSubject && setSelectedSlot({ day: dayObj.name, subject: actualSubject, timeId: slot.id, fullDate: dayObj.fullDate })}
+                                        className={`flex w-full items-center gap-4 px-4 py-3 text-left transition ${actualSubject ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/40' : 'cursor-default opacity-60'} ${isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
+                                    >
+                                        <span className="w-24 shrink-0 text-xs font-bold text-zinc-500">{slot.time}</span>
+                                        <span className="min-w-0 flex-1">
+                                            {dayObj.status.isHoliday ? (
+                                                <span className="text-sm font-semibold text-red-400">{dayObj.status.name}</span>
+                                            ) : actualSubject ? (
+                                                <>
+                                                    <span className={`block truncate text-sm font-black ${hasDeliveries ? 'text-orange-800 dark:text-orange-200' : 'text-indigo-800 dark:text-indigo-200'}`}>
+                                                        {actualSubject.name}
+                                                    </span>
+                                                    {hasDeliveries && <span className="mt-0.5 block text-xs font-semibold text-orange-500">Entrega aquest dia</span>}
+                                                </>
+                                            ) : (
+                                                <span className="text-sm text-zinc-400">Sense classe</span>
+                                            )}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
+                ))}
+            </div>
+
+            {selectedSlot && (
+                <SelectedSlotPanel
+                    selectedSlot={selectedSlot}
+                    selectedTimeLabel={selectedTimeLabel}
+                    tasks={selectedTasks}
+                    onClose={() => setSelectedSlot(null)}
+                    className="lg:hidden"
+                />
+            )}
+
+            <div className="hidden flex-col gap-6 lg:flex lg:flex-row">
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm flex-1">
                     <div className="grid grid-cols-6 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/20">
                         <div className="p-4 text-center text-xs font-semibold text-zinc-400 uppercase flex items-center justify-center border-r border-zinc-200 dark:border-zinc-800">
@@ -257,14 +348,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                                         const actualSubject = findSubjectForSlot(day, slot.id);
                                         const isSelected = selectedSlot?.day === day && selectedSlot?.timeId === slot.id;
 
-                                        let hasDeliveries = false;
-                                        if (actualSubject) {
-                                            hasDeliveries = assignments.some(a => {
-                                                if (a.subject_id !== actualSubject.id && a.subject?.name !== actualSubject.name) return false;
-                                                const dueDate = new Date(a.due_date);
-                                                return dueDate.toDateString() === dayObj.fullDate.toDateString();
-                                            });
-                                        }
+                                        const hasDeliveries = hasDeliveriesForSlot(actualSubject, dayObj.fullDate);
 
                                         return (
                                             <div key={day} className={`border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 p-1 relative ${dayObj.isToday ? 'bg-indigo-50/10 dark:bg-indigo-900/5' : ''}`}>
@@ -300,67 +384,13 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
 
                 {/* Side Panel for Selected Subject Details */}
                 {selectedSlot && (
-                    <div className="w-full lg:w-80 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-lg animate-in slide-in-from-right-8 duration-300 shrink-0 self-start sticky top-8">
-                        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-indigo-50 dark:bg-indigo-900/20 flex justify-between items-start">
-                            <div>
-                                <h3 className="font-bold text-lg text-indigo-950 dark:text-indigo-100 leading-tight">
-                                    {selectedSlot.subject.name}
-                                </h3>
-                                <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mt-1">
-                                    {selectedSlot.day} • {timeSlots.find(t => t.id === selectedSlot.timeId)?.time}
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setSelectedSlot(null)}
-                                className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-500"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="p-4 space-y-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
-                            <div>
-                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-zinc-400" />
-                                    Tasques Relacionadas
-                                </h4>
-                                <div className="space-y-3">
-                                    {getSubjectDetails(selectedSlot.subject, selectedSlot.fullDate).length > 0 ? (
-                                        getSubjectDetails(selectedSlot.subject, selectedSlot.fullDate).map((task: any, idx: number) => {
-                                            const isDelivered = task.status === 'submitted' || task.status === 'entregado';
-                                            const isDelayed = new Date(task.due_date) < new Date() && !isDelivered;
-
-                                            return (
-                                                <Link href={`/dashboard/assignments/${task.id}`} key={idx} className="block p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group">
-                                                    <p className="font-medium text-sm mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{task.title}</p>
-                                                    <div className="flex items-center justify-between mt-2">
-                                                        <span className="text-xs text-zinc-500">
-                                                            Vence: {formatDate(task.due_date)}
-                                                        </span>
-                                                        {isDelivered ? (
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
-                                                                Lliurat
-                                                            </span>
-                                                        ) : isDelayed ? (
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                                                <AlertCircle className="w-3 h-3" />
-                                                                Con Retard
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">
-                                                                Pendent
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </Link>
-                                            )
-                                        })
-                                    ) : (
-                                        <p className="text-sm text-zinc-500 italic">No lliura res aquest dia.</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <SelectedSlotPanel
+                        selectedSlot={selectedSlot}
+                        selectedTimeLabel={selectedTimeLabel}
+                        tasks={selectedTasks}
+                        onClose={() => setSelectedSlot(null)}
+                        className="w-80 shrink-0 self-start sticky top-8 animate-in slide-in-from-right-8 duration-300"
+                    />
                 )}
             </div>
 
@@ -381,6 +411,85 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                         </div>
                     ))}
                     {events.length === 0 && <p className="text-zinc-500">No hi ha esdeveniments propers.</p>}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function SelectedSlotPanel({
+    selectedSlot,
+    selectedTimeLabel,
+    tasks,
+    onClose,
+    className = "",
+}: {
+    selectedSlot: { day: string, subject: any, timeId: string, fullDate: Date };
+    selectedTimeLabel: string;
+    tasks: any[];
+    onClose: () => void;
+    className?: string;
+}) {
+    return (
+        <div className={`overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900 ${className}`}>
+            <div className="flex items-start justify-between border-b border-zinc-200 bg-indigo-50 p-4 dark:border-zinc-800 dark:bg-indigo-900/20">
+                <div className="min-w-0">
+                    <h3 className="truncate text-lg font-bold leading-tight text-indigo-950 dark:text-indigo-100">
+                        {selectedSlot.subject.name}
+                    </h3>
+                    <p className="mt-1 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                        {selectedSlot.day} • {selectedTimeLabel}
+                    </p>
+                </div>
+                <button
+                    onClick={onClose}
+                    className="rounded-full p-1 text-zinc-500 transition-colors hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                    aria-label="Tancar detall"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+            <div className="max-h-[calc(100vh-12rem)] space-y-6 overflow-y-auto p-4">
+                <div>
+                    <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                        <Clock className="h-4 w-4 text-zinc-400" />
+                        Tasques relacionades
+                    </h4>
+                    <div className="space-y-3">
+                        {tasks.length > 0 ? (
+                            tasks.map((task: any, idx: number) => {
+                                const isDelivered = task.status === 'submitted' || task.status === 'entregado';
+                                const isDelayed = new Date(task.due_date) < new Date() && !isDelivered;
+
+                                return (
+                                    <Link href={`/dashboard/assignments/${task.id}`} key={task.id || idx} className="group block rounded-xl border border-zinc-100 bg-zinc-50 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800/50 dark:hover:bg-zinc-800/80">
+                                        <p className="mb-1 text-sm font-medium transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{task.title}</p>
+                                        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                            <span className="text-xs text-zinc-500">
+                                                Vence: {formatDate(task.due_date)}
+                                            </span>
+                                            {isDelivered ? (
+                                                <span className="w-fit rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                    Lliurat
+                                                </span>
+                                            ) : isDelayed ? (
+                                                <span className="flex w-fit items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                                                    <AlertCircle className="h-3 w-3" />
+                                                    Amb retard
+                                                </span>
+                                            ) : (
+                                                <span className="w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                    Pendent
+                                                </span>
+                                            )}
+                                        </div>
+                                    </Link>
+                                );
+                            })
+                        ) : (
+                            <p className="text-sm italic text-zinc-500">No hi ha lliuraments aquest dia.</p>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

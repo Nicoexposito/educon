@@ -15,16 +15,16 @@ export default async function EventsPage() {
     const events = await getUpcomingEvents(50);
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-8 max-w-7xl mx-auto">
-            <div className="mb-8 flex justify-between items-center">
+        <div className="mx-auto min-h-screen max-w-7xl bg-zinc-50 px-4 py-5 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 sm:px-6 lg:px-8 lg:py-8">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Esdeveniments y Activitates</h1>
+                    <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">Esdeveniments y Activitates</h1>
                     <p className="text-zinc-500">Estigues al dia del que passa a Educon.</p>
                 </div>
                 {session.role === 'teacher' && (
                     <Link
                         href="/dashboard/events/new"
-                        className="bg-zinc-900 dark:bg-indigo-600 text-white px-4 py-2 rounded-xl font-medium text-sm hover:opacity-90 transition-opacity"
+                        className="inline-flex w-full justify-center rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 dark:bg-indigo-600 sm:w-auto"
                     >
                         + Esdeveniment nou
                     </Link>
