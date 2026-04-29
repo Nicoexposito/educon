@@ -334,7 +334,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                                                     <p className="font-medium text-sm mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{task.title}</p>
                                                     <div className="flex items-center justify-between mt-2">
                                                         <span className="text-xs text-zinc-500">
-                                                            Vence: {new Date(task.due_date).toLocaleDateString()}
+                                                            Vence: {formatDate(task.due_date)}
                                                         </span>
                                                         {isDelivered ? (
                                                             <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
@@ -375,7 +375,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                             <div>
                                 <h3 className="font-semibold">{evt.title}</h3>
                                 <p className="text-xs text-zinc-500 mt-1">
-                                    {new Date(evt.start_time).toLocaleDateString()} at {new Date(evt.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    {formatDateTime(evt.start_time)}
                                 </p>
                             </div>
                         </div>
@@ -385,4 +385,24 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
             </div>
         </div>
     );
+}
+
+function formatDate(value: string) {
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "Europe/Madrid",
+    }).format(new Date(value));
+}
+
+function formatDateTime(value: string) {
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Madrid",
+    }).format(new Date(value));
 }

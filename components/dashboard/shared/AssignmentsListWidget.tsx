@@ -22,7 +22,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                 id: item.id,
                 title: item.assignment?.title || 'Tarea sin título',
                 subtitle: `Por ${item.student?.full_name || 'Estudiante'} • ${item.assignment?.subject?.name || 'Materia'}`,
-                date: new Date(item.submitted_at).toLocaleDateString(),
+                date: formatDate(item.submitted_at),
                 status: 'ungraded',
                 type: 'submission'
             }
@@ -33,7 +33,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                 id: item.id,
                 title: item.title,
                 subtitle: item.subject?.name || 'Asignatura',
-                date: new Date(item.due_date).toLocaleDateString(),
+                date: formatDate(item.due_date),
                 status: isSubmitted ? 'submitted' : 'pending',
                 type: 'assignment'
             }
@@ -70,7 +70,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                                 <p className="text-xs text-zinc-500 truncate mt-0.5">{item.subtitle}</p>
                             </div>
                             <div className="text-right shrink-0">
-                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                <span suppressHydrationWarning className={`text-xs px-2 py-1 rounded-full font-medium ${
                                     item.status === 'submitted' ? 'bg-emerald-50 text-emerald-600' :
                                     item.status === 'ungraded' ? 'bg-amber-50 text-amber-600' :
                                     'bg-zinc-100 text-zinc-600'
@@ -88,4 +88,14 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
             </div>
         </div>
     );
+}
+
+function formatDate(value: string) {
+    if (!value) return "—";
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "Europe/Madrid",
+    }).format(new Date(value));
 }

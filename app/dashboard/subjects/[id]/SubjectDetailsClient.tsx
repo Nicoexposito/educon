@@ -142,8 +142,8 @@ export function SubjectDetailsClient({
                                             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">{assignment.title}</h3>
                                             <p className="text-sm text-zinc-500 mt-1 line-clamp-1">{assignment.description}</p>
                                         </div>
-                                         <span className="text-xs font-medium px-2 py-1 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
-                                            {new Date(assignment.due_date).toLocaleDateString()}
+                                         <span suppressHydrationWarning className="text-xs font-medium px-2 py-1 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                                            {formatDate(assignment.due_date)}
                                          </span>
                                     </div>
                                 </Link>
@@ -291,4 +291,13 @@ export function SubjectDetailsClient({
             </div>
         </>
     );
+}
+
+function formatDate(value: string) {
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "Europe/Madrid",
+    }).format(new Date(value));
 }

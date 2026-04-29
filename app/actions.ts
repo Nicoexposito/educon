@@ -133,3 +133,44 @@ export async function updateProfile(userId: string, fullName: string) {
 
     return { success: true };
 }
+
+export async function updateEmailPreferences(userId: string, emailPreferences: Record<string, boolean>, emailNotifications: boolean) {
+    const supabase = await createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user || user.id !== userId) {
+        return {
+            success: false,
+            error: 'Sesión obsoleta. Por favor, CIERRA SESIÓN y vuelve a entrar para guardar los cambios.'
+        };
+    }
+
+    const { data: currentUser } = await supabase
+        .from('users')
+        .select('preferences')
+        .eq('id', userId)
+        .single();
+
+    const currentPreferences = currentUser?.preferences || {};
+    const nextPreferences = {
+        ...currentPreferences,
+        emailNotifications,
+        email: {
+            ...(currentPreferences.email || {}),
+            ...emailPreferences,
+        },
+    };
+
+    const { error } = await supabase
+        .from('users')
+        .update({ preferences: nextPreferences })
+        .eq('id', userId);
+
+    if (error) {
+        console.error("Update email preferences error:", error);
+        return { success: false, error: 'Error al actualizar las preferencias de correo.' };
+    }
+
+    revalidatePath('/dashboard/profile');
+    return { success: true };
+}

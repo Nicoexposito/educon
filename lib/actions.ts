@@ -1,6 +1,7 @@
 "use server";
 
 import { supabase } from "@/lib/supabase";
+import { processEmailQueue } from "@/lib/email-service";
 import { revalidatePath } from "next/cache";
 
 // --- Assignments ---
@@ -61,6 +62,7 @@ export async function createAssignment(formData: FormData) {
 
     revalidatePath("/dashboard/assignments");
     revalidatePath(`/dashboard/subjects/${subject_id}`);
+    await processEmailQueue({ limit: 25 });
     return { success: true, assignmentId: data?.id };
 }
 
@@ -92,6 +94,7 @@ export async function createAssignmentFull(input: {
 
     revalidatePath("/dashboard/assignments");
     revalidatePath(`/dashboard/subjects/${input.subject_id}`);
+    await processEmailQueue({ limit: 25 });
     return { success: true, assignmentId: data?.id };
 }
 
@@ -157,6 +160,7 @@ export async function submitAssignment(formData: FormData) {
 
     revalidatePath("/dashboard/assignments");
     revalidatePath(`/dashboard/assignments/${assignment_id}`);
+    await processEmailQueue({ limit: 25 });
     return { success: true };
 }
 
@@ -173,6 +177,7 @@ export async function gradeSubmission(submissionId: string, grade: number, feedb
     }
 
     revalidatePath("/dashboard/assignments");
+    await processEmailQueue({ limit: 25 });
     return { success: true };
 }
 
@@ -243,6 +248,7 @@ export async function saveAttendance(subjectId: string, entries: Array<{ student
     revalidatePath(`/dashboard/subjects/${subjectId}`);
     revalidatePath("/dashboard/attendance");
     revalidatePath("/dashboard");
+    await processEmailQueue({ limit: 25 });
     return { success: true };
 }
 

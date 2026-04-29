@@ -106,7 +106,10 @@ export async function getDashboardData(userId: string, role: string) {
             ...e.subject,
             student_count: e.subject?.enrollments?.length || 0,
         })) || [];
-        const subjectIds = subjects.map((subject: any) => subject.id);
+        const studentSubjectIds = subjects.map((subject: any) => subject.id).filter(Boolean);
+        const querySubjectIds = studentSubjectIds.length > 0
+            ? studentSubjectIds
+            : ['00000000-0000-0000-0000-000000000000'];
 
         const { data: events } = await supabase
             .from('events')
@@ -127,7 +130,7 @@ export async function getDashboardData(userId: string, role: string) {
         const { data: assignments } = await supabase
             .from('assignments')
             .select('*, subject:subjects(name)')
-            .in('subject_id', subjectIds.length > 0 ? subjectIds : ['00000000-0000-0000-0000-000000000000'])
+            .in('subject_id', querySubjectIds)
             .gt('due_date', new Date().toISOString())
             .order('due_date', { ascending: true })
             .limit(5);
@@ -135,7 +138,7 @@ export async function getDashboardData(userId: string, role: string) {
         const { data: allFutureAssignments } = await supabase
             .from('assignments')
             .select('id')
-            .in('subject_id', subjectIds.length > 0 ? subjectIds : ['00000000-0000-0000-0000-000000000000'])
+            .in('subject_id', querySubjectIds)
             .gt('due_date', new Date().toISOString());
         const assignmentIds = allFutureAssignments?.map((assignment: any) => assignment.id) || [];
         const { data: currentSubmissions } = assignmentIds.length > 0

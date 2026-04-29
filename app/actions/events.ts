@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
+import { processEmailQueue } from "@/lib/email-service";
 
 async function uploadEventImage(supabase: any, imageFile: File): Promise<string> {
     const fileExt = imageFile.name.split('.').pop();
@@ -68,6 +69,7 @@ export async function createEvent(formData: FormData) {
 
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/events');
+    await processEmailQueue({ limit: 25 });
     return { success: true };
 }
 
@@ -186,4 +188,3 @@ export async function deleteEvent(eventId: string) {
     revalidatePath('/dashboard/events');
     return { success: true };
 }
-

@@ -122,7 +122,7 @@ export default function GradeSubmissionForm({ submission }: GradeSubmissionFormP
                                 <FileText className="w-10 h-10" />
                             </div>
                             <h4 className="font-bold text-zinc-900 dark:text-zinc-100 mb-1">Archivo Enviado</h4>
-                            <p className="text-sm text-zinc-500 mb-4" suppressHydrationWarning>{new Date(submission.submitted_at).toLocaleString()}</p>
+                            <p className="text-sm text-zinc-500 mb-4" suppressHydrationWarning>{formatDateTime(submission.submitted_at)}</p>
                             <a 
                                 href={submission.file_url} 
                                 target="_blank"
@@ -222,4 +222,15 @@ export default function GradeSubmissionForm({ submission }: GradeSubmissionFormP
             </div>
         </div>
     );
+}
+
+function formatDateTime(value: string) {
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Madrid",
+    }).format(new Date(value));
 }

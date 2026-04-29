@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import {
     User, Mail, School, Shield, Lock, LogOut,
     Camera, Star, BookOpen, TrendingUp, CheckCircle2, Award,
-    Eye, EyeOff, Loader2, Check, X, AlertCircle
+    Eye, EyeOff, Loader2, Check, X, AlertCircle, Bell
 } from "lucide-react";
-import { changePassword, updateProfile, logout } from "@/app/actions";
+import { changePassword, updateEmailPreferences, updateProfile, logout } from "@/app/actions";
 
 interface ProfileClientProps {
     user: any;
@@ -36,11 +36,25 @@ function getGradeStatus(grade: number | null): { label: string; style: string } 
 
 export default function ProfileClient({ user, userId, stats, recentGrades }: ProfileClientProps) {
     const router = useRouter();
+    const initialEmailPreferences = {
+        assignment_submitted: user.preferences?.email?.assignment_submitted ?? true,
+        grade_posted: user.preferences?.email?.grade_posted ?? true,
+        attendance_absence: user.preferences?.email?.attendance_absence ?? true,
+        assignment_created: user.preferences?.email?.assignment_created ?? true,
+        event_created: user.preferences?.email?.event_created ?? true,
+        news_created: user.preferences?.email?.news_created ?? true,
+        assignment_due_soon: user.preferences?.email?.assignment_due_soon ?? true,
+        assignment_overdue: user.preferences?.email?.assignment_overdue ?? true,
+    };
 
     // Profile form
     const [fullName, setFullName] = useState(user.full_name || "");
     const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [isPendingProfile, startProfileTransition] = useTransition();
+    const [emailNotifications, setEmailNotifications] = useState(user.preferences?.emailNotifications ?? true);
+    const [emailPrefs, setEmailPrefs] = useState<Record<string, boolean>>(initialEmailPreferences);
+    const [emailMsg, setEmailMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [isPendingEmail, startEmailTransition] = useTransition();
 
     // Password form
     const [currentPwd, setCurrentPwd] = useState("");
@@ -92,11 +106,38 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
         router.push("/");
     };
 
+    const handleEmailPreferenceSave = () => {
+        setEmailMsg(null);
+        startEmailTransition(async () => {
+            const result = await updateEmailPreferences(userId, emailPrefs, emailNotifications);
+            if (result.success) {
+                setEmailMsg({ type: "success", text: "Preferencias de correo actualizadas." });
+                router.refresh();
+            } else {
+                setEmailMsg({ type: "error", text: result.error || "Error desconocido." });
+            }
+        });
+    };
+
+    const toggleEmailPref = (key: string) => {
+        setEmailPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+
     const statCards = [
         { label: "Promedio Global", value: stats.avgGrade, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
         { label: "Asignaturas", value: String(stats.totalSubjects), icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
         { label: "Trabajos Entregados", value: String(stats.submittedAssignments), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
         { label: "Trabajos Pendientes", value: String(stats.pendingAssignments), icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
+    ];
+    const emailPreferenceItems = [
+        { key: "assignment_submitted", label: "Entregas realizadas", description: "Avisar al profesor cuando un alumno entrega una tarea." },
+        { key: "grade_posted", label: "Notas publicadas", description: "Avisar al alumno cuando recibe una calificación." },
+        { key: "attendance_absence", label: "Faltas de asistencia", description: "Avisar cuando se registra una falta." },
+        { key: "assignment_created", label: "Tareas nuevas", description: "Avisar al alumno cuando se publica una tarea." },
+        { key: "event_created", label: "Eventos nuevos", description: "Avisar cuando se publica un evento." },
+        { key: "news_created", label: "Noticias nuevas", description: "Avisar cuando se publica una noticia." },
+        { key: "assignment_due_soon", label: "Tarea termina en 1 hora", description: "Recordatorio si aún no está entregada." },
+        { key: "assignment_overdue", label: "Tarea vencida sin entregar", description: "Avisar cuando vence y sigue pendiente." },
     ];
 
     return (
@@ -366,6 +407,69 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                     Actualizar Contraseña
                                 </button>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Email notifications */}
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+                        <div className="flex items-center justify-between gap-4 mb-6">
+                            <div className="flex items-center gap-2">
+                                <Bell className="w-5 h-5 text-indigo-500" />
+                                <div>
+                                    <h2 className="text-lg font-semibold">Notificaciones por correo</h2>
+                                    <p className="text-sm text-zinc-500">Configura qué avisos quieres recibir en tu email.</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setEmailNotifications((value: boolean) => !value)}
+                                className={`relative h-7 w-12 rounded-full transition-colors ${emailNotifications ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-700"}`}
+                                aria-pressed={emailNotifications}
+                                aria-label="Activar notificaciones por correo"
+                            >
+                                <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${emailNotifications ? "translate-x-6" : "translate-x-1"}`} />
+                            </button>
+                        </div>
+
+                        {emailMsg && (
+                            <div className={`flex items-center gap-2 px-4 py-3 rounded-xl mb-5 text-sm font-medium ${emailMsg.type === "success"
+                                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                : "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400"
+                                }`}>
+                                {emailMsg.type === "success" ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                                {emailMsg.text}
+                            </div>
+                        )}
+
+                        <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${emailNotifications ? "" : "opacity-50"}`}>
+                            {emailPreferenceItems.map((item) => (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    disabled={!emailNotifications}
+                                    onClick={() => toggleEmailPref(item.key)}
+                                    className="flex items-start justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/30 p-4 text-left hover:border-indigo-200 dark:hover:border-indigo-800 disabled:cursor-not-allowed"
+                                >
+                                    <span>
+                                        <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100">{item.label}</span>
+                                        <span className="block text-xs text-zinc-500 mt-1 leading-relaxed">{item.description}</span>
+                                    </span>
+                                    <span className={`mt-0.5 h-5 w-5 rounded-md border flex items-center justify-center shrink-0 ${emailPrefs[item.key] ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700"}`}>
+                                        {emailPrefs[item.key] && <Check className="w-3.5 h-3.5" />}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex justify-end pt-5">
+                            <button
+                                onClick={handleEmailPreferenceSave}
+                                disabled={isPendingEmail}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium shadow-md shadow-indigo-500/20 transition-all active:scale-95"
+                            >
+                                {isPendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                Guardar preferencias
+                            </button>
                         </div>
                     </div>
 

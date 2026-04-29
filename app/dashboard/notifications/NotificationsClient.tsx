@@ -53,7 +53,7 @@ export function NotificationsClient({ initialNotifications, userId }: { initialN
                                 {notification.type === 'success' ? 'Acción completada' : notification.type === 'warning' ? 'Aviso' : notification.type === 'system' ? 'Sistema' : 'Notificación'}
                             </h3>
                             <span className="text-xs text-zinc-400 whitespace-nowrap ml-4">
-                                {new Date(notification.created_at).toLocaleString()}
+                                {formatDateTime(notification.created_at)}
                             </span>
                         </div>
                         <p className="text-zinc-600 dark:text-zinc-400 mt-1 text-sm leading-relaxed">
@@ -78,4 +78,15 @@ export function NotificationsClient({ initialNotifications, userId }: { initialN
             )}
         </div>
     );
+}
+
+function formatDateTime(value: string) {
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Madrid",
+    }).format(new Date(value));
 }

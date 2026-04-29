@@ -72,6 +72,8 @@ export function useRealtimeTable<T extends Record<string, any>>({
       .subscribe((status, err) => {
         if (!isSubscribed) return;
         
+        console.log(`[Realtime ${table}] Cambio de estado:`, status);
+        
         if (status === 'SUBSCRIBED') {
           console.log(`[Realtime ${table}] Conectado exitosamente.`);
           setIsConnected(true);
@@ -84,11 +86,10 @@ export function useRealtimeTable<T extends Record<string, any>>({
         }
 
         if (status === 'CHANNEL_ERROR') {
-          console.error(`[Realtime ${table}] Error de canal:`, err);
+          const errorMessage = err?.message || 'Error de canal desconocido (posiblemente falta habilitar Realtime o permisos RLS)';
+          console.error(`[Realtime ${table}] Error de canal:`, errorMessage, err);
           setIsConnected(false);
-          setError(err || new Error('Error de canal desconocido'));
-          // Implementación básica de retry: el cliente de Supabase intenta reconectarse automáticamente en muchos casos,
-          // pero aquí podríamos añadir lógica adicional si falla completamente.
+          setError(err || new Error(errorMessage));
         }
       });
 

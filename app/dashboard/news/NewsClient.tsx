@@ -31,7 +31,7 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
                         <div className="absolute bottom-0 left-0 p-8 z-20 max-w-3xl">
                              <div className="flex items-center gap-3 mb-4">
                                 <span className="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Destacado</span>
-                                <span className="text-zinc-300 text-sm">{new Date(sortedNews[0].created_at).toLocaleDateString()}</span>
+                                <span suppressHydrationWarning className="text-zinc-300 text-sm">{formatDate(sortedNews[0].created_at)}</span>
                              </div>
                              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 group-hover:underline underline-offset-4 decoration-2">{sortedNews[0].title}</h2>
                              <p className="text-zinc-200 line-clamp-2 md:line-clamp-3 text-lg">{sortedNews[0].content}</p>
@@ -50,7 +50,7 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
                                 <span className="font-medium text-zinc-700 dark:text-zinc-300">Dirección</span>
                              </div>
                              <span>•</span>
-                             <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                             <span suppressHydrationWarning>{formatDate(item.created_at)}</span>
                         </div>
                         
                         <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{item.title}</h3>
@@ -73,4 +73,13 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
             </div>
         </div>
     );
+}
+
+function formatDate(value: string) {
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "Europe/Madrid",
+    }).format(new Date(value));
 }
