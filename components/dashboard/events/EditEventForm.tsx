@@ -35,7 +35,7 @@ export function EditEventForm({ event, subjects }: {
         const formData = new FormData(e.currentTarget);
         const res = await updateEvent(event.id, formData);
         if (!res.success) {
-            setError(res.error || 'Error al actualizar el evento.');
+            setError(res.error || "Error en actualitzar l'esdeveniment.");
             setLoading(false);
         } else {
             setSuccess(true);
@@ -49,8 +49,8 @@ export function EditEventForm({ event, subjects }: {
                 <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="w-10 h-10" />
                 </div>
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">¡Evento Actualizado!</h2>
-                <p className="text-zinc-500">Los cambios han sido guardados correctamente.</p>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">¡Esdeveniment actualitzat!</h2>
+                <p className="text-zinc-500">Els canvis s'han desat correctament.</p>
             </div>
         );
     }
@@ -67,7 +67,7 @@ export function EditEventForm({ event, subjects }: {
                 <div className="space-y-6">
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                            <Type className="w-4 h-4 text-indigo-500" /> Título del Evento
+                            <Type className="w-4 h-4 text-indigo-500" /> Títol de l'esdeveniment
                         </label>
                         <input name="title" required defaultValue={event.title}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium" />
@@ -75,7 +75,7 @@ export function EditEventForm({ event, subjects }: {
 
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                            <AlignLeft className="w-4 h-4 text-indigo-500" /> Descripción
+                            <AlignLeft className="w-4 h-4 text-indigo-500" /> Descripció
                         </label>
                         <textarea name="description" rows={3} defaultValue={event.description || ''}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none" />
@@ -84,14 +84,14 @@ export function EditEventForm({ event, subjects }: {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                                <CalendarDays className="w-4 h-4 text-indigo-500" /> Inicio
+                                <CalendarDays className="w-4 h-4 text-indigo-500" /> Inici
                             </label>
                             <input type="datetime-local" name="start_time" required defaultValue={toDatetimeLocal(event.start_time)}
                                 className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-indigo-500" /> Fin
+                                <Clock className="w-4 h-4 text-indigo-500" /> Fi
                             </label>
                             <input type="datetime-local" name="end_time" required defaultValue={toDatetimeLocal(event.end_time)}
                                 className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
@@ -100,22 +100,22 @@ export function EditEventForm({ event, subjects }: {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Tipo</label>
+                            <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Tipus</label>
                             <select name="type" defaultValue={event.type || 'general'}
                                 className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none">
                                 <option value="general">General</option>
                                 <option value="exam">Examen</option>
-                                <option value="activity">Actividad</option>
+                                <option value="activity">Activitat</option>
                                 <option value="trip">Excursión</option>
                             </select>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                                <BookOpen className="w-4 h-4 text-indigo-500" /> Asignatura
+                                <BookOpen className="w-4 h-4 text-indigo-500" /> Assignatura
                             </label>
                             <select name="subject_id" defaultValue={event.subject_id || ''}
                                 className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none">
-                                <option value="">-- Ninguna --</option>
+                                <option value="">-- Cap --</option>
                                 {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                         </div>
@@ -124,10 +124,10 @@ export function EditEventForm({ event, subjects }: {
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-indigo-500" /> Ubicación / Lugar
+                                <MapPin className="w-4 h-4 text-indigo-500" /> Ubicació / Lloc
                             </label>
                             <input name="location" defaultValue={event.location || ''}
-                                placeholder="Ej. Museo del Prado, Madrid"
+                                placeholder="Ex. Museu del Prado, Madrid"
                                 className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                         </div>
                         <div className="space-y-2">
@@ -136,7 +136,7 @@ export function EditEventForm({ event, subjects }: {
                             </label>
                             <input type="file" accept="image/*" name="image" onChange={handleImageChange}
                                 className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-500/10 dark:file:text-indigo-400" />
-                            <p className="text-xs text-zinc-500">Deja vacío para mantener la foto actual.</p>
+                            <p className="text-xs text-zinc-500">Deixa-ho buit per mantenir la foto actual.</p>
                         </div>
                     </div>
                 </div>
@@ -154,7 +154,7 @@ export function EditEventForm({ event, subjects }: {
                                 </div>
                             )}
                             <div className="p-6">
-                                <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-2 uppercase tracking-wider">Evento Actualizado</div>
+                                <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-2 uppercase tracking-wider">Esdeveniment actualitzat</div>
                                 <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2">{event.title}</h3>
                             </div>
                         </div>
@@ -165,11 +165,11 @@ export function EditEventForm({ event, subjects }: {
             <div className="mt-10 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
                 <button type="button" onClick={() => router.back()}
                     className="px-6 py-4 rounded-xl font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all">
-                    Cancelar
+                    Cancel·lar
                 </button>
                 <button disabled={loading}
                     className="bg-zinc-900 hover:bg-zinc-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 group shadow-xl">
-                    {loading ? 'Guardando...' : 'Guardar Cambios'}
+                    {loading ? 'Desant...' : 'Desar canvis'}
                     {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                 </button>
             </div>

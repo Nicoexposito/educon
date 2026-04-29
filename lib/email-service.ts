@@ -25,7 +25,7 @@ export async function processEmailQueue(options: ProcessEmailQueueOptions = {}) 
             success: false,
             sent: 0,
             failed: 0,
-            error: "Falta configurar RESEND_API_KEY en el entorno.",
+            error: "Cal configurar RESEND_API_KEY a l'entorn.",
         };
     }
 

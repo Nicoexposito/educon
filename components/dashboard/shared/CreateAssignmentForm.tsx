@@ -22,9 +22,9 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!title || !dueDate || !subjectId) {
-            setMsg({ type: "error", text: "Por favor, completa todos los campos obligatorios." });
+            setMsg({ type: "error", text: "Si us plau, completa tots els camps obligatoris." });
             return;
         }
 
@@ -36,7 +36,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
             formData.append("due_date", dueDate);
             formData.append("subject_id", subjectId);
             formData.append("teacher_id", teacherId);
-            
+
             if (allowLate && lateDueDate) {
                 formData.append("late_due_date", lateDueDate);
             }
@@ -47,10 +47,10 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
 
             const result = await createAssignment(formData);
             if (result.success) {
-                setMsg({ type: "success", text: "Tarea creada correctamente." });
+                setMsg({ type: "success", text: "Tasca creada correctament." });
                 setTimeout(() => router.push('/dashboard/assignments'), 1000);
             } else {
-                setMsg({ type: "error", text: result.error || "Error al crear la tarea." });
+                setMsg({ type: "error", text: result.error || "Error en crear la tasca." });
             }
         });
     };
@@ -64,8 +64,8 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div>
-                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Crear Nueva Tarea</h2>
-                        <p className="text-sm text-zinc-500">Configura los detalles de la actividad para tus alumnos.</p>
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Crear tasca nova</h2>
+                        <p className="text-sm text-zinc-500">Configura els detalls de l'activitat per als teus alumnes.</p>
                     </div>
                 </div>
             </div>
@@ -73,8 +73,8 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
             <div className="p-8">
                 {msg && (
                     <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${
-                        msg.type === "success" 
-                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20" 
+                        msg.type === "success"
+                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"
                             : "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-500/20"
                     }`}>
                         {msg.type === "success" ? <CheckCircle2 className="w-5 h-5" /> : <X className="w-5 h-5" />}
@@ -88,17 +88,17 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <FileText className="w-4 h-4" /> Información General
                         </h3>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Asignatura</label>
+                                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Assignatura</label>
                                 <select
                                     value={subjectId}
                                     onChange={(e) => setSubjectId(e.target.value)}
                                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm appearance-none cursor-pointer"
                                     required
                                 >
-                                    <option value="" disabled>Selecciona una asignatura</option>
+                                    <option value="" disabled>Selecciona una assignatura</option>
                                     {subjects.map(s => (
                                         <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
@@ -106,12 +106,12 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Título de la Tarea</label>
+                                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Títol de la tasca</label>
                                 <input
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Ej: Ensayo sobre la Revolución Francesa"
+                                    placeholder="Ex.: Assaig sobre la Revolució Francesa"
                                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm"
                                     required
                                 />
@@ -119,12 +119,12 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Instrucciones / Descripción</label>
+                            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Instruccions / Descripció</label>
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={4}
-                                placeholder="Describe qué deben hacer los alumnos, formato de entrega, etc."
+                                placeholder="Descriu què han de fer els alumnes, el format de lliurament, etc."
                                 className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm resize-none"
                             />
                         </div>
@@ -133,24 +133,24 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                     {/* File Upload Section */}
                     <div className="space-y-4">
                          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                            <Upload className="w-4 h-4" /> Material Adjunto (Opcional)
+                            <Upload className="w-4 h-4" /> Material adjunt (opcional)
                         </h3>
-                        
+
                         <div className="relative group border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 transition-colors overflow-hidden">
-                            <input 
-                                type="file" 
+                            <input
+                                type="file"
                                 onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             />
                             <div className="flex flex-col items-center justify-center p-8 text-center pointer-events-none">
                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${file ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400'}`}>
                                     {file ? <CheckCircle2 className="w-6 h-6" /> : <Upload className="w-6 h-6" />}
                                 </div>
                                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                                    {file ? file.name : "Subir archivo de instrucciones o material"}
+                                    {file ? file.name : "Pujar fitxer d'instruccions o material"}
                                 </h4>
                                 <p className="text-xs text-zinc-500 mt-1">
-                                    {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : "Haz click o arrastra y suelta un PDF, DOC, ZIP (Max 10MB)"}
+                                    {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : "Fes clic o arrossega i deixa anar un PDF, DOC o ZIP (max. 10 MB)"}
                                 </p>
                             </div>
                         </div>
@@ -159,13 +159,13 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                     {/* Dates & Configuration */}
                     <div className="space-y-6 pt-6 border-t border-zinc-100 dark:border-zinc-800">
                         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                            <Settings className="w-4 h-4" /> Configuración de Entrega
+                            <Settings className="w-4 h-4" /> Configuració del lliurament
                         </h3>
 
                         <div className="bg-zinc-50/80 dark:bg-zinc-800/30 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-700/50 space-y-6">
                             <div className="space-y-2">
                                 <label className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                                    <Clock className="w-4 h-4 text-indigo-500" /> Fecha y hora límite principal
+                                    <Clock className="w-4 h-4 text-indigo-500" /> Data i hora límit principal
                                 </label>
                                 <input
                                     type="datetime-local"
@@ -188,13 +188,13 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                                         <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
                                     </div>
                                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
-                                        Permitir entregas con retraso
+                                        Permetre lliuraments amb retard
                                     </span>
                                 </label>
 
                                 {allowLate && (
                                     <div className="mt-4 pl-14 animate-in fade-in slide-in-from-top-2 duration-300">
-                                        <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 block mb-2">Fecha límite definitiva</label>
+                                        <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 block mb-2">Data límit definitiva</label>
                                         <input
                                             type="datetime-local"
                                             value={lateDueDate}
@@ -202,7 +202,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                                             className="w-full md:w-1/2 px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-700/50 bg-amber-50/30 dark:bg-amber-900/10 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all text-sm text-amber-900 dark:text-amber-100"
                                             required={allowLate}
                                         />
-                                        <p className="text-[10px] text-amber-600/80 mt-1.5 ml-1">Pasada la fecha principal, los alumnos verán que entregan con retraso hasta esta fecha definitiva.</p>
+                                        <p className="text-[10px] text-amber-600/80 mt-1.5 ml-1">Passada la data principal, els alumnes veuran que lliuren amb retard fins a aquesta data definitiva.</p>
                                     </div>
                                 )}
                             </div>
@@ -214,7 +214,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                             href="/dashboard/assignments"
                             className="px-6 py-3 rounded-xl font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                         >
-                            Cancelar
+                            Cancel·lar
                         </Link>
                         <button
                             type="submit"
@@ -226,7 +226,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                             ) : (
                                 <Save className="w-5 h-5" />
                             )}
-                            Crear Tarea
+                            Crear tasca
                         </button>
                     </div>
                 </form>

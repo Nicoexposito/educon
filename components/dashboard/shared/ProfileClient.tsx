@@ -27,7 +27,7 @@ interface ProfileClientProps {
 }
 
 function getGradeStatus(grade: number | null): { label: string; style: string } {
-    if (grade === null) return { label: "Pendiente", style: "bg-zinc-100 dark:bg-zinc-800 text-zinc-500" };
+    if (grade === null) return { label: "Pendent", style: "bg-zinc-100 dark:bg-zinc-800 text-zinc-500" };
     if (grade >= 9) return { label: "Excelente", style: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" };
     if (grade >= 7) return { label: "Notable", style: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400" };
     if (grade >= 5) return { label: "Aprobado", style: "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400" };
@@ -70,10 +70,10 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
         startProfileTransition(async () => {
             const result = await updateProfile(userId, fullName);
             if (result.success) {
-                setProfileMsg({ type: "success", text: "Perfil actualizado correctamente." });
+                setProfileMsg({ type: "success", text: "Perfil actualitzat correctament." });
                 router.refresh();
             } else {
-                setProfileMsg({ type: "error", text: result.error || "Error desconocido." });
+                setProfileMsg({ type: "error", text: result.error || "Error desconegut." });
             }
         });
     };
@@ -81,22 +81,22 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
     const handlePasswordChange = () => {
         setPwdMsg(null);
         if (newPwd !== confirmPwd) {
-            setPwdMsg({ type: "error", text: "Las contraseñas no coinciden." });
+            setPwdMsg({ type: "error", text: "Les contrasenyes no coincideixen." });
             return;
         }
         if (newPwd.length < 6) {
-            setPwdMsg({ type: "error", text: "La contraseña debe tener al menos 6 caracteres." });
+            setPwdMsg({ type: "error", text: "La contrasenya ha de tenir com a mínim 6 caràcters." });
             return;
         }
         startPwdTransition(async () => {
             const result = await changePassword(userId, currentPwd, newPwd);
             if (result.success) {
-                setPwdMsg({ type: "success", text: "Contraseña actualizada correctamente." });
+                setPwdMsg({ type: "success", text: "Contrasenya actualitzada correctament." });
                 setCurrentPwd("");
                 setNewPwd("");
                 setConfirmPwd("");
             } else {
-                setPwdMsg({ type: "error", text: result.error || "Error desconocido." });
+                setPwdMsg({ type: "error", text: result.error || "Error desconegut." });
             }
         });
     };
@@ -111,10 +111,10 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
         startEmailTransition(async () => {
             const result = await updateEmailPreferences(userId, emailPrefs, emailNotifications);
             if (result.success) {
-                setEmailMsg({ type: "success", text: "Preferencias de correo actualizadas." });
+                setEmailMsg({ type: "success", text: "Preferències de correu actualitzades." });
                 router.refresh();
             } else {
-                setEmailMsg({ type: "error", text: result.error || "Error desconocido." });
+                setEmailMsg({ type: "error", text: result.error || "Error desconegut." });
             }
         });
     };
@@ -124,20 +124,20 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
     };
 
     const statCards = [
-        { label: "Promedio Global", value: stats.avgGrade, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
-        { label: "Asignaturas", value: String(stats.totalSubjects), icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-        { label: "Trabajos Entregados", value: String(stats.submittedAssignments), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-        { label: "Trabajos Pendientes", value: String(stats.pendingAssignments), icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
+        { label: "Mitjana", value: stats.avgGrade, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
+        { label: "Assignatures", value: String(stats.totalSubjects), icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+        { label: "Treballs lliurats", value: String(stats.submittedAssignments), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+        { label: "Treballs pendents", value: String(stats.pendingAssignments), icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
     ];
     const emailPreferenceItems = [
-        { key: "assignment_submitted", label: "Entregas realizadas", description: "Avisar al profesor cuando un alumno entrega una tarea." },
-        { key: "grade_posted", label: "Notas publicadas", description: "Avisar al alumno cuando recibe una calificación." },
-        { key: "attendance_absence", label: "Faltas de asistencia", description: "Avisar cuando se registra una falta." },
-        { key: "assignment_created", label: "Tareas nuevas", description: "Avisar al alumno cuando se publica una tarea." },
-        { key: "event_created", label: "Eventos nuevos", description: "Avisar cuando se publica un evento." },
-        { key: "news_created", label: "Noticias nuevas", description: "Avisar cuando se publica una noticia." },
-        { key: "assignment_due_soon", label: "Tarea termina en 1 hora", description: "Recordatorio si aún no está entregada." },
-        { key: "assignment_overdue", label: "Tarea vencida sin entregar", description: "Avisar cuando vence y sigue pendiente." },
+        { key: "assignment_submitted", label: "Lliuraments realitzats", description: "Avisar el professor quan un alumne lliura una tasca." },
+        { key: "grade_posted", label: "Notes publicades", description: "Avisar l'alumne quan rep una qualificació." },
+        { key: "attendance_absence", label: "Faltes d'assistència", description: "Avisar quan es registra una falta." },
+        { key: "assignment_created", label: "Tasques noves", description: "Avisar l'alumne quan es publica una tasca." },
+        { key: "event_created", label: "Esdeveniments nous", description: "Avisar quan es publica un esdeveniment." },
+        { key: "news_created", label: "Notícies noves", description: "Avisar quan es publica una notícia." },
+        { key: "assignment_due_soon", label: "La tasca acaba d'aquí a 1 hora", description: "Recordatori si encara no està lliurada." },
+        { key: "assignment_overdue", label: "Tasca vençuda sense lliurar", description: "Avisar quan venç i continua pendent." },
     ];
 
     return (
@@ -145,15 +145,15 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
             {/* Page Header */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Mi Perfil</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400">Gestiona tu información personal y tus credenciales.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">El meu perfil</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400">Gestiona la teva informació personal i les teves credencials.</p>
                 </div>
                 <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 text-rose-600 hover:text-white px-4 py-2 hover:bg-rose-500 rounded-xl transition-all font-medium border border-rose-200 dark:border-rose-900 shadow-sm self-start"
                 >
                     <LogOut className="w-4 h-4" />
-                    Cerrar Sesión
+                    Tancar sessió
                 </button>
             </header>
 
@@ -166,7 +166,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                         <div className="absolute top-0 right-0 p-4">
                             <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 capitalize">
                                 <Shield className="w-3.5 h-3.5" />
-                                {user.role === "teacher" ? "Profesor" : "Alumno"}
+                                {user.role === "teacher" ? "Professor" : "Alumne"}
                             </span>
                         </div>
 
@@ -178,7 +178,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                             </div>
                             <button
                                 className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border-2 border-zinc-50 dark:border-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 shadow-sm hover:scale-110 transition-all cursor-pointer"
-                                title="Cambiar foto de perfil"
+                                title="Canviar la foto de perfil"
                             >
                                 <Camera className="w-4 h-4" />
                             </button>
@@ -187,7 +187,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                         <h2 className="text-xl font-bold">{user.full_name || "Usuario Educon"}</h2>
                         <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
                             <School className="w-4 h-4" />
-                            <span>{user.institute?.name || "Sin instituto asignado"}</span>
+                            <span>{user.institute?.name || "Sense institut assignat"}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
                             <Mail className="w-3.5 h-3.5" />
@@ -199,7 +199,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-5">
                             <TrendingUp className="w-4 h-4 text-indigo-500" />
-                            Estadísticas
+                            Estadístiques
                         </h3>
                         <div className="space-y-4">
                             {statCards.map((stat, idx) => (
@@ -224,7 +224,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                         <div className="flex items-center gap-2 mb-6">
                             <User className="w-5 h-5 text-indigo-500" />
-                            <h2 className="text-lg font-semibold">Datos Personales</h2>
+                            <h2 className="text-lg font-semibold">Dades personals</h2>
                         </div>
 
                         {profileMsg && (
@@ -240,12 +240,12 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                         <div className="space-y-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Nombre Completo</label>
+                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Nom complet</label>
                                     <input
                                         type="text"
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
-                                        placeholder="Tu nombre"
+                                        placeholder="El teu nom"
                                         className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                     />
                                 </div>
@@ -261,7 +261,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                             value={user.email || ""}
                                             readOnly
                                             disabled
-                                            title="No puedes cambiar tu dirección de correo electrónico."
+                                            title="No pots canviar la teva adreça de correu electrònic."
                                             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 cursor-not-allowed outline-none select-none"
                                         />
                                     </div>
@@ -273,14 +273,14 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                     <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Rol</label>
                                     <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 capitalize cursor-not-allowed">
                                         <Shield className="w-4 h-4" />
-                                        {user.role === "teacher" ? "Profesor" : "Alumno"}
+                                        {user.role === "teacher" ? "Professor" : "Alumne"}
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Instituto</label>
+                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Institut</label>
                                     <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 cursor-not-allowed">
                                         <School className="w-4 h-4" />
-                                        {user.institute?.name || "No asignado"}
+                                        {user.institute?.name || "No assignat"}
                                     </div>
                                 </div>
                             </div>
@@ -292,7 +292,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium shadow-md shadow-indigo-500/20 transition-all active:scale-95"
                                 >
                                     {isPendingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                    Guardar Cambios
+                                    Desar canvis
                                 </button>
                             </div>
                         </div>
@@ -302,7 +302,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                         <div className="flex items-center gap-2 mb-6">
                             <Lock className="w-5 h-5 text-indigo-500" />
-                            <h2 className="text-lg font-semibold">Seguridad de la Cuenta</h2>
+                            <h2 className="text-lg font-semibold">Seguretat del compte</h2>
                         </div>
 
                         {pwdMsg && (
@@ -317,13 +317,13 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
 
                         <div className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Contraseña Actual</label>
+                                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Contrasenya actual</label>
                                 <div className="relative">
                                     <input
                                         type={showCurrentPwd ? "text" : "password"}
                                         value={currentPwd}
                                         onChange={(e) => setCurrentPwd(e.target.value)}
-                                        placeholder="Introduce tu contraseña actual"
+                                        placeholder="Introdueix la contrasenya actual"
                                         className="w-full px-4 py-2.5 pr-12 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                     />
                                     <button
@@ -338,7 +338,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Nueva Contraseña</label>
+                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Contrasenya nova</label>
                                     <div className="relative">
                                         <input
                                             type={showNewPwd ? "text" : "password"}
@@ -357,12 +357,12 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Confirmar Contraseña</label>
+                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Confirmar contrasenya</label>
                                     <input
                                         type="password"
                                         value={confirmPwd}
                                         onChange={(e) => setConfirmPwd(e.target.value)}
-                                        placeholder="Repite la nueva contraseña"
+                                        placeholder="Repeteix la contrasenya nova"
                                         className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                     />
                                 </div>
@@ -383,7 +383,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                         newPwd.length >= 6 ? "text-amber-500" :
                                             "text-rose-500"
                                         }`}>
-                                        {newPwd.length >= 10 ? "Fuerte" : newPwd.length >= 6 ? "Aceptable" : "Débil"}
+                                        {newPwd.length >= 10 ? "Forta" : newPwd.length >= 6 ? "Acceptable" : "Feble"}
                                     </span>
                                 </div>
                             )}
@@ -393,7 +393,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                 <div className={`flex items-center gap-2 text-xs font-medium ${newPwd === confirmPwd ? "text-emerald-500" : "text-rose-500"
                                     }`}>
                                     {newPwd === confirmPwd ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
-                                    {newPwd === confirmPwd ? "Las contraseñas coinciden" : "Las contraseñas no coinciden"}
+                                    {newPwd === confirmPwd ? "Les contrasenyes coincideixen" : "Les contrasenyes no coincideixen"}
                                 </div>
                             )}
 
@@ -404,7 +404,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md active:scale-95"
                                 >
                                     {isPendingPwd ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                                    Actualizar Contraseña
+                                    Actualitzar contrasenya
                                 </button>
                             </div>
                         </div>
@@ -416,8 +416,8 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                             <div className="flex items-center gap-2">
                                 <Bell className="w-5 h-5 text-indigo-500" />
                                 <div>
-                                    <h2 className="text-lg font-semibold">Notificaciones por correo</h2>
-                                    <p className="text-sm text-zinc-500">Configura qué avisos quieres recibir en tu email.</p>
+                                    <h2 className="text-lg font-semibold">Notificacions per correu</h2>
+                                    <p className="text-sm text-zinc-500">Configura quins avisos vols rebre al teu correu.</p>
                                 </div>
                             </div>
                             <button
@@ -425,7 +425,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                 onClick={() => setEmailNotifications((value: boolean) => !value)}
                                 className={`relative h-7 w-12 rounded-full transition-colors ${emailNotifications ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-700"}`}
                                 aria-pressed={emailNotifications}
-                                aria-label="Activar notificaciones por correo"
+                                aria-label="Activar notificacions per correu"
                             >
                                 <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${emailNotifications ? "translate-x-6" : "translate-x-1"}`} />
                             </button>
@@ -468,7 +468,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium shadow-md shadow-indigo-500/20 transition-all active:scale-95"
                             >
                                 {isPendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                Guardar preferencias
+                                Desar preferencias
                             </button>
                         </div>
                     </div>
@@ -479,25 +479,25 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-2">
                                     <Award className="w-5 h-5 text-indigo-500" />
-                                    <h2 className="text-lg font-semibold">Calificaciones Recientes</h2>
+                                    <h2 className="text-lg font-semibold">Qualificacions recents</h2>
                                 </div>
                             </div>
 
                             {recentGrades.length === 0 ? (
                                 <div className="text-center py-10 text-zinc-400">
                                     <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                                    <p className="font-medium">Sin calificaciones todavía</p>
-                                    <p className="text-sm mt-1">Las notas aparecerán aquí cuando tus profesores califiquen tus trabajos.</p>
+                                    <p className="font-medium">Encara sense qualificacions</p>
+                                    <p className="text-sm mt-1">Les notes apareixeran aquí quan els teus professors qualifiquin els teus treballs.</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="border-b border-zinc-200 dark:border-zinc-800 text-sm">
-                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap">Asignatura</th>
-                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap">Trabajo</th>
-                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap">Fecha</th>
-                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap px-4 w-28">Estado</th>
+                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap">Assignatura</th>
+                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap">Treball</th>
+                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap">Data</th>
+                                                <th className="pb-3 text-zinc-500 font-medium whitespace-nowrap px-4 w-28">Estat</th>
                                                 <th className="pb-3 text-right text-zinc-500 font-medium whitespace-nowrap">Nota</th>
                                             </tr>
                                         </thead>
@@ -538,16 +538,16 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
                                 <Award className="w-5 h-5 text-indigo-500" />
-                                <h2 className="text-lg font-semibold">Resumen Académico</h2>
+                                <h2 className="text-lg font-semibold">Resum acadèmic</h2>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 text-center">
                                     <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{stats.totalSubjects}</p>
-                                    <p className="text-sm text-zinc-500 mt-1">Asignaturas impartidas</p>
+                                    <p className="text-sm text-zinc-500 mt-1">Assignatures impartidas</p>
                                 </div>
                                 <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 text-center">
                                     <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{stats.pendingAssignments}</p>
-                                    <p className="text-sm text-zinc-500 mt-1">Trabajos por corregir</p>
+                                    <p className="text-sm text-zinc-500 mt-1">Treballs per corregir</p>
                                 </div>
                             </div>
                         </div>

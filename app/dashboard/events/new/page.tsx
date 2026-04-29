@@ -17,13 +17,13 @@ export default async function NewEventPage() {
             <div className="w-full max-w-3xl">
                 <div className="mb-10 text-center sm:text-left">
                     <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 mb-3">
-                        Crear Nuevo Evento
+                        Crear esdeveniment nou
                     </h1>
                     <p className="text-lg text-zinc-500 dark:text-zinc-400">
-                        Añade un nuevo acontecimiento, reunión o entrega especial al calendario de tus alumnos.
+                        Afegeix un esdeveniment, reunió o lliurament especial nou al calendari dels teus alumnes.
                     </p>
                 </div>
-                
+
                 <CreateEventForm subjects={subjects} />
             </div>
         </div>

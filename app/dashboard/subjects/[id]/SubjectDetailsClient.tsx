@@ -8,20 +8,20 @@ import Link from "next/link";
 import { createResource, saveAttendance } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 
-export function SubjectDetailsClient({ 
-    initialSubject, 
-    initialAssignments, 
-    initialResources, 
+export function SubjectDetailsClient({
+    initialSubject,
+    initialAssignments,
+    initialResources,
     initialStudents,
     initialAttendance,
-    role 
-}: { 
-    initialSubject: any, 
-    initialAssignments: any[], 
-    initialResources: any[], 
+    role
+}: {
+    initialSubject: any,
+    initialAssignments: any[],
+    initialResources: any[],
     initialStudents: any[],
     initialAttendance: any[],
-    role: string 
+    role: string
 }) {
     const router = useRouter();
     const [isResourceOpen, setIsResourceOpen] = useState(false);
@@ -48,14 +48,14 @@ export function SubjectDetailsClient({
 
     const scheduleText = initialSubject.schedules?.length
         ? initialSubject.schedules.map((s: any) => `${s.day_of_week} ${String(s.start_time).slice(0, 5)}-${String(s.end_time).slice(0, 5)}`).join(', ')
-        : initialSubject.schedule || 'Horario no definido';
+        : initialSubject.schedule || 'Horari no definit';
 
     const handleResourceSubmit = (formData: FormData) => {
         setResourceMsg(null);
         formData.set('subject_id', initialSubject.id);
         startResourceTransition(async () => {
             const result = await createResource(formData);
-            setResourceMsg(result.success ? 'Contenido publicado.' : result.error || 'No se pudo publicar.');
+            setResourceMsg(result.success ? 'Contingut publicat.' : result.error || "No s'ha pogut publicar.");
             if (result.success) {
                 setIsResourceOpen(false);
                 router.refresh();
@@ -71,7 +71,7 @@ export function SubjectDetailsClient({
         }));
         startAttendanceTransition(async () => {
             const result = await saveAttendance(initialSubject.id, entries);
-            setAttendanceMsg(result.success ? 'Lista guardada para hoy.' : result.error || 'No se pudo guardar la lista.');
+            setAttendanceMsg(result.success ? 'Llista desada per avui.' : result.error || "No s'ha pogut desar la llista.");
             if (result.success) router.refresh();
         });
     };
@@ -81,24 +81,24 @@ export function SubjectDetailsClient({
             {/* Header */}
             <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 mb-8 border border-zinc-200 dark:border-zinc-800 relative overflow-hidden shadow-sm">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/10 rounded-full -mr-20 -mt-20 blur-3xl opacity-60" />
-                
+
                 <div className="relative z-10">
                     <div className="flex justify-between items-start">
                         <div>
                              <span className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">
-                                Curso 2024-25
+                                Curs 2024-25
                              </span>
                             <h1 className="text-4xl font-bold mb-2">{initialSubject.name}</h1>
-                            <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl">{initialSubject.description || "Sin descripción disponible."}</p>
-                            
+                            <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl">{initialSubject.description || "No hi ha cap descripció disponible."}</p>
+
                             <div className="flex items-center gap-6 mt-6 text-sm font-medium">
                                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                                     <BookOpen className="w-4 h-4" />
-                                    <span>{filteredAssignments.length} Tareas</span>
+                                    <span>{filteredAssignments.length} Tasques</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                                     <Users className="w-4 h-4" />
-                                    <span>{initialStudents.length} Alumnos</span>
+                                    <span>{initialStudents.length} Alumnes</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                                     <ClipboardCheck className="w-4 h-4" />
@@ -106,11 +106,11 @@ export function SubjectDetailsClient({
                                 </div>
                             </div>
                         </div>
-                        
+
                         {role === 'teacher' && (
                              <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
                                 <Plus className="w-5 h-5" />
-                                Crear Tarea
+                                Crear tasca
                             </Link>
                         )}
                     </div>
@@ -125,11 +125,11 @@ export function SubjectDetailsClient({
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-indigo-600" />
-                                Tareas y Entregas
+                                Tasques y Lliuraments
                             </h2>
                              {role === 'teacher' && (
                                 <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/10 px-3 py-1.5 rounded-lg transition-colors">
-                                    + Crear Tarea
+                                    + Crear tasca
                                 </Link>
                             )}
                         </div>
@@ -149,7 +149,7 @@ export function SubjectDetailsClient({
                                 </Link>
                             ))}
                             {filteredAssignments.length === 0 && (
-                                <div className="text-center py-8 text-zinc-400 text-sm">No hay tareas asignadas.</div>
+                                <div className="text-center py-8 text-zinc-400 text-sm">No hi ha tasques assignades.</div>
                             )}
                         </div>
                     </div>
@@ -159,27 +159,27 @@ export function SubjectDetailsClient({
                          <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <LinkIcon className="w-5 h-5 text-emerald-600" />
-                                Contenidos y Recursos
+                                Continguts i recursos
                             </h2>
                             {role === 'teacher' && (
                                 <button onClick={() => setIsResourceOpen((value) => !value)} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 px-3 py-1.5 rounded-lg transition-colors">
-                                    + Subir Archivo
+                                    + Pujar fitxer
                                 </button>
                             )}
                         </div>
                         {isResourceOpen && (
                             <form action={handleResourceSubmit} className="mb-5 grid grid-cols-1 md:grid-cols-[1fr_140px_1fr_auto] gap-3 rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 p-4">
-                                <input name="title" required placeholder="Título del contenido" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
+                                <input name="title" required placeholder="Títol del contingut" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
                                 <select name="type" defaultValue="link" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500">
-                                    <option value="link">Enlace</option>
+                                    <option value="link">Enllaç</option>
                                     <option value="pdf">PDF</option>
                                     <option value="video">Video</option>
-                                    <option value="file">Archivo</option>
+                                    <option value="file">Fitxer</option>
                                 </select>
-                                <input name="file_url" required placeholder="URL del archivo, guía, horario o anuncio" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
+                                <input name="file_url" required placeholder="URL del fitxer, guia, horari o anunci" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
                                 <button disabled={isPendingResource} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold">
                                     {isPendingResource ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                    Guardar
+                                    Desar
                                 </button>
                             </form>
                         )}
@@ -202,7 +202,7 @@ export function SubjectDetailsClient({
                                 </div>
                             ))}
                             {filteredResources.length === 0 && (
-                                <div className="text-center py-8 text-zinc-400 text-sm">No hay contenidos publicados.</div>
+                                <div className="text-center py-8 text-zinc-400 text-sm">No hi ha continguts publicats.</div>
                             )}
                         </div>
                     </div>
@@ -214,7 +214,7 @@ export function SubjectDetailsClient({
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                                 <Users className="w-5 h-5 text-indigo-500" />
-                                Alumnos ({initialStudents.length})
+                                Alumnes ({initialStudents.length})
                             </h2>
                             <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                                 {initialStudents.map((student: any) => (
@@ -223,7 +223,7 @@ export function SubjectDetailsClient({
                                             {student.full_name ? student.full_name.split(' ').map((part: string) => part[0]).slice(0, 2).join('').toUpperCase() : student.email ? student.email.substring(0, 2).toUpperCase() : 'ST'}
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="text-sm font-medium truncate">{student.full_name || "Estudiante"}</div>
+                                            <div className="text-sm font-medium truncate">{student.full_name || "Estudiant"}</div>
                                             <div className="text-xs text-zinc-400 truncate">{student.email}</div>
                                         </div>
                                     </div>
@@ -237,7 +237,7 @@ export function SubjectDetailsClient({
                             <div className="flex items-center justify-between gap-3 mb-4">
                                 <h2 className="text-lg font-bold flex items-center gap-2">
                                     <ClipboardCheck className="w-5 h-5 text-emerald-500" />
-                                    Pasar lista de hoy
+                                    Passar llista de hoy
                                 </h2>
                                 <button
                                     onClick={handleAttendanceSave}
@@ -245,7 +245,7 @@ export function SubjectDetailsClient({
                                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold"
                                 >
                                     {isPendingAttendance ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                    Guardar
+                                    Desar
                                 </button>
                             </div>
                             <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
@@ -260,9 +260,9 @@ export function SubjectDetailsClient({
                                             onChange={(event) => setAttendance((prev) => ({ ...prev, [student.id]: event.target.value }))}
                                             className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-xs font-medium"
                                         >
-                                            <option value="present">Asiste</option>
+                                            <option value="present">Assisteix</option>
                                             <option value="absent">Falta</option>
-                                            <option value="late">Retraso</option>
+                                            <option value="late">Retard</option>
                                             <option value="excused">Justificada</option>
                                         </select>
                                     </div>
@@ -271,18 +271,18 @@ export function SubjectDetailsClient({
                             {attendanceMsg && <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">{attendanceMsg}</p>}
                         </div>
                     )}
-                    
+
                     {role === 'teacher' && (
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-                            <h2 className="text-lg font-bold mb-4">Herramientas IA</h2>
+                            <h2 className="text-lg font-bold mb-4">Eines d'IA</h2>
                             <div className="space-y-3">
-                                <AIPlaceholder 
-                                    label="Generar Resumen" 
-                                    description="Crea un resumen del contenido actual." 
+                                <AIPlaceholder
+                                    label="Generar resum"
+                                    description="Crea un resum del contingut actual."
                                 />
-                                <AIPlaceholder 
-                                    label="Sugerir Tareas" 
-                                    description="Genera ideas de evaluación basadas en el temario." 
+                                <AIPlaceholder
+                                    label="Suggerir tasques"
+                                    description="Genera idees d'avaluació basades en el temari."
                                 />
                             </div>
                         </div>
@@ -294,7 +294,7 @@ export function SubjectDetailsClient({
 }
 
 function formatDate(value: string) {
-    return new Intl.DateTimeFormat("es-ES", {
+    return new Intl.DateTimeFormat("ca-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

@@ -4,9 +4,9 @@ import { getAttendanceData } from "@/lib/data-service";
 import { ClipboardCheck } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
-    present: "Asiste",
+    present: "Assisteix",
     absent: "Falta",
-    late: "Retraso",
+    late: "Retard",
     excused: "Justificada",
 };
 
@@ -31,13 +31,13 @@ export default async function AttendancePage() {
         <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-6 md:p-8 max-w-7xl mx-auto">
             <header className="mb-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-2">
-                    {session.role === "teacher" ? "Control de asistencia" : "Mis asistencias y faltas"}
+                    {session.role === "teacher" ? "Control d'assistència" : "Les meves assistències i faltes"}
                 </p>
-                <h1 className="text-3xl font-bold tracking-tight">Asistencias por clase</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Assistències per classe</h1>
                 <p className="text-zinc-500 mt-2">
                     {session.role === "teacher"
-                        ? "Consulta las listas guardadas por asignatura."
-                        : "Revisa tus asistencias, faltas, retrasos y justificadas separadas por asignatura."}
+                        ? "Consulta les llistes desades per assignatura."
+                        : "Revisa les teves assistències, faltes, retards i justificades separades per assignatura."}
                 </p>
             </header>
 
@@ -56,12 +56,12 @@ export default async function AttendancePage() {
                                     </div>
                                     <div>
                                         <h2 className="font-bold text-lg">{subject.name}</h2>
-                                        <p className="text-sm text-zinc-500">{rows.length} registros</p>
+                                        <p className="text-sm text-zinc-500">{rows.length} registres</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2 text-xs font-semibold">
-                                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">{present} asistencias</span>
-                                    <span className="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">{absent} faltas</span>
+                                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">{present} assistències</span>
+                                    <span className="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">{absent} faltes</span>
                                 </div>
                             </div>
 
@@ -70,16 +70,16 @@ export default async function AttendancePage() {
                                     <table className="w-full text-left text-sm">
                                         <thead className="bg-zinc-50 dark:bg-zinc-800/40 text-zinc-500">
                                             <tr>
-                                                <th className="px-5 py-3 font-semibold">Fecha</th>
-                                                {session.role === "teacher" && <th className="px-5 py-3 font-semibold">Alumno</th>}
-                                                <th className="px-5 py-3 font-semibold">Estado</th>
+                                                <th className="px-5 py-3 font-semibold">Data</th>
+                                                {session.role === "teacher" && <th className="px-5 py-3 font-semibold">Alumne</th>}
+                                                <th className="px-5 py-3 font-semibold">Estat</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                                             {rows.map((row: any) => (
                                                 <tr key={row.id}>
-                                                    <td className="px-5 py-3 whitespace-nowrap">{new Date(row.date).toLocaleDateString("es-ES")}</td>
-                                                    {session.role === "teacher" && <td className="px-5 py-3">{row.student?.full_name || row.student?.email || "Alumno"}</td>}
+                                                    <td className="px-5 py-3 whitespace-nowrap">{new Date(row.date).toLocaleDateString("ca-ES")}</td>
+                                                    {session.role === "teacher" && <td className="px-5 py-3">{row.student?.full_name || row.student?.email || "Alumne"}</td>}
                                                     <td className="px-5 py-3">
                                                         <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[row.status] || "bg-zinc-100 text-zinc-600"}`}>
                                                             {STATUS_LABELS[row.status] || row.status}
@@ -91,7 +91,7 @@ export default async function AttendancePage() {
                                     </table>
                                 </div>
                             ) : (
-                                <p className="p-8 text-center text-zinc-500">Aún no hay registros de asistencia para esta asignatura.</p>
+                                <p className="p-8 text-center text-zinc-500">Encara no hi ha registres d'assistència per a aquesta assignatura.</p>
                             )}
                         </section>
                     );
@@ -99,7 +99,7 @@ export default async function AttendancePage() {
 
                 {subjects.length === 0 && (
                     <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 p-12 text-center text-zinc-500">
-                        No hay asignaturas asociadas.
+                        No hi ha assignatures associades.
                     </div>
                 )}
             </div>

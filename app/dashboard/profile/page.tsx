@@ -84,12 +84,12 @@ async function getProfileData(userId: string, role: string) {
 
         // Recent grades
         recentGrades = (submissions || []).map((s: any) => ({
-            subject: s.assignment?.subject?.name || "Sin asignatura",
+            subject: s.assignment?.subject?.name || "Sense assignatura",
             grade: s.grade,
             date: s.submitted_at
-                ? new Date(s.submitted_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                ? new Date(s.submitted_at).toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' })
                 : "—",
-            assignmentTitle: s.assignment?.title || "Sin título",
+            assignmentTitle: s.assignment?.title || "Sense títol",
         }));
 
     } else {

@@ -166,7 +166,7 @@ export default function LandingPage() {
                             <div className="relative h-10 w-10 transition-transform hover:scale-105">
                                 <Image
                                     src="/logo.png"
-                                    alt="Educon Logo"
+                                    alt="Logotip d'Educon"
                                     fill
                                     className="object-contain"
                                 />
@@ -270,7 +270,7 @@ export default function LandingPage() {
                         </motion.div>
                     </div>
 
-                    {/* Hero Visual - 3D Dashboard */}
+                    {/* Hero Visual - 3D Tauler */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8, rotate: -6 }}
                         animate={{ opacity: 1, scale: 1, rotate: -3 }}
@@ -281,7 +281,7 @@ export default function LandingPage() {
                         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-[80px] -z-10" style={{ background: 'var(--accent)', opacity: 0.2 }} aria-hidden="true" />
                         <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full blur-[80px] -z-10" style={{ background: 'var(--primary)', opacity: 0.15 }} aria-hidden="true" />
 
-                        {/* Main Dashboard Card */}
+                        {/* Main Tauler Card */}
                         <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-2 transform rotate-3 hover:rotate-0 transition-transform duration-500">
                             <div className="absolute -left-12 top-1/2 -translate-y-1/2 bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-xl border border-zinc-100 dark:border-zinc-700 z-20 hidden md:block animate-bounce">
                                 <div className="flex items-center gap-3">
@@ -355,7 +355,7 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Roles Section (LMS Dashboard Style) */}
+            {/* Roles Section (LMS Tauler Style) */}
             <section className="py-32 bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-20">
@@ -407,7 +407,7 @@ export default function LandingPage() {
                                         </div>
                                     </div>
 
-                                    {/* Dashboard Content */}
+                                    {/* Tauler Content */}
                                     <div className="flex h-[400px]">
                                         {/* Sidebar */}
                                         <div className="w-16 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col items-center py-4 gap-4">
@@ -507,7 +507,7 @@ export default function LandingPage() {
                                                 <span className="font-semibold text-lg">
                                                     {activeRole === 'teacher'
                                                         ? ["Avaluar alumnes", "Gestió d'assistència", "Comunicació directa"][i]
-                                                        : ["Consultar notes", "Veure calendari", "Entregar tasques"][i]}
+                                                        : ["Consultar notes", "Veure calendari", "Lliurar tasques"][i]}
                                                 </span>
                                             </motion.div>
                                         ))}
@@ -652,7 +652,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-3">
                         <div className="relative h-8 w-8">
-                            <Image src="/logo.png" alt="Educon Logo" fill className="object-contain" />
+                            <Image src="/logo.png" alt="Logotip d'Educon" fill className="object-contain" />
                         </div>
                         <span className="font-bold text-xl">Educon</span>
                     </div>
@@ -891,7 +891,7 @@ export default function LandingPage() {
                                                     <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
                                                 </div>
                                                 <div className="relative flex justify-center text-xs uppercase">
-                                                    <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500">Or</span>
+                                                    <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500">O</span>
                                                 </div>
                                             </div>
 

@@ -76,7 +76,7 @@ export async function getDashboardData(userId: string, role: string) {
                 name: subject.name,
                 schedule: formatSubjectSchedule(subject),
                 href: `/dashboard/subjects/${subject.id}`,
-                attendanceLabel: rows.length > 0 ? `${present}/${rows.length} asistentes hoy` : 'Lista pendiente hoy',
+                attendanceLabel: rows.length > 0 ? `${present}/${rows.length} assistents avui` : 'Llista pendent avui',
                 attended: rows.length > 0,
             };
         });
@@ -172,7 +172,7 @@ export async function getDashboardData(userId: string, role: string) {
                 name: subject.name,
                 schedule: formatSubjectSchedule(subject),
                 href: `/dashboard/subjects/${subject.id}`,
-                attendanceLabel: row ? attendanceStatusLabel(row.status) : 'Sin registro todavía',
+                attendanceLabel: row ? attendanceStatusLabel(row.status) : 'Encara sense registre',
                 attended: row ? row.status === 'present' || row.status === 'late' : null,
                 date: row?.date,
             };
@@ -366,15 +366,15 @@ function formatSubjectSchedule(subject: any) {
             .map((s: any) => `${s.day_of_week} ${String(s.start_time).slice(0, 5)}-${String(s.end_time).slice(0, 5)}`)
             .join(', ');
     }
-    return subject?.schedule || 'Horario no definido';
+    return subject?.schedule || 'Horari no definit';
 }
 
 function attendanceStatusLabel(status: string) {
     const labels: Record<string, string> = {
         present: 'Asistió',
         absent: 'Falta',
-        late: 'Retraso',
+        late: 'Retard',
         excused: 'Justificada',
     };
-    return labels[status] || 'Sin registro';
+    return labels[status] || 'Sense registre';
 }

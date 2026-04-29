@@ -16,7 +16,7 @@ export async function createAssignment(formData: FormData) {
     const file = formData.get("file") as File | null;
 
     if (!title || !due_date || !subject_id || !teacher_id) {
-        return { success: false, error: "Faltan campos obligatorios." };
+        return { success: false, error: "Falten camps obligatoris." };
     }
 
     let content_url = null;
@@ -25,7 +25,7 @@ export async function createAssignment(formData: FormData) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
         const filePath = `${subject_id}/${fileName}`;
-        
+
         const { error: uploadError } = await supabase.storage
             .from('assignments')
             .upload(filePath, file, {
@@ -35,7 +35,7 @@ export async function createAssignment(formData: FormData) {
 
         if (uploadError) {
             console.error("Error uploading assignment file:", uploadError);
-            return { success: false, error: "Error al subir el archivo de material." };
+            return { success: false, error: "Error en pujar el fitxer de material." };
         }
 
         const { data: publicUrlData } = supabase.storage
@@ -57,7 +57,7 @@ export async function createAssignment(formData: FormData) {
 
     if (error) {
         console.error("Error creating assignment:", error);
-        return { success: false, error: "Error al crear la tarea." };
+        return { success: false, error: "Error en crear la tasca." };
     }
 
     revalidatePath("/dashboard/assignments");
@@ -75,7 +75,7 @@ export async function createAssignmentFull(input: {
     teacher_id: string;
 }) {
     if (!input.title || !input.due_date || !input.subject_id || !input.teacher_id) {
-        return { success: false, error: "Faltan campos obligatorios." };
+        return { success: false, error: "Falten camps obligatoris." };
     }
 
     const { data, error } = await supabase.from("assignments").insert({
@@ -89,7 +89,7 @@ export async function createAssignmentFull(input: {
 
     if (error) {
         console.error("Error creating assignment:", error);
-        return { success: false, error: "Error al crear la tarea." };
+        return { success: false, error: "Error en crear la tasca." };
     }
 
     revalidatePath("/dashboard/assignments");
@@ -101,14 +101,14 @@ export async function createAssignmentFull(input: {
 export async function submitAssignment(formData: FormData) {
     const assignment_id = formData.get("assignment_id") as string;
     const student_id = formData.get("student_id") as string;
-    let file_url = formData.get("content") as string; 
+    let file_url = formData.get("content") as string;
     const file = formData.get("file") as File | null;
 
     if (file && file.size > 0 && file.name !== 'undefined') {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
         const filePath = `${assignment_id}/${student_id}/${fileName}`;
-        
+
         const { error: uploadError } = await supabase.storage
             .from('submissions')
             .upload(filePath, file, {
@@ -118,7 +118,7 @@ export async function submitAssignment(formData: FormData) {
 
         if (uploadError) {
             console.error("Error uploading submission file:", uploadError);
-            return { success: false, error: "Error al subir el archivo de entrega." };
+            return { success: false, error: "Error en pujar el fitxer de lliurament." };
         }
 
         const { data: publicUrlData } = supabase.storage
@@ -134,7 +134,7 @@ export async function submitAssignment(formData: FormData) {
         .eq('assignment_id', assignment_id)
         .eq('student_id', student_id)
         .single();
-        
+
     let error;
     if (existing) {
         const { error: updateError } = await supabase.from('submissions').update({
@@ -155,7 +155,7 @@ export async function submitAssignment(formData: FormData) {
 
     if (error) {
         console.error("Error submitting assignment:", error);
-        return { success: false, error: "Error al entregar la tarea." };
+        return { success: false, error: "Error en lliurar la tasca." };
     }
 
     revalidatePath("/dashboard/assignments");
@@ -173,7 +173,7 @@ export async function gradeSubmission(submissionId: string, grade: number, feedb
 
     if (error) {
         console.error("Error grading submission:", error);
-        return { success: false, error: "Error al calificar." };
+        return { success: false, error: "Error en qualificar." };
     }
 
     revalidatePath("/dashboard/assignments");
@@ -190,7 +190,7 @@ export async function returnSubmission(submissionId: string, feedback: string) {
 
     if (error) {
         console.error("Error returning submission:", error);
-        return { success: false, error: "Error al devolver la entrega." };
+        return { success: false, error: "Error en retornar el lliurament." };
     }
 
     revalidatePath("/dashboard/assignments");
@@ -204,7 +204,7 @@ export async function createResource(formData: FormData) {
     const file_url = formData.get("file_url") as string;
 
     if (!subject_id || !title || !file_url) {
-        return { success: false, error: "Título y enlace son obligatorios." };
+        return { success: false, error: "El títol i l'enllaç són obligatoris." };
     }
 
     const { error } = await supabase.from("resources").insert({
@@ -216,7 +216,7 @@ export async function createResource(formData: FormData) {
 
     if (error) {
         console.error("Error creating resource:", error);
-        return { success: false, error: "Error al publicar el contenido." };
+        return { success: false, error: "Error en publicar el contingut." };
     }
 
     revalidatePath(`/dashboard/subjects/${subject_id}`);
@@ -225,7 +225,7 @@ export async function createResource(formData: FormData) {
 
 export async function saveAttendance(subjectId: string, entries: Array<{ student_id: string; status: string }>, date?: string) {
     if (!subjectId || entries.length === 0) {
-        return { success: false, error: "No hay alumnos para guardar." };
+        return { success: false, error: "No hi ha alumnes per desar." };
     }
 
     const attendanceDate = date || new Date().toISOString().slice(0, 10);
@@ -242,7 +242,7 @@ export async function saveAttendance(subjectId: string, entries: Array<{ student
 
     if (error) {
         console.error("Error saving attendance:", error);
-        return { success: false, error: "Error al guardar la asistencia." };
+        return { success: false, error: "Error en desar l'assistència." };
     }
 
     revalidatePath(`/dashboard/subjects/${subjectId}`);
@@ -260,7 +260,7 @@ export async function markNotificationRead(notificationId: string) {
 
     if (error) {
         console.error("Error marking notification as read:", error);
-        return { success: false, error: "No se pudo marcar como leída." };
+        return { success: false, error: "No s'ha pogut marcar com a llegida." };
     }
 
     revalidatePath("/dashboard/notifications");
@@ -276,7 +276,7 @@ export async function markAllNotificationsRead(userId: string) {
 
     if (error) {
         console.error("Error marking notifications as read:", error);
-        return { success: false, error: "No se pudieron marcar las notificaciones." };
+        return { success: false, error: "No s'han pogut marcar les notificacions." };
     }
 
     revalidatePath("/dashboard/notifications");
@@ -299,12 +299,12 @@ export async function aiGradeEstimate(content: string, criteria: string) {
     return {
         success: true,
         grade,
-        justification: `Análisis automático basado en los criterios proporcionados:\n\n` +
-            `• Extensión y profundidad del contenido: ${contentLength > 200 ? 'Adecuada' : 'Insuficiente'}\n` +
-            `• Criterios evaluados: "${criteria.substring(0, 100)}..."\n` +
-            `• Coherencia y estructura: ${grade >= 7 ? 'Buena' : 'Mejorable'}\n\n` +
+        justification: `Anàlisi automàtica basada en els criteris proporcionats:\n\n` +
+            `• Extensió i profunditat del contingut: ${contentLength > 200 ? 'Adequada' : 'Insuficient'}\n` +
+            `• Criteris avaluats: "${criteria.substring(0, 100)}..."\n` +
+            `• Coherència i estructura: ${grade >= 7 ? 'Bona' : 'Millorable'}\n\n` +
             `Nota estimada: ${grade}/10\n\n` +
-            `⚠️ Esta es una estimación automática. Revisa el contenido antes de confirmar.`,
+            `⚠️ Aquesta és una estimació automàtica. Revisa el contingut abans de confirmar.`,
     };
 }
 

@@ -12,7 +12,7 @@ async function uploadEventImage(supabase: any, imageFile: File): Promise<string>
     const { error: uploadError } = await supabase.storage
         .from('events-images')
         .upload(fileName, imageFile);
-    if (uploadError) throw new Error('Error al subir la imagen');
+    if (uploadError) throw new Error('Error en pujar la imatge');
     const { data: { publicUrl } } = supabase.storage
         .from('events-images')
         .getPublicUrl(fileName);
@@ -22,7 +22,7 @@ async function uploadEventImage(supabase: any, imageFile: File): Promise<string>
 export async function createEvent(formData: FormData) {
     const session = await getSession();
     if (!session || session.role !== 'teacher') {
-        return { success: false, error: 'Unauthorized' };
+        return { success: false, error: 'No autoritzat' };
     }
 
     const title = formData.get('title') as string;
@@ -35,12 +35,12 @@ export async function createEvent(formData: FormData) {
     const subject_id = formData.get('subject_id') as string;
 
     if (!title || !start_time || !end_time) {
-        return { success: false, error: 'Título, fecha de inicio y fin son obligatorios' };
+        return { success: false, error: "El t\u00edtol, la data d'inici i la data de fi s\u00f3n obligatoris" };
     }
 
     const supabase = await createClient();
     const { data: user } = await supabase.from('users').select('institute_id').eq('id', session.userId).single();
-    if (!user?.institute_id) return { success: false, error: 'Instituto no encontrado' };
+    if (!user?.institute_id) return { success: false, error: 'Institut no trobat' };
 
     let image_url: string | null = null;
     try {
@@ -76,7 +76,7 @@ export async function createEvent(formData: FormData) {
 export async function updateEvent(eventId: string, formData: FormData) {
     const session = await getSession();
     if (!session || session.role !== 'teacher') {
-        return { success: false, error: 'Unauthorized' };
+        return { success: false, error: 'No autoritzat' };
     }
 
     const supabase = await createClient();
@@ -88,9 +88,9 @@ export async function updateEvent(eventId: string, formData: FormData) {
         .eq('id', eventId)
         .single();
 
-    if (!existing) return { success: false, error: 'Evento no encontrado' };
+    if (!existing) return { success: false, error: 'Esdeveniment no trobat' };
     if (existing.created_by !== null && existing.created_by !== session.userId) {
-        return { success: false, error: 'No tienes permiso para editar este evento' };
+        return { success: false, error: 'No tens permís per editar aquest esdeveniment' };
     }
 
     const title = formData.get('title') as string;
@@ -103,7 +103,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
     const subject_id = formData.get('subject_id') as string;
 
     if (!title || !start_time || !end_time) {
-        return { success: false, error: 'Título, fecha de inicio y fin son obligatorios' };
+        return { success: false, error: "El t\u00edtol, la data d'inici i la data de fi s\u00f3n obligatoris" };
     }
 
     let image_url: string | null = existing.image_url ?? null;
@@ -160,7 +160,7 @@ export async function getEventById(eventId: string) {
 export async function deleteEvent(eventId: string) {
     const session = await getSession();
     if (!session || session.role !== 'teacher') {
-        return { success: false, error: 'Unauthorized' };
+        return { success: false, error: 'No autoritzat' };
     }
 
     const supabase = await createClient();
@@ -172,9 +172,9 @@ export async function deleteEvent(eventId: string) {
         .eq('id', eventId)
         .single();
 
-    if (!existing) return { success: false, error: 'Evento no encontrado' };
+    if (!existing) return { success: false, error: 'Esdeveniment no trobat' };
     if (existing.created_by !== null && existing.created_by !== session.userId) {
-        return { success: false, error: 'No tienes permiso para eliminar este evento' };
+        return { success: false, error: 'No tens permís per eliminar aquest esdeveniment' };
     }
 
     const { error } = await supabase.from('events').delete().eq('id', eventId);

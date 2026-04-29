@@ -13,11 +13,11 @@ import { useTeacherDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
 
 export default function TeacherHome({ data: initialData }: { data: any }) {
     const data = useTeacherDashboardRealtime(initialData);
-    
+
     const subjects = data?.subjects || [];
     const stats = data?.stats;
     const profile = data?.profile;
-    const firstName = profile?.full_name?.split(' ')[0] || 'Profesor';
+    const firstName = profile?.full_name?.split(' ')[0] || 'Professor';
 
     return (
         <main className="p-6 lg:p-10 max-w-7xl mx-auto">
@@ -44,14 +44,14 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                         className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground rounded-xl font-medium text-sm hover:bg-secondary transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     >
                         <CalendarDays className="w-4 h-4" aria-hidden="true" />
-                        Ver Agenda
+                        Veure agenda
                     </Link>
                     <Link
                         href="/dashboard/assignments"
                         className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] hover:opacity-90 text-white rounded-xl font-medium text-sm shadow-sm transition-opacity duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     >
                         <Plus className="w-4 h-4" aria-hidden="true" />
-                        Nueva Tarea
+                        Tasca nova
                     </Link>
                 </div>
             </header>
@@ -70,7 +70,7 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                     <div className="h-80">
                         <AssignmentsListWidget
                             items={data?.pendingSubmissions || []}
-                            title="Trabajos por Corregir"
+                            title="Treballs per corregir"
                             role="teacher"
                         />
                     </div>
@@ -85,8 +85,8 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {[
-                                { label: 'Crear Evento', href: '/dashboard/events/new' },
-                                { label: 'Subir Notas', href: '/dashboard/subjects' },
+                                { label: 'Crear esdeveniment', href: '/dashboard/events/new' },
+                                { label: 'Pujar notes', href: '/dashboard/subjects' },
                             ].map(({ label, href }) => (
                                 <Link
                                     key={href}
@@ -97,16 +97,16 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                                 </Link>
                             ))}
                             <button
-                                onClick={() => window.alert('Función no implementada: Enviar Mensaje')}
+                                onClick={() => window.alert('Funció no implementada: enviar missatge')}
                                 className="p-4 rounded-xl bg-secondary hover:bg-accent/10 hover:text-accent-foreground border border-border hover:border-accent/30 transition-colors duration-150 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                             >
-                                Enviar Mensaje
+                                Enviar missatge
                             </button>
                             <button
-                                onClick={() => window.alert('Descargando reporte…')}
+                                onClick={() => window.alert('Descarregant informe...')}
                                 className="p-4 rounded-xl bg-secondary hover:bg-accent/10 hover:text-accent-foreground border border-border hover:border-accent/30 transition-colors duration-150 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                             >
-                                Reporte
+                                Informe
                             </button>
                         </div>
                     </section>

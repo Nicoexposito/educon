@@ -1,22 +1,22 @@
 import { useRealtimeTable } from './useRealtimeTable';
 
 export function useTeacherDashboardRealtime(initialData: any) {
-    // Escuchar nuevas asignaturas o cambios
+    // Escoltar assignatures noves o canvis
     const { data: subjects } = useRealtimeTable({
         table: 'subjects',
         initialData: initialData.subjects || [],
     });
 
-    // Escuchar entregas pendientes
+    // Escoltar lliuraments pendents
     const { data: pendingSubmissions } = useRealtimeTable({
         table: 'submissions',
         initialData: initialData.pendingSubmissions || [],
-        // En una app real podríamos filtrar por is_grade_null u otros. 
-        // Supabase Realtime no soporta filtros muy complejos en el cliente sin eq., 
-        // pero podemos filtrar localmente si es necesario, o mantener el estado sincronizado.
+        // En una app real podríamos filtrar por is_grade_null u otros.
+        // Supabase Realtime no admet filtres gaire complexos al client sense eq.,
+        // per? podem filtrar localment si cal o mantenir l'estat sincronitzat.
     });
 
-    // Escuchar eventos
+    // Escoltar esdeveniments
     const { data: events } = useRealtimeTable({
         table: 'events',
         initialData: initialData.events || [],
@@ -60,7 +60,7 @@ export function useStudentDashboardRealtime(initialData: any) {
 
     const profile = profileList.length > 0 ? profileList[0] : initialData.profile;
 
-    // TODO: Escuchar calificaciones actualizadas desde submissions
+    // TODO: Escoltar qualificacions actualitzades des de submissions
 
     return {
         ...initialData,

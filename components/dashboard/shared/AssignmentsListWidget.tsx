@@ -13,15 +13,15 @@ interface PendingItem {
 }
 
 export function AssignmentsListWidget({ items, title, role }: { items: any[], title: string, role: string }) {
-    
+
     // Transform items to standard format based on role
     const displayItems: PendingItem[] = items.map(item => {
         if (role === 'teacher') {
             // Item is a submission to grade
             return {
                 id: item.id,
-                title: item.assignment?.title || 'Tarea sin título',
-                subtitle: `Por ${item.student?.full_name || 'Estudiante'} • ${item.assignment?.subject?.name || 'Materia'}`,
+                title: item.assignment?.title || 'Tasca sense títol',
+                subtitle: `Per ${item.student?.full_name || 'Estudiant'} • ${item.assignment?.subject?.name || 'Matèria'}`,
                 date: formatDate(item.submitted_at),
                 status: 'ungraded',
                 type: 'submission'
@@ -32,7 +32,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
             return {
                 id: item.id,
                 title: item.title,
-                subtitle: item.subject?.name || 'Asignatura',
+                subtitle: item.subject?.name || 'Assignatura',
                 date: formatDate(item.due_date),
                 status: isSubmitted ? 'submitted' : 'pending',
                 type: 'assignment'
@@ -45,16 +45,16 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
             <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                 <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">{title}</h3>
                 <Link href="/dashboard/assignments" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
-                    Ver todo
+                    Veure-ho tot
                 </Link>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto">
                 <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
                     {displayItems.length > 0 ? displayItems.map((item) => (
-                        <Link 
+                        <Link
                             href="/dashboard/assignments"
-                            key={item.id} 
+                            key={item.id}
                             className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors flex gap-4 items-center group cursor-pointer block"
                         >
                             <div className={`
@@ -75,13 +75,13 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                                     item.status === 'ungraded' ? 'bg-amber-50 text-amber-600' :
                                     'bg-zinc-100 text-zinc-600'
                                 }`}>
-                                    {item.status === 'ungraded' ? 'Por corregir' : item.date}
+                                    {item.status === 'ungraded' ? 'Per corregir' : item.date}
                                 </span>
                             </div>
                         </Link>
                     )) : (
                          <div className="p-8 text-center text-zinc-400 text-sm">
-                            <p>¡Estás al día! No hay tareas pendientes.</p>
+                            <p>Estàs al dia! No hi ha tasques pendents.</p>
                         </div>
                     )}
                 </div>
@@ -92,7 +92,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
 
 function formatDate(value: string) {
     if (!value) return "—";
-    return new Intl.DateTimeFormat("es-ES", {
+    return new Intl.DateTimeFormat("ca-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

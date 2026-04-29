@@ -15,15 +15,15 @@ type TabKey = "pending" | "submitted" | "not_submitted";
 
 // Tab definitions change based on role
 const TEACHER_TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-    { key: "pending", label: "Pendientes de corregir", icon: Clock },
-    { key: "submitted", label: "Corregidas", icon: CheckCircle2 },
-    { key: "not_submitted", label: "Todas", icon: Filter },
+    { key: "pending", label: "Pendents de corregir", icon: Clock },
+    { key: "submitted", label: "Corregides", icon: CheckCircle2 },
+    { key: "not_submitted", label: "Totes", icon: Filter },
 ];
 
 const STUDENT_TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-    { key: "pending", label: "Por entregar", icon: Clock },
-    { key: "submitted", label: "Entregadas", icon: CheckCircle2 },
-    { key: "not_submitted", label: "Sin entregar", icon: AlertCircle },
+    { key: "pending", label: "Per lliurar", icon: Clock },
+    { key: "submitted", label: "Lliurades", icon: CheckCircle2 },
+    { key: "not_submitted", label: "Sense lliurar", icon: AlertCircle },
 ];
 
 interface AssignmentsClientProps {
@@ -37,28 +37,28 @@ function getAssignmentStatusForTab(assignment: any, role: string): TabKey {
     if (role === "teacher") {
         const submissions = assignment.submissions || [];
         if (submissions.length === 0) return "not_submitted";
-        
+
         const ungraded = submissions.filter((s: any) => s.grade === null || s.grade === undefined);
         if (ungraded.length > 0) return "pending";
         return "submitted"; // all graded
     } else {
-        // Alumnos
+        // Alumnes
         if (assignment.status === "submitted" || assignment.status === "graded") {
-            return "submitted"; // Pestaña "Entregadas"
+            return "submitted"; // Pestaña "Lliurades"
         }
 
         const now = new Date();
         const dueDate = assignment.due_date ? new Date(assignment.due_date) : new Date(0);
         const lateDate = assignment.late_due_date ? new Date(assignment.late_due_date) : null;
-        
-        // El límite absoluto después del cual la tarea se considera "perdida"
+
+        // El límit absolut després del qual la tasca es considera "perduda"
         const absoluteMaxLimit = lateDate || dueDate;
 
         if (now > absoluteMaxLimit) {
-            return "not_submitted"; // Pestaña "Sin entregar" (Vencida definitivamente)
+            return "not_submitted"; // Pestaña "Sense lliurar" (Vencida definitivamente)
         }
 
-        return "pending"; 
+        return "pending";
     }
 }
 
@@ -67,7 +67,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
     const [activeTab, setActiveTab] = useState<TabKey>("pending");
     const [sortKey, setSortKey] = useState<SortKey>("due_date");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
-    
+
     // Realtime state
     const [assignments, setAssignments] = useState(initialAssignments);
     const supabase = createClient();
@@ -115,8 +115,8 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                     // For student, update status
                     setAssignments(prev => prev.map(a => {
                         if (a.id === newSubmission.assignment_id) {
-                            return { 
-                                ...a, 
+                            return {
+                                ...a,
                                 status: newSubmission.grade !== null ? 'graded' : 'submitted',
                                 grade: newSubmission.grade
                             };
@@ -136,7 +136,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
 
     // Filter by tab
     const filteredAssignments = useMemo(() => {
-        if (role === "teacher" && activeTab === "not_submitted") return assignments; // "Todas"
+        if (role === "teacher" && activeTab === "not_submitted") return assignments; // "Totes"
         return assignments.filter(a => getAssignmentStatusForTab(a, role) === activeTab);
     }, [assignments, activeTab, role]);
 
@@ -180,7 +180,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
     const tabCounts = useMemo(() => {
         const counts: Record<TabKey, number> = { pending: 0, submitted: 0, not_submitted: 0 };
         if (role === "teacher") {
-            counts.not_submitted = assignments.length; // "Todas"
+            counts.not_submitted = assignments.length; // "Totes"
         }
         assignments.forEach(a => {
             const tab = getAssignmentStatusForTab(a, role);
@@ -195,12 +195,12 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight mb-1">
-                        {role === "teacher" ? "Gestión de Tareas" : "Mis Tareas"}
+                        {role === "teacher" ? "Gesti? de tasques" : "Les meves tasques"}
                     </h1>
                     <p className="text-zinc-500">
                         {role === "teacher"
-                            ? "Revisa, califica y crea tareas para tus alumnos."
-                            : "Consulta tus tareas pendientes y entregadas."}
+                            ? "Revisa, qualifica i crea tasques per als teus alumnes."
+                            : "Consulta les teves tasques pendents i lliurades."}
                     </p>
                 </div>
                 {role === "teacher" && (
@@ -209,7 +209,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                         className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 active:scale-95 self-start"
                     >
                         <Plus className="w-5 h-5" />
-                        Nueva Tarea
+                        Tasca nova
                     </button>
                 )}
             </div>
@@ -250,10 +250,10 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                     <table className="w-full text-left text-sm">
                         <thead className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-100 dark:border-zinc-800">
                             <tr>
-                                <SortableHeader label="Título" column="title" onSort={handleSort} sortIcon={<SortIcon column="title" />} />
-                                <SortableHeader label="Asignatura" column="subject" onSort={handleSort} sortIcon={<SortIcon column="subject" />} />
-                                <SortableHeader label="Fecha de Entrega" column="due_date" onSort={handleSort} sortIcon={<SortIcon column="due_date" />} />
-                                <SortableHeader label="Estado" column="status" onSort={handleSort} sortIcon={<SortIcon column="status" />} />
+                                <SortableHeader label="Títol" column="title" onSort={handleSort} sortIcon={<SortIcon column="title" />} />
+                                <SortableHeader label="Assignatura" column="subject" onSort={handleSort} sortIcon={<SortIcon column="subject" />} />
+                                <SortableHeader label="Data de lliurament" column="due_date" onSort={handleSort} sortIcon={<SortIcon column="due_date" />} />
+                                <SortableHeader label="Estat" column="status" onSort={handleSort} sortIcon={<SortIcon column="status" />} />
                                 <th className="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100 text-right">Acción</th>
                             </tr>
                         </thead>
@@ -270,10 +270,10 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-zinc-500 whitespace-nowrap">
-                                        <div>{new Date(assignment.due_date).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}</div>
+                                        <div>{new Date(assignment.due_date).toLocaleDateString("ca-ES", { day: "numeric", month: "short", year: "numeric" })}</div>
                                         {assignment.late_due_date && (
                                             <div className="text-xs text-amber-500 mt-0.5">
-                                                Retraso: {new Date(assignment.late_due_date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
+                                                Retard: {new Date(assignment.late_due_date).toLocaleDateString("ca-ES", { day: "numeric", month: "short" })}
                                             </div>
                                         )}
                                     </td>
@@ -281,20 +281,20 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                         {role === "teacher" ? (
                                             <TeacherStatusBadge submissions={assignment.submissions || []} />
                                         ) : (
-                                            <StudentStatusBadge 
-                                                status={assignment.status} 
-                                                grade={assignment.grade} 
+                                            <StudentStatusBadge
+                                                status={assignment.status}
+                                                grade={assignment.grade}
                                                 dueDate={assignment.due_date}
                                                 lateDueDate={assignment.late_due_date}
                                             />
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button 
+                                        <button
                                             onClick={() => router.push(`/dashboard/assignments/${assignment.id}`)}
                                             className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm hover:underline transition-colors"
                                         >
-                                            {role === "teacher" ? "Ver Tarea" : (assignment.status === "graded" ? "Ver nota" : assignment.status === "submitted" ? "Ver entrega" : "Entregar")}
+                                            {role === "teacher" ? "Veure tasca" : (assignment.status === "graded" ? "Veure nota" : assignment.status === "submitted" ? "Veure lliurament" : "Lliurar")}
                                         </button>
                                     </td>
                                 </tr>
@@ -303,7 +303,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                 <tr>
                                     <td colSpan={5} className="px-6 py-16 text-center">
                                         <FileText className="w-10 h-10 mx-auto text-zinc-300 dark:text-zinc-600 mb-3" />
-                                        <p className="text-zinc-500 font-medium">No hay tareas en esta categoría.</p>
+                                        <p className="text-zinc-500 font-medium">No hi ha tasques en aquesta categoria.</p>
                                         <p className="text-zinc-400 text-sm mt-1">Prueba cambiando de pestaña.</p>
                                     </td>
                                 </tr>
@@ -343,7 +343,7 @@ function TeacherStatusBadge({ submissions }: { submissions: any[] }) {
     const returned = submissions.filter((s: any) => s.status === "returned").length;
 
     if (total === 0) {
-        return <span className="text-xs text-zinc-400">Sin entregas</span>;
+        return <span className="text-xs text-zinc-400">Sense lliuraments</span>;
     }
 
     return (
@@ -359,15 +359,15 @@ function TeacherStatusBadge({ submissions }: { submissions: any[] }) {
             </div>
             {returned > 0 && (
                 <span className="flex items-center gap-1 text-xs text-amber-500">
-                    <RotateCcw className="w-3 h-3" /> {returned} devueltas
+                    <RotateCcw className="w-3 h-3" /> {returned} retornades
                 </span>
             )}
         </div>
     );
 }
 
-function StudentStatusBadge({ status, grade, dueDate, lateDueDate }: { 
-    status: string; 
+function StudentStatusBadge({ status, grade, dueDate, lateDueDate }: {
+    status: string;
     grade?: number;
     dueDate: string;
     lateDueDate?: string;
@@ -382,7 +382,7 @@ function StudentStatusBadge({ status, grade, dueDate, lateDueDate }: {
     if (status === "submitted") {
         return (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Entregado
+                <CheckCircle2 className="w-3.5 h-3.5" /> Lliurat
             </span>
         );
     }
@@ -395,19 +395,19 @@ function StudentStatusBadge({ status, grade, dueDate, lateDueDate }: {
     }
 
     const now = new Date();
-    const isPastOriginal = now > new Date(dueDate);
+    const isPastOiginal = now > new Date(dueDate);
 
-    if (isPastOriginal) {
+    if (isPastOiginal) {
         return (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400">
-                <AlertCircle className="w-3.5 h-3.5" /> Sin entregar
+                <AlertCircle className="w-3.5 h-3.5" /> Sense lliurar
             </span>
         );
     }
 
     return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">
-             <Clock className="w-3.5 h-3.5" /> Pendiente
+             <Clock className="w-3.5 h-3.5" /> Pendent
         </span>
     );
 }

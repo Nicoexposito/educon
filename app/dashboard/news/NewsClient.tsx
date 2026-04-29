@@ -12,8 +12,8 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
         <div className="p-8 max-w-7xl mx-auto">
              <div className="mb-8 flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Noticias y Anuncios</h1>
-                    <p className="text-zinc-500">Últimas novedades del centro educativo.</p>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2">Notícies i anuncis</h1>
+                    <p className="text-zinc-500">Últimes novetats del centre educatiu.</p>
                 </div>
             </div>
 
@@ -23,7 +23,7 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
                     <div className="md:col-span-2 relative h-96 rounded-3xl overflow-hidden group cursor-pointer shadow-sm hover:shadow-xl transition-shadow">
                         <div className="absolute inset-0 bg-zinc-900/40 group-hover:bg-zinc-900/30 transition-colors z-10" />
                         <div className="absolute inset-0 bg-linear-to-t from-zinc-900/90 via-zinc-900/20 to-transparent z-10" />
-                        
+
                         <div className="absolute inset-0 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center">
                            <Newspaper className="w-20 h-20 text-indigo-300 opacity-20" />
                         </div>
@@ -52,14 +52,14 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
                              <span>•</span>
                              <span suppressHydrationWarning>{formatDate(item.created_at)}</span>
                         </div>
-                        
+
                         <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{item.title}</h3>
                         <p className="text-zinc-600 dark:text-zinc-400 text-sm line-clamp-3 mb-6 flex-1">
                             {item.content}
                         </p>
-                        
+
                         <button className="flex items-center gap-2 text-indigo-600 font-medium text-sm group/btn self-start">
-                            Leer más 
+                            Leer más
                             <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                         </button>
                     </div>
@@ -67,7 +67,7 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
 
                  {sortedNews.length === 0 && (
                      <div className="col-span-full py-20 text-center text-zinc-500">
-                         No hay noticias publicadas.
+                         No hi ha notícies publicades.
                      </div>
                  )}
             </div>
@@ -76,7 +76,7 @@ export function NewsClient({ initialNews }: { initialNews: any[] }) {
 }
 
 function formatDate(value: string) {
-    return new Intl.DateTimeFormat("es-ES", {
+    return new Intl.DateTimeFormat("ca-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

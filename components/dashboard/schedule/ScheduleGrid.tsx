@@ -14,17 +14,17 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
     const days = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
 
     const getWeekDateRange = (offset: number) => {
-        if (offset === 0) return "Semana Actual";
+        if (offset === 0) return "Setmana actual";
         const today = new Date();
-        const day = today.getDay() || 7; 
+        const day = today.getDay() || 7;
         const mondayStr = new Date(today);
         mondayStr.setDate(today.getDate() - day + 1 + (offset * 7));
-        
+
         const sundayStr = new Date(mondayStr);
         sundayStr.setDate(mondayStr.getDate() + 6);
 
         const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-        return `${mondayStr.toLocaleDateString('es-ES', options)} - ${sundayStr.toLocaleDateString('es-ES', options)}`;
+        return `${mondayStr.toLocaleDateString('ca-ES', options)} - ${sundayStr.toLocaleDateString('ca-ES', options)}`;
     };
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,22 +68,22 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
             return { isHoliday: true, name: "Vacaciones de Navidad" };
         }
 
-        // Festivos de Cataluña (Fechas fijas)
+        // Festivos de Cataluña (Datas fijas)
         const fixedHolidays = [
-            { m: 1, d: 1, name: "Año Nuevo" },
+            { m: 1, d: 1, name: "Cap d'Any" },
             { m: 1, d: 6, name: "Reyes" },
-            { m: 5, d: 1, name: "Día del Trabajador" },
+            { m: 5, d: 1, name: "Dia del Treballador" },
             { m: 6, d: 24, name: "Sant Joan" },
             { m: 8, d: 15, name: "Asunción" },
             { m: 9, d: 11, name: "La Diada" },
-            { m: 10, d: 12, name: "Día de la Hispanidad" },
+            { m: 10, d: 12, name: "Dia de la Hispanitat" },
             { m: 11, d: 1, name: "Tots Sants" },
-            { m: 12, d: 6, name: "Día de la Constitución" },
+            { m: 12, d: 6, name: "Dia de la Constitució" },
             { m: 12, d: 8, name: "Inmaculada" },
             { m: 12, d: 25, name: "Nadal" },
             { m: 12, d: 26, name: "Sant Esteve" },
         ];
-        
+
         const holiday = fixedHolidays.find(h => h.m === month && h.d === day);
         if (holiday) {
             return { isHoliday: true, name: holiday.name };
@@ -97,7 +97,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
         const day = today.getDay() || 7;
         const mondayStr = new Date(today);
         mondayStr.setDate(today.getDate() - day + 1 + (weekOffset * 7));
-        
+
         return days.map((dayName, index) => {
             const dateStr = new Date(mondayStr);
             dateStr.setDate(mondayStr.getDate() + index);
@@ -111,7 +111,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
             };
         });
     };
-    
+
     const daysWithDates = getDaysWithDates();
     const timeSlots = [
         { time: '08:00 - 09:00', id: '08:00' },
@@ -126,8 +126,8 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
     // Instead we dynamically search the subjects array and their relational schedules list.
     const findSubjectForSlot = (day: string, timeId: string) => {
         if (!subjects || subjects.length === 0) return null;
-        return subjects.find(subj => 
-            subj.schedules && subj.schedules.some((s: any) => 
+        return subjects.find(subj =>
+            subj.schedules && subj.schedules.some((s: any) =>
                 s.day_of_week === day && s.start_time.startsWith(timeId)
             )
         );
@@ -140,7 +140,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
         const relatedAssignments = assignments.filter(a => {
             const isMatch = a.subject_id === subjObj.id || a.subject?.name === subjObj.name;
             if (!isMatch) return false;
-            
+
             const dueDate = new Date(a.due_date);
             return dueDate.toDateString() === selectedDate.toDateString();
         });
@@ -151,42 +151,42 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
         <div>
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Horario Escolar</h1>
-                    <p className="text-zinc-500">Vista semanal de clases y eventos.</p>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2">Horari Escolar</h1>
+                    <p className="text-zinc-500">Vista setmanal de classes i esdeveniments.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {weekOffset !== 0 && (
-                        <button 
+                        <button
                             onClick={() => setWeekOffset(0)}
                             className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 mr-2 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors"
                         >
-                            Hoy
+                            Avui
                         </button>
                     )}
                     <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                        <button 
+                        <button
                             onClick={() => setWeekOffset(prev => prev - 1)}
                             className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
-                            title="Semana anterior"
+                            title="Setmana anterior"
                         >
                             <ChevronLeft className="w-5 h-5 text-zinc-500" />
                         </button>
                         <span className="text-sm font-medium px-2 min-w-[120px] text-center" suppressHydrationWarning>
                             {getWeekDateRange(weekOffset)}
                         </span>
-                        <button 
+                        <button
                             onClick={() => setWeekOffset(prev => prev + 1)}
                             className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
-                            title="Semana siguiente"
+                            title="Setmana següent"
                         >
                             <ChevronRight className="w-5 h-5 text-zinc-500" />
                         </button>
                         <div className="relative flex items-center border-l border-zinc-200 dark:border-zinc-800 pl-1 ml-1">
-                            <input 
-                                type="date" 
+                            <input
+                                type="date"
                                 onChange={handleDateChange}
                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                                title="Seleccionar fecha"
+                                title="Seleccionar data"
                             />
                             <button className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors pointer-events-none">
                                 <CalendarIcon className="w-5 h-5 text-zinc-500" />
@@ -269,14 +269,14 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                                         return (
                                             <div key={day} className={`border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 p-1 relative ${dayObj.isToday ? 'bg-indigo-50/10 dark:bg-indigo-900/5' : ''}`}>
                                                 {actualSubject ? (
-                                                    <div 
+                                                    <div
                                                         onClick={() => setSelectedSlot({ day, subject: actualSubject, timeId: slot.id, fullDate: dayObj.fullDate })}
-                                                        className={`h-full w-full rounded-lg p-2 flex flex-col justify-center items-center text-center transition-all cursor-pointer select-none 
-                                                        ${isSelected 
-                                                            ? 'ring-2 ring-indigo-500 bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800' 
-                                                            : hasDeliveries 
+                                                        className={`h-full w-full rounded-lg p-2 flex flex-col justify-center items-center text-center transition-all cursor-pointer select-none
+                                                        ${isSelected
+                                                            ? 'ring-2 ring-indigo-500 bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800'
+                                                            : hasDeliveries
                                                                 ? 'bg-orange-100/80 hover:bg-orange-200/80 dark:bg-orange-900/40 dark:hover:bg-orange-800/50 border border-orange-200 dark:border-orange-800 shadow-sm'
-                                                                : 'bg-indigo-50/50 hover:bg-indigo-100/50 dark:bg-indigo-950/20 dark:hover:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-900/50 hover:border-indigo-200 dark:hover:border-indigo-800'} 
+                                                                : 'bg-indigo-50/50 hover:bg-indigo-100/50 dark:bg-indigo-950/20 dark:hover:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-900/50 hover:border-indigo-200 dark:hover:border-indigo-800'}
                                                         `}
                                                     >
                                                         <div className={`font-bold text-xs ${isSelected ? 'text-indigo-900 dark:text-indigo-200' : hasDeliveries ? 'text-orange-900 dark:text-orange-200' : 'text-indigo-700 dark:text-indigo-300'}`}>
@@ -310,7 +310,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                                     {selectedSlot.day} • {timeSlots.find(t => t.id === selectedSlot.timeId)?.time}
                                 </p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setSelectedSlot(null)}
                                 className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-500"
                             >
@@ -321,7 +321,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                             <div>
                                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
                                     <Clock className="w-4 h-4 text-zinc-400" />
-                                    Tareas Relacionadas
+                                    Tasques Relacionadas
                                 </h4>
                                 <div className="space-y-3">
                                     {getSubjectDetails(selectedSlot.subject, selectedSlot.fullDate).length > 0 ? (
@@ -338,16 +338,16 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                                                         </span>
                                                         {isDelivered ? (
                                                             <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
-                                                                Entregado
+                                                                Lliurat
                                                             </span>
                                                         ) : isDelayed ? (
                                                             <span className="text-[10px] font-bold uppercase tracking-wider bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full flex items-center gap-1">
                                                                 <AlertCircle className="w-3 h-3" />
-                                                                Con Retraso
+                                                                Con Retard
                                                             </span>
                                                         ) : (
                                                             <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">
-                                                                Pendiente
+                                                                Pendent
                                                             </span>
                                                         )}
                                                     </div>
@@ -355,7 +355,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                                             )
                                         })
                                     ) : (
-                                        <p className="text-sm text-zinc-500 italic">No entrega nada ese dia.</p>
+                                        <p className="text-sm text-zinc-500 italic">No lliura res aquest dia.</p>
                                     )}
                                 </div>
                             </div>
@@ -363,9 +363,9 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                     </div>
                 )}
             </div>
-            
+
             <div className="mt-8">
-                <h2 className="text-xl font-bold mb-4">Próximos Eventos Globales</h2>
+                <h2 className="text-xl font-bold mb-4">Próximos Esdeveniments Globales</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {events.map((evt: any) => (
                         <div key={evt.id} className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-start gap-3">
@@ -380,7 +380,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                             </div>
                         </div>
                     ))}
-                    {events.length === 0 && <p className="text-zinc-500">No hay eventos próximos.</p>}
+                    {events.length === 0 && <p className="text-zinc-500">No hi ha esdeveniments propers.</p>}
                 </div>
             </div>
         </div>
@@ -388,7 +388,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
 }
 
 function formatDate(value: string) {
-    return new Intl.DateTimeFormat("es-ES", {
+    return new Intl.DateTimeFormat("ca-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -397,7 +397,7 @@ function formatDate(value: string) {
 }
 
 function formatDateTime(value: string) {
-    return new Intl.DateTimeFormat("es-ES", {
+    return new Intl.DateTimeFormat("ca-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

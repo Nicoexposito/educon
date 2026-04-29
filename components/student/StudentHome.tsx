@@ -11,11 +11,11 @@ import { useStudentDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
 
 export default function StudentHome({ data: initialData }: { data: any }) {
     const data = useStudentDashboardRealtime(initialData);
-    
+
     const subjects = data?.subjects || [];
     const stats = data?.stats || { assignmentsPending: 0, avgGrade: "0.0" };
     const profile = data?.profile;
-    const firstName = profile?.full_name?.split(' ')[0] || 'Alumno';
+    const firstName = profile?.full_name?.split(' ')[0] || 'Alumne';
 
     return (
         <main className="p-6 lg:p-10 max-w-7xl mx-auto">
@@ -41,7 +41,7 @@ export default function StudentHome({ data: initialData }: { data: any }) {
                     className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] hover:opacity-90 text-white rounded-xl font-medium text-sm shadow-sm transition-opacity duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none shrink-0"
                 >
                     <Upload className="w-4 h-4" aria-hidden="true" />
-                    Entregar Tarea
+                    Lliurar tasca
                 </Link>
             </header>
 
@@ -59,7 +59,7 @@ export default function StudentHome({ data: initialData }: { data: any }) {
                     <div className="h-80">
                         <AssignmentsListWidget
                             items={data?.assignments || []}
-                            title="Tareas Pendientes"
+                            title="Tasques pendents"
                             role="student"
                         />
                     </div>

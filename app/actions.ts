@@ -40,7 +40,7 @@ export async function authenticateUser(email: string, password: string, institut
         .eq('name', instituteName)
         .single();
 
-    if (!institute) return { success: false, error: 'Institut not found' };
+    if (!institute) return { success: false, error: 'Institut no trobat' };
 
     // 2. We use Supabase Auth to check the password (this replaces the old bcrypt check)
     const supabase = await createClient();
@@ -50,7 +50,7 @@ export async function authenticateUser(email: string, password: string, institut
     });
 
     if (authError || !authData.user) {
-        return { success: false, error: 'Invalid credentials' };
+        return { success: false, error: 'Credencials incorrectes' };
     }
 
     // 3. Verify user belongs to the specified institute
@@ -62,7 +62,7 @@ export async function authenticateUser(email: string, password: string, institut
 
     if (!user || user.institute_id !== institute.id) {
         await supabase.auth.signOut();
-        return { success: false, error: 'User does not belong to this institute' };
+        return { success: false, error: "L'usuari no pertany a aquest institut" };
     }
 
     // Keep backwards compatibility with our custom session if other components still rely on it
@@ -73,7 +73,7 @@ export async function authenticateUser(email: string, password: string, institut
 
 export async function changePassword(userId: string, currentPassword: string, newPassword: string) {
     if (!newPassword || newPassword.length < 6) {
-        return { success: false, error: 'La contraseña debe tener al menos 6 caracteres.' };
+        return { success: false, error: 'La contrasenya ha de tenir com a mínim 6 caràcters.' };
     }
 
     const supabase = await createClient();
@@ -81,28 +81,28 @@ export async function changePassword(userId: string, currentPassword: string, ne
     // We attempt to sign in to verify current password
     // NOTE: This assumes the user's email is needed, we should fetch it first.
     const { data: userRecord } = await supabase.from('users').select('email').eq('id', userId).single();
-    if (!userRecord) return { success: false, error: 'Usuario no encontrado.' };
+    if (!userRecord) return { success: false, error: 'Usuari no trobat.' };
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
         email: userRecord.email,
         password: currentPassword
     });
 
-    if (signInError) return { success: false, error: 'La contraseña actual es incorrecta.' };
+    if (signInError) return { success: false, error: 'La contrasenya actual és incorrecta.' };
 
     // Update password
     const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
     });
 
-    if (updateError) return { success: false, error: 'Error al actualizar la contraseña.' };
+    if (updateError) return { success: false, error: 'Error en actualitzar la contrasenya.' };
 
     return { success: true };
 }
 
 export async function updateProfile(userId: string, fullName: string) {
     if (!fullName || fullName.trim().length < 2) {
-        return { success: false, error: 'El nombre debe tener al menos 2 caracteres.' };
+        return { success: false, error: 'El nom ha de tenir com a mínim 2 caràcters.' };
     }
 
     const supabase = await createClient();
@@ -110,9 +110,9 @@ export async function updateProfile(userId: string, fullName: string) {
     // Verify the user has a valid Supabase Auth session (not just the fallback cookie)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user || user.id !== userId) {
-        return { 
-            success: false, 
-            error: 'Sesión obsoleta. Por favor, CIERRA SESIÓN y vuelve a entrar para guardar los cambios.' 
+        return {
+            success: false,
+            error: 'Sessió obsoleta. Si us plau, tanca la sessió i torna a entrar per desar els canvis.'
         };
     }
 
@@ -125,7 +125,7 @@ export async function updateProfile(userId: string, fullName: string) {
 
     if (error || !data) {
         console.error("Update profile error:", error);
-        return { success: false, error: 'Error al actualizar el perfil.' };
+        return { success: false, error: 'Error en actualitzar el perfil.' };
     }
 
     revalidatePath('/dashboard/profile');
@@ -141,7 +141,7 @@ export async function updateEmailPreferences(userId: string, emailPreferences: R
     if (authError || !user || user.id !== userId) {
         return {
             success: false,
-            error: 'Sesión obsoleta. Por favor, CIERRA SESIÓN y vuelve a entrar para guardar los cambios.'
+            error: 'Sessió obsoleta. Si us plau, tanca la sessió i torna a entrar per desar els canvis.'
         };
     }
 
@@ -168,7 +168,7 @@ export async function updateEmailPreferences(userId: string, emailPreferences: R
 
     if (error) {
         console.error("Update email preferences error:", error);
-        return { success: false, error: 'Error al actualizar las preferencias de correo.' };
+        return { success: false, error: 'Error en actualitzar les preferències de correu.' };
     }
 
     revalidatePath('/dashboard/profile');

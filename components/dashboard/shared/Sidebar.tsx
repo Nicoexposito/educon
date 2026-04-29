@@ -32,24 +32,24 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const commonItems = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-        { icon: Calendar, label: "Horario", href: "/dashboard/schedule" },
+        { icon: LayoutDashboard, label: "Tauler", href: "/dashboard" },
+        { icon: Calendar, label: "Horari", href: "/dashboard/schedule" },
     ];
 
     const roleItems = role === 'teacher' ? [
-        { icon: BookOpen, label: "Mis Clases", href: "/dashboard/subjects" },
-        { icon: FileText, label: "Tareas", href: "/dashboard/assignments" },
+        { icon: BookOpen, label: "Les meves classes", href: "/dashboard/subjects" },
+        { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
     ] : [
-        { icon: BookOpen, label: "Mis Asignaturas", href: "/dashboard/subjects" },
-        { icon: FileText, label: "Tareas", href: "/dashboard/assignments" },
-        { icon: ClipboardCheck, label: "Asistencias", href: "/dashboard/attendance" },
-        { icon: Award, label: "Calificaciones", href: "/dashboard/grades" },
+        { icon: BookOpen, label: "Les meves assignatures", href: "/dashboard/subjects" },
+        { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
+        { icon: ClipboardCheck, label: "Assistències", href: "/dashboard/attendance" },
+        { icon: Award, label: "Qualificacions", href: "/dashboard/grades" },
     ];
 
     const extraItems = [
-        { icon: CalendarDays, label: "Eventos", href: "/dashboard/events" },
-        { icon: Newspaper, label: "Noticias", href: "/dashboard/news" },
-        { icon: Bell, label: "Notificaciones", href: "/dashboard/notifications" },
+        { icon: CalendarDays, label: "Esdeveniments", href: "/dashboard/events" },
+        { icon: Newspaper, label: "Notícies", href: "/dashboard/news" },
+        { icon: Bell, label: "Notificacions", href: "/dashboard/notifications" },
     ];
 
     const isActive = (href: string) => {
@@ -137,8 +137,8 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
                 <div className="px-2 pb-3 pt-2 border-t border-[var(--sidebar-border)] space-y-0.5">
                     <button
                         onClick={async () => await logout()}
-                        title="Cerrar Sesión"
-                        aria-label="Cerrar Sesión"
+                        title="Tancar sessió"
+                        aria-label="Tancar sessió"
                         className={`
                             w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
                             text-rose-300/80 hover:text-rose-300 hover:bg-rose-500/10
@@ -147,13 +147,13 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
                         `}
                     >
                         <LogOut className="w-5 h-5 shrink-0" aria-hidden="true" />
-                        {!isCollapsed && <span className="text-sm font-medium">Cerrar Sesión</span>}
+                        {!isCollapsed && <span className="text-sm font-medium">Tancar sessió</span>}
                     </button>
 
                     {/* Collapse toggle — desktop only */}
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        aria-label={isCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'}
+                        aria-label={isCollapsed ? 'Ampliar la barra lateral' : 'Contraure la barra lateral'}
                         className="hidden lg:flex w-full items-center justify-center p-2 mt-1 rounded-xl text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--sidebar-ring)] focus-visible:outline-none"
                     >
                         {isCollapsed ? <ChevronRight className="w-4 h-4" aria-hidden="true" /> : <ChevronLeft className="w-4 h-4" aria-hidden="true" />}

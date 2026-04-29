@@ -77,15 +77,15 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
     const handleSubmit = () => {
         setMsg(null);
         if (!title.trim()) {
-            setMsg({ type: "error", text: "El título es obligatorio." });
+            setMsg({ type: "error", text: "El títol és obligatori." });
             return;
         }
         if (!subjectId) {
-            setMsg({ type: "error", text: "Selecciona una asignatura." });
+            setMsg({ type: "error", text: "Selecciona una assignatura." });
             return;
         }
         if (!dueDate) {
-            setMsg({ type: "error", text: "La fecha de entrega es obligatoria." });
+            setMsg({ type: "error", text: "La data de lliurament és obligatòria." });
             return;
         }
 
@@ -100,11 +100,11 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
             });
 
             if (result.success) {
-                setMsg({ type: "success", text: "Tarea creada correctamente." });
+                setMsg({ type: "success", text: "Tasca creada correctament." });
                 router.refresh();
                 setTimeout(() => onClose(), 1000);
             } else {
-                setMsg({ type: "error", text: result.error || "Error desconocido." });
+                setMsg({ type: "error", text: result.error || "Error desconegut." });
             }
         });
     };
@@ -120,7 +120,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                     <div className="flex items-center gap-2">
                         <Plus className="w-5 h-5 text-indigo-500" />
-                        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Nueva Tarea</h2>
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Tasca nova</h2>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
                         <X className="w-5 h-5" />
@@ -129,7 +129,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
 
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-5">
-                    {/* Feedback */}
+                    {/* Retorn */}
                     {msg && (
                         <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${msg.type === "success"
                             ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
@@ -142,12 +142,12 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
 
                     {/* Title */}
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Título *</label>
+                        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Títol *</label>
                         <input
                             type="text"
                             value={title}
                             onChange={e => setTitle(e.target.value)}
-                            placeholder="Ej: Trabajo de investigación sobre el Renacimiento"
+                            placeholder="Ex.: Treball de recerca sobre el Renaixement"
                             className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-400"
                         />
                     </div>
@@ -155,7 +155,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                     {/* Subject */}
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
-                            <BookOpen className="w-4 h-4" /> Asignatura *
+                            <BookOpen className="w-4 h-4" /> Assignatura *
                         </label>
                         <select
                             value={subjectId}
@@ -166,19 +166,19 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                                 <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
                             {subjects.length === 0 && (
-                                <option value="">No tienes asignaturas</option>
+                                <option value="">No tens assignatures</option>
                             )}
                         </select>
                     </div>
 
                     {/* Description */}
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Descripción / Instrucciones</label>
+                        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Descripció / Instruccions</label>
                         <textarea
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             rows={4}
-                            placeholder="Describe la tarea, los requisitos, las fuentes permitidas..."
+                            placeholder="Descriu la tasca, els requisits, les fonts permeses..."
                             className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none placeholder:text-zinc-400"
                         />
                     </div>
@@ -187,7 +187,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
-                                <Calendar className="w-4 h-4 text-indigo-500" /> Fecha de entrega *
+                                <Calendar className="w-4 h-4 text-indigo-500" /> Data de lliurament *
                             </label>
                             <input
                                 type="datetime-local"
@@ -198,7 +198,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
-                                <Calendar className="w-4 h-4 text-amber-500" /> Fecha límite con retraso
+                                <Calendar className="w-4 h-4 text-amber-500" /> Data límit amb retard
                             </label>
                             <input
                                 type="datetime-local"
@@ -207,14 +207,14 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                                 min={dueDate}
                                 className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                             />
-                            <p className="text-xs text-zinc-400">Opcional. Entregas después de la fecha oficial.</p>
+                            <p className="text-xs text-zinc-400">Opcional. Lliuraments després de la data oficial.</p>
                         </div>
                     </div>
 
                     {/* Documents */}
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
-                            <FileUp className="w-4 h-4" /> Documentos adjuntos
+                            <FileUp className="w-4 h-4" /> Documents adjunts
                         </label>
                         <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-4 transition-colors hover:border-indigo-300 dark:hover:border-indigo-600">
                             <input
@@ -229,7 +229,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                                 className="flex flex-col items-center cursor-pointer py-2"
                             >
                                 <FileUp className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mb-2" />
-                                <span className="text-sm text-zinc-500">Arrastra archivos o haz click para seleccionar</span>
+                                <span className="text-sm text-zinc-500">Arrossega fitxers o fes clic per seleccionar-los</span>
                                 <span className="text-xs text-zinc-400 mt-1">PDF, DOCX, imágenes, etc.</span>
                             </label>
                         </div>
@@ -254,18 +254,18 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                             className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                         >
                             <Users className="w-4 h-4" />
-                            Alumnos asignados ({selectedStudentIds.size}/{students.length})
-                            <span className="text-xs text-zinc-400 ml-1">(por defecto todos)</span>
+                            Alumnes assignats ({selectedStudentIds.size}/{students.length})
+                            <span className="text-xs text-zinc-400 ml-1">(per defecte tots)</span>
                         </button>
 
                         {showStudentSelector && (
                             <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700 p-3 max-h-48 overflow-y-auto">
                                 {loadingStudents ? (
                                     <div className="flex items-center gap-2 py-4 justify-center text-zinc-400">
-                                        <Loader2 className="w-4 h-4 animate-spin" /> Cargando alumnos...
+                                        <Loader2 className="w-4 h-4 animate-spin" /> Carregant alumnes...
                                     </div>
                                 ) : students.length === 0 ? (
-                                    <p className="text-sm text-zinc-400 py-4 text-center">No hay alumnos matriculados en esta asignatura.</p>
+                                    <p className="text-sm text-zinc-400 py-4 text-center">No hi ha alumnes matriculats en aquesta assignatura.</p>
                                 ) : (
                                     <>
                                         <button
@@ -273,7 +273,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                                             className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1 transition-colors"
                                         >
                                             {allSelected ? <CheckSquare className="w-4 h-4 text-indigo-500" /> : <Square className="w-4 h-4 text-zinc-400" />}
-                                            Seleccionar todos
+                                            Seleccionar-los tots
                                         </button>
                                         {students.map((student: any) => (
                                             <button
@@ -301,7 +301,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                         onClick={onClose}
                         className="px-5 py-2.5 rounded-xl text-zinc-600 dark:text-zinc-400 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
-                        Cancelar
+                        Cancel·lar
                     </button>
                     <button
                         onClick={handleSubmit}
@@ -309,7 +309,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
                     >
                         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        Crear Tarea
+                        Crear tasca
                     </button>
                 </div>
             </div>

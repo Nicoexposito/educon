@@ -22,11 +22,11 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
     // Submission form
     const [content, setContent] = useState("");
     const [file, setFile] = useState<File | null>(null);
-    
+
     const isGraded = assignment.status === "graded";
     const isSubmitted = assignment.status === "submitted" || isGraded;
     const isReturned = assignment.status === "returned";
-    
+
     // Dates
     const now = new Date();
     const dueDate = new Date(assignment.due_date);
@@ -37,7 +37,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!content.trim() && !file) {
-            setMsg({ type: "error", text: "Por favor, añade algún archivo o comentario a tu entrega." });
+            setMsg({ type: "error", text: "Si us plau, afegeix algun fitxer o comentari al teu lliurament." });
             return;
         }
 
@@ -51,10 +51,10 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
 
             const result = await submitAssignment(formData);
             if (result.success) {
-                setMsg({ type: "success", text: "Tarea entregada correctamente." });
+                setMsg({ type: "success", text: "Tasca lliurada correctament." });
                 router.refresh();
             } else {
-                setMsg({ type: "error", text: result.error || "Error al entregar." });
+                setMsg({ type: "error", text: result.error || "Error en lliurar." });
             }
         });
     };
@@ -66,7 +66,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                
+
                 <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <div className="flex items-center gap-3 mb-4">
@@ -75,7 +75,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                             </span>
                             {isStrictlyLate && !isSubmitted && !isLate && (
                                 <span className="px-3 py-1 bg-rose-500/80 text-white rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md animate-pulse">
-                                    Vencida - Retraso permitido
+                                    Vencida - Retard permitido
                                 </span>
                             )}
                         </div>
@@ -97,24 +97,24 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
             </div>
 
             <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
-                
+
                 {/* Left Column: Details & Instructions */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Dates block */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-zinc-50 dark:bg-zinc-800/50 p-5 rounded-2xl border border-zinc-100 dark:border-zinc-700/50">
-                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Fecha límite principal</p>
+                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Data límit principal</p>
                             <div className="flex items-center gap-3 text-zinc-800 dark:text-zinc-200">
                                 <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                                     <Calendar className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold" suppressHydrationWarning>{dueDate.toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                    <p className="text-xs text-zinc-500" suppressHydrationWarning>{dueDate.toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit' })}</p>
+                                    <p className="text-sm font-semibold" suppressHydrationWarning>{dueDate.toLocaleDateString("ca-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                    <p className="text-xs text-zinc-500" suppressHydrationWarning>{dueDate.toLocaleTimeString("ca-ES", { hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         {assignment.late_due_date && (
                              <div className="bg-amber-50/50 dark:bg-amber-500/5 p-5 rounded-2xl border border-amber-100 dark:border-amber-500/10">
                                 <p className="text-xs font-bold text-amber-500 uppercase tracking-wider mb-3">Límite extendido</p>
@@ -123,8 +123,8 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         <Clock className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold" suppressHydrationWarning>{new Date(assignment.late_due_date).toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                        <p className="text-xs text-amber-600/70" suppressHydrationWarning>{new Date(assignment.late_due_date).toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit' })}</p>
+                                        <p className="text-sm font-semibold" suppressHydrationWarning>{new Date(assignment.late_due_date).toLocaleDateString("ca-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                        <p className="text-xs text-amber-600/70" suppressHydrationWarning>{new Date(assignment.late_due_date).toLocaleTimeString("ca-ES", { hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
                                 </div>
                             </div>
@@ -134,22 +134,22 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                     {/* Teacher Instructions */}
                     <div>
                         <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-indigo-500" /> Instrucciones del profesor
+                            <FileText className="w-5 h-5 text-indigo-500" /> Instruccions del professor
                         </h3>
                         <div className="prose prose-zinc dark:prose-invert max-w-none bg-zinc-50 dark:bg-zinc-800/30 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 leading-relaxed text-sm">
-                            {assignment.description || "No se han proporcionado instrucciones adicionales para esta tarea."}
+                            {assignment.description || "No s'han proporcionat instruccions addicionals per a aquesta tasca."}
                         </div>
                     </div>
 
-                    {/* Assigned Material */}
+                    {/* Material assignat */}
                     {assignment.content_url && (
                         <div>
                             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-                                <Download className="w-5 h-5 text-indigo-500" /> Material Adjunto
+                                <Download className="w-5 h-5 text-indigo-500" /> Material adjunt
                             </h3>
-                            <a 
-                                href={assignment.content_url} 
-                                target="_blank" 
+                            <a
+                                href={assignment.content_url}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="group flex items-center justify-between p-4 bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl hover:bg-indigo-100 dark:hover:bg-indigo-500/10 transition-colors"
                             >
@@ -158,8 +158,8 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         <FileText className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-indigo-900 dark:text-indigo-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">Doc_Actividad.pdf</p>
-                                        <p className="text-xs font-medium text-indigo-600/70 dark:text-indigo-400/70">Haz clic para descargar</p>
+                                        <p className="font-bold text-indigo-900 dark:text-indigo-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">Doc_Activitat.pdf</p>
+                                        <p className="text-xs font-medium text-indigo-600/70 dark:text-indigo-400/70">Fes clic per descarregar</p>
                                     </div>
                                 </div>
                                 <div className="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:shadow-lg transition-all">
@@ -172,18 +172,18 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
 
                 {/* Right Column: Submission Status & Action */}
                 <div className="space-y-6">
-                    
+
                     {/* Status Card */}
                     <div className="bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
                         <div className="p-6">
-                            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-6 uppercase tracking-wider">Estado de Entrega</h3>
-                            
+                            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-6 uppercase tracking-wider">Estat del lliurament</h3>
+
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800">
-                                    <span className="text-sm font-medium text-zinc-500">Estado</span>
+                                    <span className="text-sm font-medium text-zinc-500">Estat</span>
                                     {isGraded ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
-                                            <CheckCircle2 className="w-3.5 h-3.5" /> Calificada
+                                            <CheckCircle2 className="w-3.5 h-3.5" /> Qualificada
                                         </span>
                                     ) : isReturned ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
@@ -191,7 +191,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         </span>
                                     ) : isSubmitted ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
-                                            <CheckCircle2 className="w-3.5 h-3.5" /> Entregada
+                                            <CheckCircle2 className="w-3.5 h-3.5" /> Lliurada
                                         </span>
                                     ) : isLate ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400">
@@ -199,27 +199,27 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         </span>
                                     ) : isStrictlyLate ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
-                                            <AlertCircle className="w-3.5 h-3.5" /> Retraso M.
+                                            <AlertCircle className="w-3.5 h-3.5" /> Retard M.
                                         </span>
                                     ) : (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300">
-                                            <Clock className="w-3.5 h-3.5" /> Pendiente
+                                            <Clock className="w-3.5 h-3.5" /> Pendent
                                         </span>
                                     )}
                                 </div>
 
                                 {isSubmitted && assignment.submitted_at && (
                                      <div className="flex justify-between items-center py-2 border-b border-zinc-100 dark:border-zinc-800">
-                                        <span className="text-sm font-medium text-zinc-500">Entregado el</span>
+                                        <span className="text-sm font-medium text-zinc-500">Lliurat el</span>
                                         <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200" suppressHydrationWarning>
-                                            {new Date(assignment.submitted_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"})}
+                                            {new Date(assignment.submitted_at).toLocaleDateString("ca-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"})}
                                         </span>
                                     </div>
                                 )}
 
                                 {isSubmitted && (
                                     <div className="py-2">
-                                        <span className="text-sm font-medium text-zinc-500 block mb-3">Archivos enviados</span>
+                                        <span className="text-sm font-medium text-zinc-500 block mb-3">Fitxers enviados</span>
                                         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-xl">
                                             {assignment.file_url ? (
                                                 <a href={assignment.file_url} target="_blank" className="flex items-center gap-3 group text-left">
@@ -227,12 +227,12 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                                         <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">Mi_Entrega.pdf</p>
-                                                        <p className="text-[10px] text-zinc-400">Haz click para abrir</p>
+                                                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">El_meu_lliurament.pdf</p>
+                                                        <p className="text-[10px] text-zinc-400">Fes clic per obrir</p>
                                                     </div>
                                                 </a>
                                             ) : (
-                                                <p className="text-sm italic text-zinc-500 text-center py-2">Solo texto/comentario enviado.</p>
+                                                <p className="text-sm italic text-zinc-500 text-center py-2">Només s'ha enviat text/comentari.</p>
                                             )}
                                         </div>
                                     </div>
@@ -241,11 +241,11 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                         </div>
                     </div>
 
-                    {/* Teacher Feedback */}
+                    {/* Retorn del professor */}
                     {(isGraded || isReturned) && assignment.feedback && (
                         <div className={`p-6 rounded-2xl border ${isGraded ? 'bg-emerald-50/50 dark:bg-emerald-500/5 border-emerald-200 dark:border-emerald-500/20' : 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-200 dark:border-amber-500/20'}`}>
                             <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isGraded ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
-                                Comentarios del profesor
+                                Comentaris del professor
                             </h3>
                             <div className="text-sm italic text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
                                 "{assignment.feedback}"
@@ -258,18 +258,18 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-indigo-200 dark:border-indigo-500/30 overflow-hidden shadow-lg shadow-indigo-500/5">
                             <div className="bg-indigo-50 dark:bg-indigo-500/10 px-6 py-4 border-b border-indigo-100 dark:border-indigo-500/20">
                                 <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 flex items-center gap-2">
-                                    <FileUp className="w-4 h-4 text-indigo-500" /> {isReturned ? 'Nueva Entrega' : 'Añadir Entrega'}
+                                    <FileUp className="w-4 h-4 text-indigo-500" /> {isReturned ? 'Lliurament nou' : 'Afegir lliurament'}
                                 </h3>
                             </div>
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
                                 {/* File Upload */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Subir Archivo</label>
+                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Pujar fitxer</label>
                                     <div className="relative border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:border-indigo-400 transition-colors cursor-pointer group">
-                                         <input 
-                                            type="file" 
+                                         <input
+                                            type="file"
                                             onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                         />
                                         <div className="p-4 flex flex-col items-center justify-center text-center">
                                             {file ? (
@@ -279,7 +279,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                             ) : (
                                                 <>
                                                     <Upload className="w-6 h-6 text-zinc-400 mb-2 group-hover:text-indigo-500 transition-colors" />
-                                                    <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Clic para subir documento</p>
+                                                    <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Clic per pujar un document</p>
                                                     <p className="text-[10px] text-zinc-400 mt-1">PDF, DOCX, ZIP</p>
                                                 </>
                                             )}
@@ -288,12 +288,12 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">O añade un enlace/comentario</label>
+                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">O afegeix un enllaç/comentari</label>
                                     <textarea
                                         value={content}
                                         onChange={e => setContent(e.target.value)}
                                         rows={3}
-                                        placeholder="url de G.Docs, o notas..."
+                                        placeholder="URL de G.Docs o notes..."
                                         className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm resize-none"
                                     />
                                 </div>
@@ -310,7 +310,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                     className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-500/20 transition-all active:scale-[0.98] disabled:opacity-50"
                                 >
                                     {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                                    {isReturned ? 'Volver a entregar' : 'Entregar Tarea'}
+                                    {isReturned ? 'Tornar a lliurar' : 'Lliurar tasca'}
                                 </button>
                             </form>
                         </div>
@@ -322,7 +322,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                             <AlertCircle className="w-12 h-12 text-zinc-400 mx-auto mb-4 grayscale" />
                             <h3 className="font-bold text-zinc-800 dark:text-zinc-200 text-lg">Plazo finalizado</h3>
                             <p className="text-sm text-zinc-500 mt-2">
-                                Ya no se permiten entregas para esta actividad.
+                                Ja no es permeten lliuraments per a aquesta activitat.
                             </p>
                         </div>
                     )}

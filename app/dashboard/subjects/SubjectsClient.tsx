@@ -21,13 +21,13 @@ export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any
         <div className="p-8 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Mis Asignaturas</h1>
-                    <p className="text-zinc-500 mt-2">Gestiona tus cursos y contenido académico.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Les meves assignatures</h1>
+                    <p className="text-zinc-500 mt-2">Gestiona els teus cursos i el contingut acadèmic.</p>
                 </div>
                 {role === 'teacher' && (
                     <button className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-xl font-medium hover:opacity-90 transition-opacity shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                         <Plus className="w-5 h-5" />
-                        Nueva Asignatura
+                        Assignatura nova
                     </button>
                 )}
             </div>
@@ -46,10 +46,10 @@ export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any
                         </div>
                     </div>
                 ))}
-                
+
                 {subjects.length === 0 && (
                     <div className="col-span-full py-20 text-center bg-card rounded-2xl border border-dashed border-border">
-                        <p className="text-muted-foreground">No tienes asignaturas asignadas.</p>
+                        <p className="text-muted-foreground">No tens assignatures assignades.</p>
                     </div>
                 )}
             </div>
