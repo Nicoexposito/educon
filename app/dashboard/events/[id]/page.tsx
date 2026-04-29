@@ -8,7 +8,7 @@ import { EventOwnerActions } from "@/components/dashboard/events/EventOwnerActio
 const TYPE_LABELS: Record<string, string> = {
     general: 'General',
     exam: 'Examen',
-    activity: 'Actividad',
+    activity: 'Activitat',
     trip: 'Excursión',
 };
 
@@ -52,7 +52,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                         href="/dashboard/events"
                         className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl text-sm font-medium transition-colors"
                     >
-                        <ArrowLeft className="w-4 h-4" /> Volver
+                        <ArrowLeft className="w-4 h-4" /> Tornar
                     </Link>
                 </div>
 
@@ -80,13 +80,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                             <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
-                            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Fecha</p>
+                            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Data</p>
                             <p className="text-sm font-bold" suppressHydrationWarning>
-                                {startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                {startDate.toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                             </p>
                             {!isSameDay && (
                                 <p className="text-xs text-zinc-500 mt-0.5" suppressHydrationWarning>
-                                    hasta {endDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+                                    fins a {endDate.toLocaleDateString('ca-ES', { day: 'numeric', month: 'long' })}
                                 </p>
                             )}
                         </div>
@@ -97,11 +97,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                             <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
-                            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Horario</p>
+                            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Horari</p>
                             <p className="text-sm font-bold" suppressHydrationWarning>
-                                {startDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                {startDate.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })}
                                 {' – '}
-                                {endDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                {endDate.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Lugar</p>
-                            <p className="text-sm font-bold">{event.location || 'Por confirmar'}</p>
+                            <p className="text-sm font-bold">{event.location || 'Per confirmar'}</p>
                         </div>
                     </div>
                 </div>
@@ -120,7 +120,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 {/* Description */}
                 {event.description && (
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
-                        <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">Descripción</h2>
+                        <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">Descripció</h2>
                         <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                             {event.description}
                         </p>

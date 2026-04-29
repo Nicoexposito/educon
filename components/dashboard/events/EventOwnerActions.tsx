@@ -17,7 +17,7 @@ export function EventOwnerActions({ eventId }: { eventId: string }) {
         setError('');
         const res = await deleteEvent(eventId);
         if (!res.success) {
-            setError(res.error || 'Error al eliminar');
+            setError(res.error || 'Error en eliminar');
             setDeleting(false);
             setShowConfirm(false);
         } else {
@@ -64,10 +64,10 @@ export function EventOwnerActions({ eventId }: { eventId: string }) {
                             <Trash2 className="w-7 h-7 text-red-500 dark:text-red-400" />
                         </div>
                         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
-                            ¿Eliminar este evento?
+                            Vols eliminar aquest esdeveniment?
                         </h2>
                         <p className="text-zinc-500 text-sm mb-8">
-                            Esta acción no se puede deshacer. El evento desaparecerá del calendario de todos tus alumnos.
+                            Aquesta acció no es pot desfer. L'esdeveniment desapareixerà del calendari de tots els teus alumnes.
                         </p>
                         <div className="flex gap-3 justify-center">
                             <button
@@ -75,7 +75,7 @@ export function EventOwnerActions({ eventId }: { eventId: string }) {
                                 disabled={deleting}
                                 className="flex-1 px-5 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
                             >
-                                Cancelar
+                                Cancel·lar
                             </button>
                             <button
                                 onClick={handleDelete}
@@ -83,7 +83,7 @@ export function EventOwnerActions({ eventId }: { eventId: string }) {
                                 className="flex-1 px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {deleting ? (
-                                    <><Loader2 className="w-4 h-4 animate-spin" /> Eliminando...</>
+                                    <><Loader2 className="w-4 h-4 animate-spin" /> Eliminant...</>
                                 ) : (
                                     <><Trash2 className="w-4 h-4" /> Sí, eliminar</>
                                 )}

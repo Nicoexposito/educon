@@ -10,7 +10,7 @@ export function TeacherStats({ stats }: { stats: any }) {
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <KpiCard
-                title="Estudiantes Activos"
+                title="Estudiants actius"
                 value={activeStudents.toString()}
                 icon={<Users className="w-4 h-4" aria-hidden="true" />}
                 trend="Total"
@@ -18,26 +18,26 @@ export function TeacherStats({ stats }: { stats: any }) {
                 color="navy"
             />
             <KpiCard
-                title="Asignaturas"
+                title="Assignatures"
                 value={totalSubjects.toString()}
                 icon={<Book className="w-4 h-4" aria-hidden="true" />}
-                trend="Activas"
+                trend="Actives"
                 trendUp={true}
                 color="amber"
             />
             <KpiCard
-                title="Tareas por Corregir"
+                title="Tasques per corregir"
                 value={pendingTasks.toString()}
                 icon={<BookOpen className="w-4 h-4" aria-hidden="true" />}
-                trend={pendingTasks > 0 ? "Requiere acción" : "Al día"}
+                trend={pendingTasks > 0 ? "Requereix acció" : "Al dia"}
                 trendUp={pendingTasks === 0}
                 color="emerald"
             />
             <KpiCard
-                title="Eventos Próximos"
+                title="Esdeveniments Próximos"
                 value={upcomingEvents.toString()}
                 icon={<Calendar className="w-4 h-4" aria-hidden="true" />}
-                trend="Agendados"
+                trend="Programats"
                 trendUp={true}
                 color="rose"
             />

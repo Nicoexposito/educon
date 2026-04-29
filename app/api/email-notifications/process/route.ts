@@ -13,13 +13,13 @@ export async function POST(request: NextRequest) {
 async function handleProcess(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
     if (!cronSecret && process.env.NODE_ENV === "production") {
-        return NextResponse.json({ success: false, error: "CRON_SECRET no configurado" }, { status: 503 });
+        return NextResponse.json({ success: false, error: "CRON_SECRET no configurat" }, { status: 503 });
     }
 
     if (cronSecret) {
         const auth = request.headers.get("authorization");
         if (auth !== `Bearer ${cronSecret}`) {
-            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "No autoritzat" }, { status: 401 });
         }
     }
 

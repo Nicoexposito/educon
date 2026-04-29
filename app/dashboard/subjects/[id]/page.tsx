@@ -16,7 +16,7 @@ export default async function SubjectDetailsPage({ params }: { params: Promise<{
     const data = await getSubjectDetails(id, session.role as string);
 
     if (!data) {
-        return <div className="p-8">Asignatura no encontrada</div>;
+        return <div className="p-8">Assignatura no encontrada</div>;
     }
 
     const { subject, assignments, resources, students, attendance } = data;
@@ -25,16 +25,16 @@ export default async function SubjectDetailsPage({ params }: { params: Promise<{
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-8 max-w-7xl mx-auto">
             <Link href="/dashboard/subjects" className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-6 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver a Asignaturas
+                Tornar a assignatures
             </Link>
 
-            <SubjectDetailsClient 
-                initialSubject={subject} 
-                initialAssignments={assignments || []} 
-                initialResources={resources || []} 
-                initialStudents={students || []} 
+            <SubjectDetailsClient
+                initialSubject={subject}
+                initialAssignments={assignments || []}
+                initialResources={resources || []}
+                initialStudents={students || []}
                 initialAttendance={attendance || []}
-                role={session.role as string} 
+                role={session.role as string}
             />
         </div>
     );

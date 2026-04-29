@@ -30,8 +30,8 @@ export default async function GradeSubmissionPage({ params }: { params: { id: st
     if (error || !submission) {
         return (
             <div className="max-w-4xl mx-auto py-12 px-6 text-center">
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Entrega no encontrada</h1>
-                <Link href={`/dashboard/assignments/${id}`} className="text-indigo-600 mt-4 inline-block hover:underline">Volver a la tarea</Link>
+                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Lliurament no trobat</h1>
+                <Link href={`/dashboard/assignments/${id}`} className="text-indigo-600 mt-4 inline-block hover:underline">Tornar a la tasca</Link>
             </div>
         );
     }
@@ -40,11 +40,11 @@ export default async function GradeSubmissionPage({ params }: { params: { id: st
         <div className="max-w-5xl mx-auto py-8">
             <div className="mb-6">
                 <Link href={`/dashboard/assignments/${id}`} className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                    <ArrowLeft className="w-4 h-4 mr-1" /> Volver a {submission.assignment?.title}
+                    <ArrowLeft className="w-4 h-4 mr-1" /> Tornar a {submission.assignment?.title}
                 </Link>
             </div>
             {/* The old assignment structure expects certain fields */}
-            <GradeSubmissionForm 
+            <GradeSubmissionForm
                 submission={submission}
             />
         </div>

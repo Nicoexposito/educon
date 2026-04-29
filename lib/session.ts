@@ -49,9 +49,9 @@ export async function getSession() {
     try {
         const supabase = await createClient();
         const { data: { user }, error } = await supabase.auth.getUser();
-        
+
         if (user && !error) {
-            // Need to fetch user role from legacy db 
+            // Need to fetch user role from legacy db
             const { data: dbUser } = await supabase
                 .from('users')
                 .select('role')

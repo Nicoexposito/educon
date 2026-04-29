@@ -30,7 +30,7 @@ export function useRealtimeTable<T extends Record<string, any>>({
     }
 
     const channelName = `realtime:${schema}:${table}${filter ? `:${filter}` : ''}`;
-    
+
     let isSubscribed = true;
 
     const channel = supabase.channel(channelName)
@@ -71,22 +71,22 @@ export function useRealtimeTable<T extends Record<string, any>>({
       )
       .subscribe((status, err) => {
         if (!isSubscribed) return;
-        
+
         console.log(`[Realtime ${table}] Cambio de estado:`, status);
-        
+
         if (status === 'SUBSCRIBED') {
           console.log(`[Realtime ${table}] Conectado exitosamente.`);
           setIsConnected(true);
           setError(null);
         }
-        
+
         if (status === 'CLOSED') {
           console.log(`[Realtime ${table}] Conexión cerrada.`);
           setIsConnected(false);
         }
 
         if (status === 'CHANNEL_ERROR') {
-          const errorMessage = err?.message || 'Error de canal desconocido (posiblemente falta habilitar Realtime o permisos RLS)';
+          const errorMessage = err?.message || 'Error de canal desconegut (possiblement cal habilitar Realtime o permisos RLS)';
           console.error(`[Realtime ${table}] Error de canal:`, errorMessage, err);
           setIsConnected(false);
           setError(err || new Error(errorMessage));

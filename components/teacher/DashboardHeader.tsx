@@ -76,10 +76,10 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                 </button>
                 <div className="flex flex-col">
                      <span className="font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
-                        {role === 'teacher' ? 'Panel del Profesor' : 'Panel del Alumno'}
+                        {role === 'teacher' ? 'Panell del professor' : "Panell de l'alumne"}
                     </span>
                     <span className="text-xs text-zinc-500 hidden sm:block">
-                        {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        {new Date().toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </span>
                 </div>
             </div>
@@ -88,7 +88,7 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                 {/* User info & institute */}
                 <div className="hidden md:flex flex-col items-end">
                     <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
-                        {user?.full_name || (role === 'teacher' ? 'Profesor' : 'Alumno')}
+                        {user?.full_name || (role === 'teacher' ? 'Professor' : 'Alumne')}
                     </span>
                     {user?.institute?.name && (
                         <span className="flex items-center gap-1 text-xs text-zinc-500">
@@ -97,12 +97,12 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                         </span>
                     )}
                 </div>
-                
+
                 <div className="relative">
                     <button
                         onClick={() => setIsNotificationsOpen((open) => !open)}
                         className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full relative transition-colors"
-                        aria-label="Abrir notificaciones"
+                        aria-label="Obrir notificacions"
                         aria-expanded={isNotificationsOpen}
                     >
                         <Bell className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
@@ -117,8 +117,8 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                         <div className="absolute right-0 mt-3 w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl overflow-hidden z-50">
                             <div className="flex items-center justify-between gap-3 p-4 border-b border-zinc-100 dark:border-zinc-800">
                                 <div>
-                                    <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Notificaciones</h2>
-                                    <p className="text-xs text-zinc-500">{unreadCount} sin leer</p>
+                                    <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Notificacions</h2>
+                                    <p className="text-xs text-zinc-500">{unreadCount} sense llegir</p>
                                 </div>
                                 <button
                                     onClick={handleMarkAllRead}
@@ -141,21 +141,21 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                                             <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${notification.read ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-indigo-500'}`} />
                                             <div className="min-w-0">
                                                 <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">{notification.message}</p>
-                                                <p className="text-xs text-zinc-500 mt-1">{new Date(notification.created_at).toLocaleString('es-ES')}</p>
+                                                <p className="text-xs text-zinc-500 mt-1">{new Date(notification.created_at).toLocaleString('ca-ES')}</p>
                                             </div>
                                         </div>
                                     </Link>
                                 )) : (
-                                    <div className="p-8 text-center text-sm text-zinc-500">No hay notificaciones.</div>
+                                    <div className="p-8 text-center text-sm text-zinc-500">No hi ha notificacions.</div>
                                 )}
                             </div>
                             <Link href="/dashboard/notifications" onClick={() => setIsNotificationsOpen(false)} className="block p-3 text-center text-xs font-semibold text-indigo-600 bg-zinc-50 dark:bg-zinc-800/50">
-                                Ver todas
+                                Veure-les totes
                             </Link>
                         </div>
                     )}
                 </div>
-                
+
                 <Link href="/dashboard/profile" className="h-9 w-9 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 hover:scale-105 transition-transform">
                     {initials}
                 </Link>

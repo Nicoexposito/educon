@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-// Este componente escucha eventos en la tabla "notifications"
-// y puede disparar un toast o un alert global en la interfaz.
+// Aquest component escolta esdeveniments a la taula "notifications"
+// i pot disparar un toast o una alerta global a la interf?cie.
 
 export function NotificationListener({ userId }: { userId?: string }) {
     const supabase = createClient();
@@ -31,8 +31,8 @@ export function NotificationListener({ userId }: { userId?: string }) {
                 },
                 (payload) => {
                     if (!isSubscribed) return;
-                    console.log("[Notification] Nueva notificación recibida:", payload.new);
-                    // Aquí en el futuro puedes agregar lógica para mostrar un Toast
+                    console.log("[Notification] Notificació nova rebuda:", payload.new);
+                    // Aquí en el futur pots afegir lògica per mostrar un toast
                     // toast(payload.new.message)
                     setNotifications((prev) => [...prev, payload.new]);
                 }
@@ -50,8 +50,8 @@ export function NotificationListener({ userId }: { userId?: string }) {
         };
     }, [userId, supabase]);
 
-    // El componente en sí no renderiza nada visible directamente, 
+    // El componente en sí no renderiza nada visible directamente,
     // su propósito es inyectar funcionalidad o mostrar toasts.
-    // Si decides hacer un panel de notificaciones flotante, puedes usar el estado `notifications` aquí.
+    // Si decideixes fer un panell de notificacions flotant, pots usar l'estat `notifications` aquí.
     return null;
 }

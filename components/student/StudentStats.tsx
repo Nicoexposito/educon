@@ -6,7 +6,7 @@ import { BookOpen, CalendarCheck, Clock, AlertCircle, ArrowUpRight, ArrowDownRig
 export function StudentStats({ stats }: { stats: any }) {
     const assignmentsPending = stats?.assignmentsPending || 0;
     const avgGrade = stats?.avgGrade || "0.0";
-    
+
     // Mock trends for demo
     const gradeTrend = "+0.2";
 
@@ -18,42 +18,42 @@ export function StudentStats({ stats }: { stats: any }) {
     const diffTime = endDate.getTime() - today.getTime();
     const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const courseFinished = daysRemaining <= 0;
-    
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <StatsCard 
-                title="Media Global" 
-                value={avgGrade} 
+            <StatsCard
+                title="Mitjana global"
+                value={avgGrade}
                 icon={<TrendingUp className="w-5 h-5 text-indigo-600" />}
                 trend={gradeTrend}
                 trendUp={true}
                 color="indigo"
             />
-             <StatsCard 
-                title="Tareas Pendientes" 
+             <StatsCard
+                title="Tasques pendents"
                 value={assignmentsPending.toString()}
                 icon={<BookOpen className="w-5 h-5 text-amber-600" />}
-                trend={assignmentsPending > 0 ? "Por hacer" : "Al día"}
+                trend={assignmentsPending > 0 ? "Per fer" : "Al dia"}
                 trendUp={assignmentsPending === 0} // Up is good (no pending)
                 color="amber"
                 correction={assignmentsPending > 0}
             />
-             <StatsCard 
-                title="Asistencia" 
-                value="98%" 
+             <StatsCard
+                title="Assistència"
+                value="98%"
                 icon={<Clock className="w-5 h-5 text-emerald-600" />}
                 trend="Perfecta"
                 trendUp={true}
                 color="emerald"
             />
-             <StatsCard 
-                title="Días Restantes de Curso" 
-                value={courseFinished ? "Acabado" : `${daysRemaining} días`}
-                icon={courseFinished 
-                    ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> 
+             <StatsCard
+                title="Dies restants de curs"
+                value={courseFinished ? "Acabat" : `${daysRemaining} dies`}
+                icon={courseFinished
+                    ? <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     : <CalendarCheck className="w-5 h-5 text-violet-600" />
                 }
-                trend={courseFinished ? "Curso finalizado" : `Hasta 22 Jun`}
+                trend={courseFinished ? "Curs finalitzat" : `Fins al 22 de juny`}
                 trendUp={true}
                 color={courseFinished ? "emerald" : "violet"}
             />

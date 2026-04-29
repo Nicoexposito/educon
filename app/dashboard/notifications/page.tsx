@@ -20,8 +20,8 @@ export default async function NotificationsPage() {
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-8 max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Notificaciones</h1>
-                    <p className="text-zinc-500">Mantente al día con las últimas novedades.</p>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2">Notificacions</h1>
+                    <p className="text-zinc-500">Estigues al dia de les darreres novetats.</p>
                 </div>
             </div>
 
