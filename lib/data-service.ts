@@ -4,64 +4,68 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function getDashboardData(userId: string, role: string) {
     const supabase = await createClient();
-    // Get user profile first
-    const { data: profile } = await supabase
-        .from('users')
-        .select('full_name, email, avatar_url')
-        .eq('id', userId)
-        .single();
 
     if (role === 'teacher') {
-        const { data: subjects } = await supabase
-            .from('subjects')
-            .select('*, schedules:subject_schedules(*), enrollments(id)')
-            .eq('teacher_id', userId);
+        const [{ data: profile }, { data: subjects }] = await Promise.all([
+            supabase
+                .from('users')
+                .select('full_name, email, avatar_url')
+                .eq('id', userId)
+                .single(),
+            supabase
+                .from('subjects')
+                .select('*, schedules:subject_schedules(*), enrollments(id)')
+                .eq('teacher_id', userId),
+        ]);
+
         const normalizedSubjects = (subjects || []).map((subject: any) => ({
             ...subject,
             student_count: subject.enrollments?.length || 0,
         }));
         const subjectIds = normalizedSubjects.map((s: any) => s.id);
+        const today = new Date().toISOString().slice(0, 10);
 
-        const { data: events } = await supabase
-            .from('events')
-            .select('*')
-            .gte('end_time', new Date().toISOString())
-            .order('start_time', { ascending: true })
-            .limit(5);
-
-        // Calculate stats
-        const { count: assignmentsPending } = await supabase
-            .from('submissions')
-            .select('*, assignment:assignments!inner(teacher_id)', { count: 'exact', head: true })
-            .eq('assignment.teacher_id', userId)
-            .is('grade', null); // Pending grading
-
-        // Get recent pending submissions (ungraded)
-        const { data: pendingSubmissions } = await supabase
-            .from('submissions')
-            .select('*, assignment:assignments!inner(title, teacher_id, subject:subjects(name)), student:users(full_name)')
-            .eq('assignment.teacher_id', userId)
-            .is('grade', null)
-            .order('submitted_at', { ascending: true })
-            .limit(5);
-
-        // Get unique active students
-        const { data: enrollments } = subjectIds.length > 0
-            ? await supabase
+        const [
+            { data: events },
+            { count: assignmentsPending },
+            { data: pendingSubmissions },
+            { data: enrollments },
+            { data: todayAttendance },
+        ] = await Promise.all([
+            supabase
+                .from('events')
+                .select('*')
+                .gte('end_time', new Date().toISOString())
+                .order('start_time', { ascending: true })
+                .limit(5),
+            supabase
+                .from('submissions')
+                .select('*, assignment:assignments!inner(teacher_id)', { count: 'exact', head: true })
+                .eq('assignment.teacher_id', userId)
+                .is('grade', null),
+            supabase
+                .from('submissions')
+                .select('*, assignment:assignments!inner(title, teacher_id, subject:subjects(name)), student:users(full_name)')
+                .eq('assignment.teacher_id', userId)
+                .is('grade', null)
+                .order('submitted_at', { ascending: true })
+                .limit(5),
+            subjectIds.length > 0
+                ? supabase
                 .from('enrollments')
                 .select('student_id')
                 .in('subject_id', subjectIds)
-            : { data: [] as any[] };
-        const uniqueStudents = new Set(enrollments?.map((e: any) => e.student_id)).size;
-
-        const today = new Date().toISOString().slice(0, 10);
-        const { data: todayAttendance } = subjectIds.length > 0
-            ? await supabase
+                : Promise.resolve({ data: [] as any[] }),
+            subjectIds.length > 0
+                ? supabase
                 .from('attendance')
                 .select('subject_id, status')
                 .in('subject_id', subjectIds)
                 .eq('date', today)
-            : { data: [] as any[] };
+                : Promise.resolve({ data: [] as any[] }),
+        ]);
+
+        const uniqueStudents = new Set(enrollments?.map((e: any) => e.student_id)).size;
 
         const attendanceBySubject = new Map<string, any[]>();
         (todayAttendance || []).forEach((row: any) => {
@@ -95,13 +99,18 @@ export async function getDashboardData(userId: string, role: string) {
             }
         };
     } else {
-        // Student
-        const { data: enrollments } = await supabase
-            .from('enrollments')
-            .select('subject:subjects(*, schedules:subject_schedules(*), enrollments(id))')
-            .eq('student_id', userId);
+        const [{ data: profile }, { data: enrollments }] = await Promise.all([
+            supabase
+                .from('users')
+                .select('full_name, email, avatar_url')
+                .eq('id', userId)
+                .single(),
+            supabase
+                .from('enrollments')
+                .select('subject:subjects(*, schedules:subject_schedules(*), enrollments(id))')
+                .eq('student_id', userId),
+        ]);
 
-        // Transform to list of subjects
         const subjects = enrollments?.map((e: any) => ({
             ...e.subject,
             student_count: e.subject?.enrollments?.length || 0,
@@ -110,36 +119,50 @@ export async function getDashboardData(userId: string, role: string) {
         const querySubjectIds = studentSubjectIds.length > 0
             ? studentSubjectIds
             : ['00000000-0000-0000-0000-000000000000'];
+        const now = new Date().toISOString();
 
-        const { data: events } = await supabase
-            .from('events')
-            .select('*')
-            .gte('end_time', new Date().toISOString())
-            .order('start_time', { ascending: true })
-            .limit(5);
+        const [
+            { data: events },
+            { data: gradedSubmissions },
+            { data: assignments },
+            { data: allFutureAssignments },
+            { data: attendanceRows },
+        ] = await Promise.all([
+            supabase
+                .from('events')
+                .select('*')
+                .gte('end_time', now)
+                .order('start_time', { ascending: true })
+                .limit(5),
+            supabase
+                .from('submissions')
+                .select('grade')
+                .eq('student_id', userId)
+                .not('grade', 'is', null),
+            supabase
+                .from('assignments')
+                .select('*, subject:subjects(name)')
+                .in('subject_id', querySubjectIds)
+                .gt('due_date', now)
+                .order('due_date', { ascending: true })
+                .limit(5),
+            supabase
+                .from('assignments')
+                .select('id')
+                .in('subject_id', querySubjectIds)
+                .gt('due_date', now),
+            supabase
+                .from('attendance')
+                .select('subject_id, date, status, subject:subjects(name, schedules:subject_schedules(*))')
+                .eq('student_id', userId)
+                .order('date', { ascending: false })
+                .limit(10),
+        ]);
 
-        const { data: gradedSubmissions } = await supabase
-            .from('submissions')
-            .select('grade')
-            .eq('student_id', userId)
-            .not('grade', 'is', null);
         const avgGrade = gradedSubmissions && gradedSubmissions.length > 0
             ? (gradedSubmissions.reduce((sum: number, row: any) => sum + Number(row.grade), 0) / gradedSubmissions.length).toFixed(1)
             : "—";
 
-        const { data: assignments } = await supabase
-            .from('assignments')
-            .select('*, subject:subjects(name)')
-            .in('subject_id', querySubjectIds)
-            .gt('due_date', new Date().toISOString())
-            .order('due_date', { ascending: true })
-            .limit(5);
-
-        const { data: allFutureAssignments } = await supabase
-            .from('assignments')
-            .select('id')
-            .in('subject_id', querySubjectIds)
-            .gt('due_date', new Date().toISOString());
         const assignmentIds = allFutureAssignments?.map((assignment: any) => assignment.id) || [];
         const { data: currentSubmissions } = assignmentIds.length > 0
             ? await supabase
@@ -150,13 +173,6 @@ export async function getDashboardData(userId: string, role: string) {
             : { data: [] as any[] };
         const submittedIds = new Set((currentSubmissions || []).map((row: any) => row.assignment_id));
         const assignmentsPending = (allFutureAssignments || []).filter((assignment: any) => !submittedIds.has(assignment.id)).length;
-
-        const { data: attendanceRows } = await supabase
-            .from('attendance')
-            .select('subject_id, date, status, subject:subjects(name, schedules:subject_schedules(*))')
-            .eq('student_id', userId)
-            .order('date', { ascending: false })
-            .limit(10);
 
         const attendanceBySubject = new Map<string, any>();
         (attendanceRows || []).forEach((row: any) => {
@@ -190,6 +206,81 @@ export async function getDashboardData(userId: string, role: string) {
             }
         };
     }
+}
+
+export async function getSubjectsForUser(userId: string, role: string) {
+    const supabase = await createClient();
+
+    if (role === 'teacher') {
+        const { data: subjects } = await supabase
+            .from('subjects')
+            .select('*, schedules:subject_schedules(*), enrollments(id)')
+            .eq('teacher_id', userId)
+            .order('name');
+
+        return (subjects || []).map((subject: any) => ({
+            ...subject,
+            student_count: subject.enrollments?.length || 0,
+        }));
+    }
+
+    const { data: enrollments } = await supabase
+        .from('enrollments')
+        .select('subject:subjects(*, schedules:subject_schedules(*), enrollments(id))')
+        .eq('student_id', userId);
+
+    return enrollments?.map((enrollment: any) => ({
+        ...enrollment.subject,
+        student_count: enrollment.subject?.enrollments?.length || 0,
+    })).filter(Boolean) || [];
+}
+
+export async function getUpcomingEvents(limit = 50) {
+    const supabase = await createClient();
+    const { data: events } = await supabase
+        .from('events')
+        .select('*')
+        .gte('end_time', new Date().toISOString())
+        .order('start_time', { ascending: true })
+        .limit(limit);
+
+    return events || [];
+}
+
+export async function getScheduleData(userId: string, role: string) {
+    const subjects = await getSubjectsForUser(userId, role);
+    const subjectIds = subjects.map((subject: any) => subject.id).filter(Boolean);
+
+    const [events, assignments] = await Promise.all([
+        getUpcomingEvents(50),
+        getScheduleAssignments(userId, role, subjectIds),
+    ]);
+
+    return { subjects, events, assignments };
+}
+
+async function getScheduleAssignments(userId: string, role: string, subjectIds: string[]) {
+    const supabase = await createClient();
+
+    if (role === 'teacher') {
+        const { data: assignments } = await supabase
+            .from('assignments')
+            .select('id, title, subject_id, due_date, subject:subjects(name)')
+            .eq('teacher_id', userId)
+            .order('due_date', { ascending: true });
+
+        return assignments || [];
+    }
+
+    if (subjectIds.length === 0) return [];
+
+    const { data: assignments } = await supabase
+        .from('assignments')
+        .select('id, title, subject_id, due_date, subject:subjects(name)')
+        .in('subject_id', subjectIds)
+        .order('due_date', { ascending: true });
+
+    return assignments || [];
 }
 
 export async function getSubjectDetails(subjectId: string, role: string) {

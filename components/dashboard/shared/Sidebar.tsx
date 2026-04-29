@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -10,7 +10,6 @@ import {
     Calendar,
     LogOut,
     FileText,
-    Menu,
     Newspaper,
     CalendarDays,
     Bell,
@@ -18,6 +17,7 @@ import {
     Award,
     ChevronLeft,
     ChevronRight,
+    Loader2,
 } from "lucide-react";
 import { logout } from "@/app/actions";
 
@@ -30,6 +30,11 @@ interface SidebarProps {
 export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+    useEffect(() => {
+        setPendingHref(null);
+    }, [pathname]);
 
     const commonItems = [
         { icon: LayoutDashboard, label: "Tauler", href: "/dashboard" },
@@ -110,7 +115,12 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
                             label={item.label}
                             href={item.href}
                             isActive={isActive(item.href)}
+                            isPending={pendingHref === item.href}
                             isCollapsed={isCollapsed}
+                            onNavigate={() => {
+                                if (!isActive(item.href)) setPendingHref(item.href);
+                                setIsMobileOpen(false);
+                            }}
                         />
                     ))}
 
@@ -128,7 +138,12 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
                             label={item.label}
                             href={item.href}
                             isActive={isActive(item.href)}
+                            isPending={pendingHref === item.href}
                             isCollapsed={isCollapsed}
+                            onNavigate={() => {
+                                if (!isActive(item.href)) setPendingHref(item.href);
+                                setIsMobileOpen(false);
+                            }}
                         />
                     ))}
                 </nav>
@@ -164,16 +179,19 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     );
 }
 
-function SidebarNavItem({ icon: Icon, label, href, isActive, isCollapsed }: {
+function SidebarNavItem({ icon: Icon, label, href, isActive, isPending, isCollapsed, onNavigate }: {
     icon: React.ElementType;
     label: string;
     href: string;
     isActive: boolean;
+    isPending: boolean;
     isCollapsed: boolean;
+    onNavigate: () => void;
 }) {
     return (
         <Link
             href={href}
+            onClick={onNavigate}
             title={isCollapsed ? label : undefined}
             aria-label={isCollapsed ? label : undefined}
             aria-current={isActive ? 'page' : undefined}
@@ -181,20 +199,29 @@ function SidebarNavItem({ icon: Icon, label, href, isActive, isCollapsed }: {
                 relative flex items-center gap-3 px-3 py-2.5 rounded-xl
                 transition-colors duration-150 text-sm group
                 focus-visible:ring-2 focus-visible:ring-[var(--sidebar-ring)] focus-visible:outline-none
-                ${isActive
+                ${isActive || isPending
                     ? 'bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)] font-semibold shadow-sm'
                     : 'text-white/60 hover:bg-[var(--sidebar-accent)] hover:text-white'
                 }
                 ${isCollapsed ? 'justify-center' : ''}
             `}
         >
-            <Icon
-                className={`w-5 h-5 shrink-0 ${isActive ? 'text-[var(--sidebar-primary-foreground)]' : 'text-white/50 group-hover:text-white'}`}
-                aria-hidden="true"
-            />
+            {isPending && isCollapsed ? (
+                <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[var(--sidebar-primary-foreground)]" aria-hidden="true" />
+            ) : (
+                <Icon
+                    className={`w-5 h-5 shrink-0 ${isActive || isPending ? 'text-[var(--sidebar-primary-foreground)]' : 'text-white/50 group-hover:text-white'}`}
+                    aria-hidden="true"
+                />
+            )}
             {!isCollapsed && <span className="truncate">{label}</span>}
-            {/* Active bar indicator */}
-            {isActive && !isCollapsed && (
+            {isPending && !isCollapsed && (
+                <Loader2
+                    className="ml-auto h-4 w-4 animate-spin text-[var(--sidebar-primary-foreground)]"
+                    aria-hidden="true"
+                />
+            )}
+            {isActive && !isPending && !isCollapsed && (
                 <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--sidebar-primary-foreground)] opacity-70" aria-hidden="true" />
             )}
         </Link>

@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { getDashboardData } from "@/lib/data-service";
+import { getUpcomingEvents } from "@/lib/data-service";
 import { redirect } from "next/navigation";
 import { Calendar, MapPin, ArrowRight, Pencil } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +12,7 @@ export default async function EventsPage() {
         redirect('/');
     }
 
-    const { events } = await getDashboardData(session.userId as string, session.role as string);
+    const events = await getUpcomingEvents(50);
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-8 max-w-7xl mx-auto">

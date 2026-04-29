@@ -10,13 +10,10 @@ export default async function AssignmentsPage() {
         redirect('/');
     }
 
-    const assignments = await getAllAssignments(session.userId as string, session.role as string);
-
-    // For teachers, also fetch their subjects for the create modal
-    let subjects: any[] = [];
-    if (session.role === 'teacher') {
-        subjects = await getTeacherSubjects(session.userId as string);
-    }
+    const [assignments, subjects] = await Promise.all([
+        getAllAssignments(session.userId as string, session.role as string),
+        session.role === 'teacher' ? getTeacherSubjects(session.userId as string) : Promise.resolve([] as any[]),
+    ]);
 
     return (
         <AssignmentsClient

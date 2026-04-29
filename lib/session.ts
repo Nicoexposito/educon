@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
-import { supabase as legacySupabase } from "@/lib/supabase";
 
 const secretKey = process.env.SESSION_SECRET || 'default_secret_key_change_me';
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -44,8 +44,16 @@ export async function deleteSession() {
     cookieStore.delete('session');
 }
 
-export async function getSession() {
-    // 1. First try Supabase Auth
+export const getSession = cache(async () => {
+    // Fast path: email/password login also creates our signed app session.
+    const cookieStore = await cookies();
+    const session = cookieStore.get('session')?.value;
+    const payload = await decrypt(session);
+    if (payload?.userId && payload?.role) {
+        return payload;
+    }
+
+    // Google/OAuth sessions live in Supabase cookies, so keep this fallback.
     try {
         const supabase = await createClient();
         const { data: { user }, error } = await supabase.auth.getUser();
@@ -69,9 +77,5 @@ export async function getSession() {
         // Fallback or ignore
     }
 
-    // 2. Fallback to old custom cookie session
-    const cookieStore = await cookies();
-    const session = cookieStore.get('session')?.value;
-    const payload = await decrypt(session);
-    return payload;
-}
+    return null;
+});
