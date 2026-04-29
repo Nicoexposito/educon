@@ -1,22 +1,35 @@
 "use client";
 
+import { useMemo, useState, useTransition } from "react";
 import { useRealtimeTable } from "@/lib/hooks/useRealtimeTable";
-import { BookOpen, FileText, Users, Link as LinkIcon, Download, Plus } from "lucide-react";
+import { BookOpen, FileText, Users, Link as LinkIcon, Download, Plus, Check, Loader2, ClipboardCheck } from "lucide-react";
 import { AIPlaceholder } from "@/components/ai/AIPlaceholder";
+import Link from "next/link";
+import { createResource, saveAttendance } from "@/lib/actions";
+import { useRouter } from "next/navigation";
 
 export function SubjectDetailsClient({ 
     initialSubject, 
     initialAssignments, 
     initialResources, 
     initialStudents,
+    initialAttendance,
     role 
 }: { 
     initialSubject: any, 
     initialAssignments: any[], 
     initialResources: any[], 
     initialStudents: any[],
+    initialAttendance: any[],
     role: string 
 }) {
+    const router = useRouter();
+    const [isResourceOpen, setIsResourceOpen] = useState(false);
+    const [resourceMsg, setResourceMsg] = useState<string | null>(null);
+    const [isPendingResource, startResourceTransition] = useTransition();
+    const [isPendingAttendance, startAttendanceTransition] = useTransition();
+    const [attendanceMsg, setAttendanceMsg] = useState<string | null>(null);
+
     // Only subscribe to assignments and resources related to this subject
     const { data: assignments } = useRealtimeTable({ table: 'assignments', initialData: initialAssignments });
     const { data: resources } = useRealtimeTable({ table: 'resources', initialData: initialResources });
@@ -24,6 +37,44 @@ export function SubjectDetailsClient({
 
     const filteredAssignments = assignments.filter(a => a.subject_id === initialSubject.id);
     const filteredResources = resources.filter(r => r.subject_id === initialSubject.id);
+    const initialAttendanceMap = useMemo(() => new Map(initialAttendance.map((row: any) => [row.student_id, row.status])), [initialAttendance]);
+    const [attendance, setAttendance] = useState<Record<string, string>>(() => {
+        const result: Record<string, string> = {};
+        initialStudents.forEach((student: any) => {
+            result[student.id] = initialAttendanceMap.get(student.id) || 'present';
+        });
+        return result;
+    });
+
+    const scheduleText = initialSubject.schedules?.length
+        ? initialSubject.schedules.map((s: any) => `${s.day_of_week} ${String(s.start_time).slice(0, 5)}-${String(s.end_time).slice(0, 5)}`).join(', ')
+        : initialSubject.schedule || 'Horario no definido';
+
+    const handleResourceSubmit = (formData: FormData) => {
+        setResourceMsg(null);
+        formData.set('subject_id', initialSubject.id);
+        startResourceTransition(async () => {
+            const result = await createResource(formData);
+            setResourceMsg(result.success ? 'Contenido publicado.' : result.error || 'No se pudo publicar.');
+            if (result.success) {
+                setIsResourceOpen(false);
+                router.refresh();
+            }
+        });
+    };
+
+    const handleAttendanceSave = () => {
+        setAttendanceMsg(null);
+        const entries = initialStudents.map((student: any) => ({
+            student_id: student.id,
+            status: attendance[student.id] || 'present',
+        }));
+        startAttendanceTransition(async () => {
+            const result = await saveAttendance(initialSubject.id, entries);
+            setAttendanceMsg(result.success ? 'Lista guardada para hoy.' : result.error || 'No se pudo guardar la lista.');
+            if (result.success) router.refresh();
+        });
+    };
 
     return (
         <>
@@ -49,14 +100,18 @@ export function SubjectDetailsClient({
                                     <Users className="w-4 h-4" />
                                     <span>{initialStudents.length} Alumnos</span>
                                 </div>
+                                <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
+                                    <ClipboardCheck className="w-4 h-4" />
+                                    <span>{scheduleText}</span>
+                                </div>
                             </div>
                         </div>
                         
                         {role === 'teacher' && (
-                             <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-600/20 transition-all flex item-center gap-2">
+                             <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
                                 <Plus className="w-5 h-5" />
-                                Editar Curso
-                            </button>
+                                Crear Tarea
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -73,15 +128,15 @@ export function SubjectDetailsClient({
                                 Tareas y Entregas
                             </h2>
                              {role === 'teacher' && (
-                                <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/10 px-3 py-1.5 rounded-lg transition-colors">
+                                <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/10 px-3 py-1.5 rounded-lg transition-colors">
                                     + Crear Tarea
-                                </button>
+                                </Link>
                             )}
                         </div>
 
                         <div className="space-y-3">
                             {filteredAssignments.map((assignment: any) => (
-                                <div key={assignment.id} className="group p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-800 bg-zinc-50/50 dark:bg-zinc-800/30 transition-all cursor-pointer">
+                                <Link href={`/dashboard/assignments/${assignment.id}`} key={assignment.id} className="block group p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-800 bg-zinc-50/50 dark:bg-zinc-800/30 transition-all">
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">{assignment.title}</h3>
@@ -91,7 +146,7 @@ export function SubjectDetailsClient({
                                             {new Date(assignment.due_date).toLocaleDateString()}
                                          </span>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                             {filteredAssignments.length === 0 && (
                                 <div className="text-center py-8 text-zinc-400 text-sm">No hay tareas asignadas.</div>
@@ -107,11 +162,28 @@ export function SubjectDetailsClient({
                                 Contenidos y Recursos
                             </h2>
                             {role === 'teacher' && (
-                                <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 px-3 py-1.5 rounded-lg transition-colors">
+                                <button onClick={() => setIsResourceOpen((value) => !value)} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 px-3 py-1.5 rounded-lg transition-colors">
                                     + Subir Archivo
                                 </button>
                             )}
                         </div>
+                        {isResourceOpen && (
+                            <form action={handleResourceSubmit} className="mb-5 grid grid-cols-1 md:grid-cols-[1fr_140px_1fr_auto] gap-3 rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 p-4">
+                                <input name="title" required placeholder="Título del contenido" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
+                                <select name="type" defaultValue="link" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500">
+                                    <option value="link">Enlace</option>
+                                    <option value="pdf">PDF</option>
+                                    <option value="video">Video</option>
+                                    <option value="file">Archivo</option>
+                                </select>
+                                <input name="file_url" required placeholder="URL del archivo, guía, horario o anuncio" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
+                                <button disabled={isPendingResource} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold">
+                                    {isPendingResource ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                    Guardar
+                                </button>
+                            </form>
+                        )}
+                        {resourceMsg && <p className="mb-4 text-sm text-emerald-600 dark:text-emerald-400">{resourceMsg}</p>}
                         <div className="space-y-3">
                              {filteredResources.map((resource: any) => (
                                 <div key={resource.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
@@ -124,9 +196,9 @@ export function SubjectDetailsClient({
                                             <div className="text-xs text-zinc-500 capitalize">{resource.type}</div>
                                         </div>
                                     </div>
-                                    <button className="p-2 text-zinc-400 hover:text-zinc-600">
+                                    <a href={resource.file_url || '#'} target="_blank" rel="noopener noreferrer" className="p-2 text-zinc-400 hover:text-zinc-600">
                                         <Download className="w-4 h-4" />
-                                    </button>
+                                    </a>
                                 </div>
                             ))}
                             {filteredResources.length === 0 && (
@@ -138,7 +210,7 @@ export function SubjectDetailsClient({
 
                 {/* Sidebar Column: Students (Teacher) or Info (Student) */}
                 <div className="space-y-8">
-                    {role === 'teacher' && (
+                    {(role === 'teacher' || role === 'student') && (
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                                 <Users className="w-5 h-5 text-indigo-500" />
@@ -148,15 +220,55 @@ export function SubjectDetailsClient({
                                 {initialStudents.map((student: any) => (
                                     <div key={student.id} className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold text-xs">
-                                            {student.email ? student.email.substring(0, 2).toUpperCase() : 'ST'}
+                                            {student.full_name ? student.full_name.split(' ').map((part: string) => part[0]).slice(0, 2).join('').toUpperCase() : student.email ? student.email.substring(0, 2).toUpperCase() : 'ST'}
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="text-sm font-medium truncate">{student.email || "Estudiante"}</div>
-                                            <div className="text-xs text-zinc-400">Online hace 2h</div>
+                                            <div className="text-sm font-medium truncate">{student.full_name || "Estudiante"}</div>
+                                            <div className="text-xs text-zinc-400 truncate">{student.email}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {role === 'teacher' && (
+                        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+                            <div className="flex items-center justify-between gap-3 mb-4">
+                                <h2 className="text-lg font-bold flex items-center gap-2">
+                                    <ClipboardCheck className="w-5 h-5 text-emerald-500" />
+                                    Pasar lista de hoy
+                                </h2>
+                                <button
+                                    onClick={handleAttendanceSave}
+                                    disabled={isPendingAttendance}
+                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold"
+                                >
+                                    {isPendingAttendance ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                    Guardar
+                                </button>
+                            </div>
+                            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                {initialStudents.map((student: any) => (
+                                    <div key={student.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/20 p-3">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-semibold truncate">{student.full_name || student.email}</p>
+                                            <p className="text-xs text-zinc-500 truncate">{student.email}</p>
+                                        </div>
+                                        <select
+                                            value={attendance[student.id] || 'present'}
+                                            onChange={(event) => setAttendance((prev) => ({ ...prev, [student.id]: event.target.value }))}
+                                            className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-xs font-medium"
+                                        >
+                                            <option value="present">Asiste</option>
+                                            <option value="absent">Falta</option>
+                                            <option value="late">Retraso</option>
+                                            <option value="excused">Justificada</option>
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                            {attendanceMsg && <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">{attendanceMsg}</p>}
                         </div>
                     )}
                     

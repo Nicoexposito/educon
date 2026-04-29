@@ -115,7 +115,7 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                 {/* Side Column — 1/3 */}
                 <div className="space-y-6">
                     <div className="h-[600px]">
-                        <RecentActivityLevel />
+                        <RecentActivityLevel items={data?.recentSubjectsAttendance || []} />
                     </div>
                 </div>
             </div>

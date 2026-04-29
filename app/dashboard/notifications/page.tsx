@@ -23,12 +23,9 @@ export default async function NotificationsPage() {
                     <h1 className="text-3xl font-bold tracking-tight mb-2">Notificaciones</h1>
                     <p className="text-zinc-500">Mantente al día con las últimas novedades.</p>
                 </div>
-                <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                    Marcar todas como leídas
-                </button>
             </div>
 
-            <NotificationsClient initialNotifications={notifications || []} />
+            <NotificationsClient initialNotifications={notifications || []} userId={session.userId as string} />
         </div>
     );
 }

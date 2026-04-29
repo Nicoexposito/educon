@@ -94,16 +94,18 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                 }
             })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, (payload) => {
+                const newSubmission = payload.new as any;
+                const oldSubmission = payload.old as any;
                 // When a submission happens, update the assignment's submissions list
                 if (role === 'teacher') {
                     setAssignments(prev => prev.map(a => {
-                        if (a.id === payload.new.assignment_id || (payload.old && a.id === payload.old.assignment_id)) {
+                        if (a.id === newSubmission.assignment_id || (oldSubmission && a.id === oldSubmission.assignment_id)) {
                             const submissions = a.submissions ? [...a.submissions] : [];
                             if (payload.eventType === 'INSERT') {
-                                if (!submissions.some((s: any) => s.id === payload.new.id)) submissions.push(payload.new);
+                                if (!submissions.some((s: any) => s.id === newSubmission.id)) submissions.push(newSubmission);
                             } else if (payload.eventType === 'UPDATE') {
-                                const idx = submissions.findIndex((s: any) => s.id === payload.new.id);
-                                if (idx > -1) submissions[idx] = { ...submissions[idx], ...payload.new };
+                                const idx = submissions.findIndex((s: any) => s.id === newSubmission.id);
+                                if (idx > -1) submissions[idx] = { ...submissions[idx], ...newSubmission };
                             }
                             return { ...a, submissions };
                         }
@@ -112,11 +114,11 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                 } else {
                     // For student, update status
                     setAssignments(prev => prev.map(a => {
-                        if (a.id === payload.new.assignment_id) {
+                        if (a.id === newSubmission.assignment_id) {
                             return { 
                                 ...a, 
-                                status: payload.new.grade !== null ? 'graded' : 'submitted',
-                                grade: payload.new.grade
+                                status: newSubmission.grade !== null ? 'graded' : 'submitted',
+                                grade: newSubmission.grade
                             };
                         }
                         return a;

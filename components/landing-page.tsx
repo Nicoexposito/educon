@@ -48,6 +48,7 @@ export default function LandingPage() {
     const [searchResults, setSearchResults] = useState<{ id: string, name: string }[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [hasPickedInstitute, setHasPickedInstitute] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -62,7 +63,7 @@ export default function LandingPage() {
 
     useEffect(() => {
         const timer = setTimeout(async () => {
-            if (instituteName.length > 0 && loginStep === 'institute') {
+            if (instituteName.length > 0 && loginStep === 'institute' && !hasPickedInstitute) {
                 setIsSearching(true);
                 const results = await searchInstitutes(instituteName);
                 // @ts-ignore
@@ -75,7 +76,7 @@ export default function LandingPage() {
             }
         }, 300);
         return () => clearTimeout(timer);
-    }, [instituteName, loginStep]);
+    }, [instituteName, loginStep, hasPickedInstitute]);
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -93,7 +94,6 @@ export default function LandingPage() {
         e.preventDefault();
         setError('');
         setIsLoading(true);
-        console.log(email, password, instituteName);
         const result = await authenticateUser(email, password, instituteName);
 
         if (result.success) {
@@ -126,6 +126,7 @@ export default function LandingPage() {
     const handleInstituteSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setShowSuggestions(false);
 
         if (instituteName.trim().length === 0) return;
 
@@ -714,14 +715,17 @@ export default function LandingPage() {
                                                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
                                                     <input
                                                         type="text"
+                                                        name="organization"
+                                                        autoComplete="organization"
                                                         required
                                                         value={instituteName}
                                                         onChange={(e) => {
                                                             setInstituteName(e.target.value);
+                                                            setHasPickedInstitute(false);
                                                             setError('');
                                                         }}
                                                         onFocus={() => {
-                                                            if (instituteName.length > 0) setShowSuggestions(true);
+                                                            if (instituteName.length > 0 && !hasPickedInstitute) setShowSuggestions(true);
                                                         }}
                                                         // @ts-ignore
                                                         placeholder={t.login_modal.institute_placeholder}
@@ -749,6 +753,8 @@ export default function LandingPage() {
                                                                     type="button"
                                                                     onClick={() => {
                                                                         setInstituteName(result.name);
+                                                                        setHasPickedInstitute(true);
+                                                                        setSearchResults([]);
                                                                         setShowSuggestions(false);
                                                                         setError('');
                                                                     }}
@@ -794,6 +800,7 @@ export default function LandingPage() {
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -20 }}
                                             onSubmit={handleLogin}
+                                            autoComplete="on"
                                             className="space-y-6"
                                         >
                                             <div className="text-sm font-medium text-zinc-500 flex items-center gap-2 mb-6">
@@ -801,7 +808,10 @@ export default function LandingPage() {
                                                 {instituteName}
                                                 <button
                                                     type="button"
-                                                    onClick={() => setLoginStep('institute')}
+                                                    onClick={() => {
+                                                        setHasPickedInstitute(false);
+                                                        setLoginStep('institute');
+                                                    }}
                                                     className="text-indigo-600 dark:text-indigo-400 hover:underline text-xs"
                                                 >
                                                     {/* @ts-ignore */}
@@ -816,7 +826,9 @@ export default function LandingPage() {
                                                     <div className="relative">
                                                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
                                                         <input
-                                                            type="text"
+                                                            type="email"
+                                                            name="email"
+                                                            autoComplete="username"
                                                             required
                                                             value={email}
                                                             onChange={(e) => setEmail(e.target.value)}
@@ -831,6 +843,8 @@ export default function LandingPage() {
                                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
                                                         <input
                                                             type="password"
+                                                            name="password"
+                                                            autoComplete="current-password"
                                                             required
                                                             value={password}
                                                             onChange={(e) => setPassword(e.target.value)}
@@ -850,7 +864,10 @@ export default function LandingPage() {
                                             <div className="flex gap-3">
                                                 <button
                                                     type="button"
-                                                    onClick={() => setLoginStep('institute')}
+                                                    onClick={() => {
+                                                        setHasPickedInstitute(false);
+                                                        setLoginStep('institute');
+                                                    }}
                                                     className="px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                                                 >
                                                     <ArrowLeft className="h-5 w-5" />

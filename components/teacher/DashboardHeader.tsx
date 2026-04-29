@@ -1,6 +1,10 @@
-import React from 'react';
-import { Bell, Menu, School } from 'lucide-react';
+"use client";
+
+import React, { useEffect, useMemo, useState, useTransition } from 'react';
+import { Bell, CheckCheck, Menu, School } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+import { markAllNotificationsRead } from '@/lib/actions';
 
 interface DashboardHeaderProps {
     role: string;
@@ -10,6 +14,60 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: DashboardHeaderProps) {
+    const supabase = useMemo(() => createClient(), []);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [isPending, startTransition] = useTransition();
+    const userId = (user as any)?.id;
+    const unreadCount = notifications.filter((notification) => !notification.read).length;
+    const initials = getInitials(user?.full_name, user?.email, role);
+
+    useEffect(() => {
+        if (!userId) return;
+
+        let active = true;
+        supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(8)
+            .then(({ data }) => {
+                if (active) setNotifications(data || []);
+            });
+
+        const channel = supabase.channel(`header_notifications_${userId}`)
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'notifications',
+                filter: `user_id=eq.${userId}`,
+            }, (payload) => {
+                setNotifications((prev) => {
+                    if (payload.eventType === 'INSERT') return [payload.new, ...prev].slice(0, 8);
+                    if (payload.eventType === 'UPDATE') return prev.map((item) => item.id === payload.new.id ? payload.new : item);
+                    if (payload.eventType === 'DELETE') return prev.filter((item) => item.id !== payload.old.id);
+                    return prev;
+                });
+            })
+            .subscribe();
+
+        return () => {
+            active = false;
+            supabase.removeChannel(channel);
+        };
+    }, [supabase, userId]);
+
+    const handleMarkAllRead = () => {
+        if (!userId) return;
+        startTransition(async () => {
+            const result = await markAllNotificationsRead(userId);
+            if (result.success) {
+                setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
+            }
+        });
+    };
+
     return (
         <header className="h-16 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 px-6 flex items-center justify-between transition-all duration-300">
             <div className="flex items-center gap-4">
@@ -40,17 +98,76 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                     )}
                 </div>
                 
-                <button className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full relative transition-colors">
-                    <Bell className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-                    <span className="absolute top-2 right-2 h-2 w-2 bg-rose-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
-                </button>
+                <div className="relative">
+                    <button
+                        onClick={() => setIsNotificationsOpen((open) => !open)}
+                        className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full relative transition-colors"
+                        aria-label="Abrir notificaciones"
+                        aria-expanded={isNotificationsOpen}
+                    >
+                        <Bell className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+                        {unreadCount > 0 && (
+                            <span className="absolute top-1 right-1 min-w-4 h-4 px-1 bg-rose-500 text-white text-[10px] leading-4 text-center rounded-full border-2 border-white dark:border-zinc-900">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {isNotificationsOpen && (
+                        <div className="absolute right-0 mt-3 w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl overflow-hidden z-50">
+                            <div className="flex items-center justify-between gap-3 p-4 border-b border-zinc-100 dark:border-zinc-800">
+                                <div>
+                                    <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Notificaciones</h2>
+                                    <p className="text-xs text-zinc-500">{unreadCount} sin leer</p>
+                                </div>
+                                <button
+                                    onClick={handleMarkAllRead}
+                                    disabled={isPending || unreadCount === 0}
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 disabled:text-zinc-400"
+                                >
+                                    <CheckCheck className="w-3.5 h-3.5" />
+                                    Leídas
+                                </button>
+                            </div>
+                            <div className="max-h-80 overflow-y-auto">
+                                {notifications.length > 0 ? notifications.map((notification) => (
+                                    <Link
+                                        key={notification.id}
+                                        href="/dashboard/notifications"
+                                        onClick={() => setIsNotificationsOpen(false)}
+                                        className={`block px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${notification.read ? '' : 'bg-indigo-50/60 dark:bg-indigo-900/10'}`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${notification.read ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-indigo-500'}`} />
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">{notification.message}</p>
+                                                <p className="text-xs text-zinc-500 mt-1">{new Date(notification.created_at).toLocaleString('es-ES')}</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                )) : (
+                                    <div className="p-8 text-center text-sm text-zinc-500">No hay notificaciones.</div>
+                                )}
+                            </div>
+                            <Link href="/dashboard/notifications" onClick={() => setIsNotificationsOpen(false)} className="block p-3 text-center text-xs font-semibold text-indigo-600 bg-zinc-50 dark:bg-zinc-800/50">
+                                Ver todas
+                            </Link>
+                        </div>
+                    )}
+                </div>
                 
                 <Link href="/dashboard/profile" className="h-9 w-9 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 hover:scale-105 transition-transform">
-                    {user?.full_name 
-                        ? user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-                        : (role === 'teacher' ? 'P' : 'A')}
+                    {initials}
                 </Link>
             </div>
         </header>
     );
+}
+
+function getInitials(fullName?: string, email?: string, role?: string) {
+    const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    if (email) return email.slice(0, 2).toUpperCase();
+    return role === 'teacher' ? 'PR' : 'AL';
 }

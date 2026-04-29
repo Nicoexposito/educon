@@ -6,7 +6,7 @@ import { X, Save, Clock, FileText, Settings, Upload, CheckCircle2, ArrowLeft } f
 import { createAssignment } from "@/lib/actions";
 import Link from "next/link";
 
-export default function CreateAssignmentForm({ subjects, teacherId }: { subjects: any[], teacherId: string }) {
+export default function CreateAssignmentForm({ subjects, teacherId, initialSubjectId }: { subjects: any[], teacherId: string, initialSubjectId?: string }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -16,7 +16,7 @@ export default function CreateAssignmentForm({ subjects, teacherId }: { subjects
     const [description, setDescription] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [lateDueDate, setLateDueDate] = useState("");
-    const [subjectId, setSubjectId] = useState("");
+    const [subjectId, setSubjectId] = useState(initialSubjectId || "");
     const [allowLate, setAllowLate] = useState(false);
     const [file, setFile] = useState<File | null>(null);
 

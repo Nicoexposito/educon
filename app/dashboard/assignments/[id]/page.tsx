@@ -77,7 +77,7 @@ export default async function AssignmentPage({ params }: { params: { id: string 
 
         const assignmentWithStatus = {
             ...assignment,
-            status: submission ? (submission.returned ? 'returned' : (submission.grade !== null ? 'graded' : 'submitted')) : 'pending',
+            status: submission ? (submission.status === 'returned' ? 'returned' : (submission.grade !== null ? 'graded' : 'submitted')) : 'pending',
             grade: submission?.grade,
             feedback: submission?.feedback,
             file_url: submission?.file_url,

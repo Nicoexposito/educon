@@ -19,7 +19,7 @@ export default async function SubjectDetailsPage({ params }: { params: Promise<{
         return <div className="p-8">Asignatura no encontrada</div>;
     }
 
-    const { subject, assignments, resources, students } = data;
+    const { subject, assignments, resources, students, attendance } = data;
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-8 max-w-7xl mx-auto">
@@ -33,6 +33,7 @@ export default async function SubjectDetailsPage({ params }: { params: Promise<{
                 initialAssignments={assignments || []} 
                 initialResources={resources || []} 
                 initialStudents={students || []} 
+                initialAttendance={attendance || []}
                 role={session.role as string} 
             />
         </div>

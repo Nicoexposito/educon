@@ -3,14 +3,17 @@ import Link from 'next/link';
 import { Clock, MapPin, MoreHorizontal, ArrowRight } from 'lucide-react';
 
 export function TodayClasses({ subjects }: { subjects: any[] }) {
-    // Mock Schedule Logic (Simplified for demo)
     const now = new Date();
-    const currentDay = ['DG', 'DL', 'DM', 'DC', 'DJ', 'DV', 'DS'][now.getDay()];
+    const currentDay = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'][now.getDay()];
     
-    // Filter & Sort
-    const todaysClasses = subjects
-        .filter((s: any) => s.schedule && s.schedule.includes(currentDay))
-        .sort((a: any, b: any) => a.schedule.localeCompare(b.schedule));
+    const todaysClasses = subjects.flatMap((subject: any) => {
+        const schedules = subject.schedules?.length
+            ? subject.schedules
+            : parseLegacySchedule(subject.schedule, currentDay);
+        return schedules
+            .filter((schedule: any) => schedule.day_of_week === currentDay)
+            .map((schedule: any) => ({ ...subject, activeSchedule: schedule }));
+    }).sort((a: any, b: any) => String(a.activeSchedule.start_time).localeCompare(String(b.activeSchedule.start_time)));
 
     const upcomingClasses = todaysClasses.slice(0, 3); // Show top 3
 
@@ -56,6 +59,10 @@ export function TodayClasses({ subjects }: { subjects: any[] }) {
 }
 
 function ClassItem({ subject, isActive }: { subject: any, isActive: boolean }) {
+    const start = subject.activeSchedule?.start_time ? String(subject.activeSchedule.start_time).slice(0, 5) : '';
+    const end = subject.activeSchedule?.end_time ? String(subject.activeSchedule.end_time).slice(0, 5) : '';
+    const scheduleLabel = start && end ? `${start} - ${end}` : subject.schedule || 'Horario no definido';
+
     return (
         <div className={`group p-4 rounded-xl transition-all border ${isActive ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 border-transparent'}`}>
             <div className="flex items-start gap-4">
@@ -72,7 +79,7 @@ function ClassItem({ subject, isActive }: { subject: any, isActive: boolean }) {
                     <div className="flex items-center gap-3 mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                         <div className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
-                            <span>{subject.schedule}</span>
+                            <span>{scheduleLabel}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />
@@ -86,4 +93,11 @@ function ClassItem({ subject, isActive }: { subject: any, isActive: boolean }) {
             </div>
         </div>
     )
+}
+
+function parseLegacySchedule(schedule: string | null | undefined, currentDay: string) {
+    if (!schedule) return [];
+    return schedule.includes(currentDay)
+        ? [{ day_of_week: currentDay, start_time: schedule, end_time: '' }]
+        : [];
 }

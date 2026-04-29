@@ -14,6 +14,8 @@ import {
     Newspaper,
     CalendarDays,
     Bell,
+    ClipboardCheck,
+    Award,
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
@@ -40,6 +42,8 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     ] : [
         { icon: BookOpen, label: "Mis Asignaturas", href: "/dashboard/subjects" },
         { icon: FileText, label: "Tareas", href: "/dashboard/assignments" },
+        { icon: ClipboardCheck, label: "Asistencias", href: "/dashboard/attendance" },
+        { icon: Award, label: "Calificaciones", href: "/dashboard/grades" },
     ];
 
     const extraItems = [
@@ -196,5 +200,4 @@ function SidebarNavItem({ icon: Icon, label, href, isActive, isCollapsed }: {
         </Link>
     );
 }
-
 

@@ -1,5 +1,7 @@
-import React from 'react';
-import { Users, Clock, MoreVertical, ArrowRight, BookOpen } from 'lucide-react';
+"use client";
+
+import React, { useState } from 'react';
+import { Users, Clock, MoreVertical, ArrowRight, FileText, ClipboardCheck, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 
 interface SubjectCardProps {
@@ -8,9 +10,10 @@ interface SubjectCardProps {
 }
 
 export function SubjectCard({ subject, role }: SubjectCardProps) {
-    // Generate a consistent gradient based on subject ID or name char code?
-    // For now random-ish or fixed based on index if passed, but here we just pick one.
-    // Let's use a subtle border/bg approach for "Premium" feel.
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const scheduleText = subject.schedules?.length
+        ? subject.schedules.map((s: any) => `${s.day_of_week} ${String(s.start_time).slice(0, 5)}-${String(s.end_time).slice(0, 5)}`).join(', ')
+        : subject.schedule || "Horario no definido";
 
     return (
         <div className="group bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-xs hover:shadow-md transition-all hover:border-indigo-200 dark:hover:border-indigo-800 relative overflow-hidden">
@@ -22,9 +25,31 @@ export function SubjectCard({ subject, role }: SubjectCardProps) {
                     <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xl shadow-sm">
                         {subject.name.substring(0, 2).toUpperCase()}
                     </div>
-                    <button className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
-                        <MoreVertical className="w-5 h-5" />
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsMenuOpen((open) => !open)}
+                            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                            aria-label="Opciones de asignatura"
+                        >
+                            <MoreVertical className="w-5 h-5" />
+                        </button>
+                        {isMenuOpen && (
+                            <div className="absolute right-0 top-8 z-20 w-48 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl">
+                                <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={FolderOpen} label="Ver asignatura" />
+                                {role === 'teacher' ? (
+                                    <>
+                                        <MenuLink href={`/dashboard/assignments/new?subject=${subject.id}`} icon={FileText} label="Crear tarea" />
+                                        <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={ClipboardCheck} label="Pasar lista" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={FileText} label="Entregar tareas" />
+                                        <MenuLink href="/dashboard/attendance" icon={ClipboardCheck} label="Ver asistencia" />
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="mb-4 flex-1">
@@ -39,12 +64,12 @@ export function SubjectCard({ subject, role }: SubjectCardProps) {
                 <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                     <div className="flex items-center gap-1.5">
                         <Clock className="w-4 h-4" />
-                        <span>{subject.schedule || "TBA"}</span>
+                        <span className="line-clamp-1">{scheduleText}</span>
                     </div>
                     {role === 'teacher' && (
                         <div className="flex items-center gap-1.5">
                             <Users className="w-4 h-4" />
-                            <span>24 Alumnos</span>
+                            <span>{subject.student_count ?? subject.students_count ?? "—"} Alumnos</span>
                         </div>
                     )}
                 </div>
@@ -58,5 +83,14 @@ export function SubjectCard({ subject, role }: SubjectCardProps) {
                 </Link>
             </div>
         </div>
+    );
+}
+
+function MenuLink({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) {
+    return (
+        <Link href={href} className="flex items-center gap-2 px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+            <Icon className="w-4 h-4 text-zinc-400" />
+            {label}
+        </Link>
     );
 }

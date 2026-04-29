@@ -64,6 +64,37 @@ export async function createAssignment(formData: FormData) {
     return { success: true, assignmentId: data?.id };
 }
 
+export async function createAssignmentFull(input: {
+    title: string;
+    description?: string;
+    due_date: string;
+    late_due_date?: string;
+    subject_id: string;
+    teacher_id: string;
+}) {
+    if (!input.title || !input.due_date || !input.subject_id || !input.teacher_id) {
+        return { success: false, error: "Faltan campos obligatorios." };
+    }
+
+    const { data, error } = await supabase.from("assignments").insert({
+        title: input.title,
+        description: input.description || null,
+        due_date: input.due_date,
+        late_due_date: input.late_due_date || null,
+        subject_id: input.subject_id,
+        teacher_id: input.teacher_id,
+    }).select("id").single();
+
+    if (error) {
+        console.error("Error creating assignment:", error);
+        return { success: false, error: "Error al crear la tarea." };
+    }
+
+    revalidatePath("/dashboard/assignments");
+    revalidatePath(`/dashboard/subjects/${input.subject_id}`);
+    return { success: true, assignmentId: data?.id };
+}
+
 export async function submitAssignment(formData: FormData) {
     const assignment_id = formData.get("assignment_id") as string;
     const student_id = formData.get("student_id") as string;
@@ -158,6 +189,91 @@ export async function returnSubmission(submissionId: string, feedback: string) {
     }
 
     revalidatePath("/dashboard/assignments");
+    return { success: true };
+}
+
+export async function createResource(formData: FormData) {
+    const subject_id = formData.get("subject_id") as string;
+    const title = formData.get("title") as string;
+    const type = (formData.get("type") as string) || "link";
+    const file_url = formData.get("file_url") as string;
+
+    if (!subject_id || !title || !file_url) {
+        return { success: false, error: "Título y enlace son obligatorios." };
+    }
+
+    const { error } = await supabase.from("resources").insert({
+        subject_id,
+        title: title.trim(),
+        type,
+        file_url: file_url.trim(),
+    });
+
+    if (error) {
+        console.error("Error creating resource:", error);
+        return { success: false, error: "Error al publicar el contenido." };
+    }
+
+    revalidatePath(`/dashboard/subjects/${subject_id}`);
+    return { success: true };
+}
+
+export async function saveAttendance(subjectId: string, entries: Array<{ student_id: string; status: string }>, date?: string) {
+    if (!subjectId || entries.length === 0) {
+        return { success: false, error: "No hay alumnos para guardar." };
+    }
+
+    const attendanceDate = date || new Date().toISOString().slice(0, 10);
+    const rows = entries.map((entry) => ({
+        subject_id: subjectId,
+        student_id: entry.student_id,
+        date: attendanceDate,
+        status: entry.status,
+    }));
+
+    const { error } = await supabase
+        .from("attendance")
+        .upsert(rows, { onConflict: "subject_id,student_id,date" });
+
+    if (error) {
+        console.error("Error saving attendance:", error);
+        return { success: false, error: "Error al guardar la asistencia." };
+    }
+
+    revalidatePath(`/dashboard/subjects/${subjectId}`);
+    revalidatePath("/dashboard/attendance");
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
+export async function markNotificationRead(notificationId: string) {
+    const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", notificationId);
+
+    if (error) {
+        console.error("Error marking notification as read:", error);
+        return { success: false, error: "No se pudo marcar como leída." };
+    }
+
+    revalidatePath("/dashboard/notifications");
+    return { success: true };
+}
+
+export async function markAllNotificationsRead(userId: string) {
+    const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("user_id", userId)
+        .eq("read", false);
+
+    if (error) {
+        console.error("Error marking notifications as read:", error);
+        return { success: false, error: "No se pudieron marcar las notificaciones." };
+    }
+
+    revalidatePath("/dashboard/notifications");
     return { success: true };
 }
 
