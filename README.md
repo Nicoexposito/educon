@@ -1,4 +1,4 @@
-# Educon V.0.5.9
+# Educon V.0.5.91
 
 Educon es una plataforma educativa para conectar profesores y alumnos en un mismo entorno: clases, tareas, entregas, asistencia, calificaciones, eventos, noticias y notificaciones.
 
