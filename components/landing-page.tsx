@@ -165,7 +165,7 @@ export default function LandingPage() {
                         <div className="flex items-center gap-3">
                             <div className="relative h-10 w-10 transition-transform hover:scale-105">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo-transparent.png"
                                     alt="Logotip d'Educon"
                                     fill
                                     className="object-contain"
@@ -652,7 +652,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-3">
                         <div className="relative h-8 w-8">
-                            <Image src="/logo.png" alt="Logotip d'Educon" fill className="object-contain" />
+                            <Image src="/logo-transparent.png" alt="Logotip d'Educon" fill className="object-contain" />
                         </div>
                         <span className="font-bold text-xl">Educon</span>
                     </div>
@@ -680,9 +680,14 @@ export default function LandingPage() {
                         >
                             <div className="p-8">
                                 <div className="flex justify-between items-center mb-8">
-                                    <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
-                                        Educon
-                                    </h3>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative h-11 w-11 rounded-xl bg-white border border-zinc-200 shadow-sm overflow-hidden">
+                                            <Image src="/logo-transparent.png" alt="Educon" fill className="object-contain p-1" sizes="44px" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
+                                            Educon
+                                        </h3>
+                                    </div>
                                     <button
                                         onClick={() => {
                                             setIsLoginOpen(false);

@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import { Bell, CheckCheck, Menu, School } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { markAllNotificationsRead } from '@/lib/actions';
 
@@ -74,6 +75,9 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                  <button onClick={toggleSidebar} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg lg:hidden">
                     <Menu className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
                 </button>
+                <Link href="/dashboard" className="relative h-10 w-10 rounded-xl bg-white border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden shrink-0">
+                    <Image src="/logo-transparent.png" alt="Educon" fill className="object-contain p-1" sizes="40px" priority />
+                </Link>
                 <div className="flex flex-col">
                      <span className="font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                         {role === 'teacher' ? 'Panell del professor' : "Panell de l'alumne"}

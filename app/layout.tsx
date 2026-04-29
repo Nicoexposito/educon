@@ -23,8 +23,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://educon.cat"),
   title: "Educon — Plataforma Educativa",
   description: "Gestió acadèmica per a professors i alumnes",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/logo-transparent.png",
+  },
+  openGraph: {
+    title: "Educon — Plataforma Educativa",
+    description: "Gestió acadèmica per a professors i alumnes",
+    images: ["/logo-transparent.png"],
+  },
 };
 
 export default function RootLayout({

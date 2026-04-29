@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
     BookOpen,
     Calendar,
     LogOut,
-    GraduationCap,
     FileText,
     Menu,
     Newspaper,
@@ -83,8 +83,8 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
             >
                 {/* Logo */}
                 <div className={`flex items-center gap-3 px-4 h-16 border-b border-[var(--sidebar-border)] shrink-0 ${isCollapsed ? 'justify-center' : ''}`}>
-                    <div className="w-8 h-8 rounded-lg bg-[var(--sidebar-primary)] flex items-center justify-center shrink-0 shadow-sm">
-                        <GraduationCap className="w-4.5 h-4.5 text-[var(--sidebar-primary-foreground)]" aria-hidden="true" />
+                    <div className="relative w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                        <Image src="/logo-transparent.png" alt="Educon" fill className="object-contain p-0.5" sizes="36px" priority />
                     </div>
                     {!isCollapsed && (
                         <span
@@ -200,4 +200,3 @@ function SidebarNavItem({ icon: Icon, label, href, isActive, isCollapsed }: {
         </Link>
     );
 }
-
