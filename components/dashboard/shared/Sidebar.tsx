@@ -83,8 +83,8 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
             >
                 {/* Logo */}
                 <div className={`flex items-center gap-3 px-4 h-16 border-b border-[var(--sidebar-border)] shrink-0 ${isCollapsed ? 'justify-center' : ''}`}>
-                    <div className="relative w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-                        <Image src="/logo-transparent.png" alt="Educon" fill className="object-contain p-0.5" sizes="36px" priority />
+                    <div className="relative h-9 w-9 shrink-0">
+                        <Image src="/logo-transparent.png" alt="Educon" fill className="object-contain drop-shadow-md" sizes="36px" priority />
                     </div>
                     {!isCollapsed && (
                         <span
