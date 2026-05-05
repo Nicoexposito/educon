@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { NotificationsClient } from "./NotificationsClient";
 
 export default async function NotificationsPage() {
@@ -10,6 +10,7 @@ export default async function NotificationsPage() {
         redirect('/');
     }
 
+    const supabase = await createClient();
     const { data: notifications } = await supabase
         .from('notifications')
         .select('*')

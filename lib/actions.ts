@@ -1,12 +1,13 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { processEmailQueue } from "@/lib/email-service";
 import { revalidatePath } from "next/cache";
 
 // --- Assignments ---
 
 export async function createAssignment(formData: FormData) {
+    const supabase = await createClient();
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const due_date = formData.get("due_date") as string;
@@ -74,6 +75,7 @@ export async function createAssignmentFull(input: {
     subject_id: string;
     teacher_id: string;
 }) {
+    const supabase = await createClient();
     if (!input.title || !input.due_date || !input.subject_id || !input.teacher_id) {
         return { success: false, error: "Falten camps obligatoris." };
     }
@@ -99,6 +101,7 @@ export async function createAssignmentFull(input: {
 }
 
 export async function submitAssignment(formData: FormData) {
+    const supabase = await createClient();
     const assignment_id = formData.get("assignment_id") as string;
     const student_id = formData.get("student_id") as string;
     let file_url = formData.get("content") as string;
@@ -165,6 +168,7 @@ export async function submitAssignment(formData: FormData) {
 }
 
 export async function gradeSubmission(submissionId: string, grade: number, feedback: string) {
+    const supabase = await createClient();
     const { error } = await supabase.from("submissions").update({
         grade,
         feedback,
@@ -182,6 +186,7 @@ export async function gradeSubmission(submissionId: string, grade: number, feedb
 }
 
 export async function returnSubmission(submissionId: string, feedback: string) {
+    const supabase = await createClient();
     const { error } = await supabase.from("submissions").update({
         feedback,
         grade: null,
@@ -198,6 +203,7 @@ export async function returnSubmission(submissionId: string, feedback: string) {
 }
 
 export async function createResource(formData: FormData) {
+    const supabase = await createClient();
     const subject_id = formData.get("subject_id") as string;
     const title = formData.get("title") as string;
     const type = (formData.get("type") as string) || "link";
@@ -224,6 +230,7 @@ export async function createResource(formData: FormData) {
 }
 
 export async function saveAttendance(subjectId: string, entries: Array<{ student_id: string; status: string }>, date?: string) {
+    const supabase = await createClient();
     if (!subjectId || entries.length === 0) {
         return { success: false, error: "No hi ha alumnes per desar." };
     }
@@ -253,6 +260,7 @@ export async function saveAttendance(subjectId: string, entries: Array<{ student
 }
 
 export async function markNotificationRead(notificationId: string) {
+    const supabase = await createClient();
     const { error } = await supabase
         .from("notifications")
         .update({ read: true })
@@ -268,6 +276,7 @@ export async function markNotificationRead(notificationId: string) {
 }
 
 export async function markAllNotificationsRead(userId: string) {
+    const supabase = await createClient();
     const { error } = await supabase
         .from("notifications")
         .update({ read: true })
@@ -311,6 +320,7 @@ export async function aiGradeEstimate(content: string, criteria: string) {
 // --- Subjects ---
 
 export async function createSubject(formData: FormData) {
+    const supabase = await createClient();
     const name = formData.get("name") as string;
     const teacher_id = formData.get("teacher_id") as string;
     const schedule = formData.get("schedule") as string;

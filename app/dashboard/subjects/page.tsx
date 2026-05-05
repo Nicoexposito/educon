@@ -10,6 +10,10 @@ export default async function SubjectsPage() {
         redirect('/');
     }
 
+    if (session.role === 'admin') {
+        redirect('/dashboard/admin/subjects');
+    }
+
     const subjects = await getSubjectsForUser(session.userId as string, session.role as string);
 
     return (

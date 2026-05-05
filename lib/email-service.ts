@@ -1,6 +1,6 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type ProcessEmailQueueOptions = {
     limit?: number;
@@ -29,6 +29,7 @@ export async function processEmailQueue(options: ProcessEmailQueueOptions = {}) 
         };
     }
 
+    const supabase = createAdminClient();
     const { data: items, error } = await supabase
         .from("email_notifications")
         .select("id, recipient_email, subject, body, html, attempts")

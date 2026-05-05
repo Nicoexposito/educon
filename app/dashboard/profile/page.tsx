@@ -92,8 +92,7 @@ async function getProfileData(userId: string, role: string) {
             assignmentTitle: s.assignment?.title || "Sense títol",
         }));
 
-    } else {
-        // Teacher
+    } else if (role === 'teacher') {
         const { count: subjectCount } = await supabase
             .from('subjects')
             .select('*', { count: 'exact', head: true })
@@ -110,6 +109,25 @@ async function getProfileData(userId: string, role: string) {
             totalSubjects: subjectCount || 0,
             submittedAssignments: 0,
             pendingAssignments: pendingToGrade || 0,
+        };
+    } else {
+        const { count: teacherCount } = await supabase
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .eq('institute_id', user.institute_id)
+            .eq('role', 'teacher')
+            .eq('is_active', true);
+
+        const { count: subjectCount } = await supabase
+            .from('subjects')
+            .select('*', { count: 'exact', head: true })
+            .eq('institute_id', user.institute_id);
+
+        stats = {
+            avgGrade: "—",
+            totalSubjects: subjectCount || 0,
+            submittedAssignments: teacherCount || 0,
+            pendingAssignments: 0,
         };
     }
 

@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { ClientLayoutWrapper } from "./ClientLayoutWrapper";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { NotificationListener } from "@/components/notifications/NotificationListener";
 
 export default async function DashboardLayout({
@@ -15,6 +15,7 @@ export default async function DashboardLayout({
         redirect('/');
     }
 
+    const supabase = await createClient();
     const { data: profile } = await supabase
         .from('users')
         .select('*, institute:institutes(name)')

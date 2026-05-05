@@ -10,6 +10,10 @@ export default async function SchedulePage() {
         redirect('/');
     }
 
+    if (session.role === 'admin') {
+        redirect('/dashboard/admin/schedule');
+    }
+
     const { subjects, events, assignments } = await getScheduleData(session.userId as string, session.role as string);
 
     return (

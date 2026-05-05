@@ -15,6 +15,8 @@ import {
     Bell,
     ClipboardCheck,
     Award,
+    UserCog,
+    Megaphone,
     ChevronLeft,
     ChevronRight,
     Loader2,
@@ -36,26 +38,44 @@ export function Sidebar({ role, isMobileOpen, setIsMobileOpen }: SidebarProps) {
         setPendingHref(null);
     }, [pathname]);
 
-    const commonItems = [
-        { icon: LayoutDashboard, label: "Tauler", href: "/dashboard" },
-        { icon: Calendar, label: "Horari", href: "/dashboard/schedule" },
-    ];
+    const commonItems = role === 'admin'
+        ? [
+            { icon: LayoutDashboard, label: "Tauler", href: "/dashboard" },
+        ]
+        : [
+            { icon: LayoutDashboard, label: "Tauler", href: "/dashboard" },
+            { icon: Calendar, label: "Horari", href: "/dashboard/schedule" },
+        ];
 
-    const roleItems = role === 'teacher' ? [
-        { icon: BookOpen, label: "Les meves classes", href: "/dashboard/subjects" },
-        { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
-    ] : [
-        { icon: BookOpen, label: "Les meves assignatures", href: "/dashboard/subjects" },
-        { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
-        { icon: ClipboardCheck, label: "Assistències", href: "/dashboard/attendance" },
-        { icon: Award, label: "Qualificacions", href: "/dashboard/grades" },
-    ];
+    const roleItems = role === 'admin'
+        ? [
+            { icon: UserCog, label: "Usuaris", href: "/dashboard/admin/users" },
+            { icon: BookOpen, label: "Assignatures", href: "/dashboard/admin/subjects" },
+            { icon: CalendarDays, label: "Horaris", href: "/dashboard/admin/schedule" },
+            { icon: Megaphone, label: "Anuncis", href: "/dashboard/admin/announcements" },
+        ]
+        : role === 'teacher'
+            ? [
+                { icon: BookOpen, label: "Les meves classes", href: "/dashboard/subjects" },
+                { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
+            ]
+            : [
+                { icon: BookOpen, label: "Les meves assignatures", href: "/dashboard/subjects" },
+                { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
+                { icon: ClipboardCheck, label: "Assistències", href: "/dashboard/attendance" },
+                { icon: Award, label: "Qualificacions", href: "/dashboard/grades" },
+            ];
 
-    const extraItems = [
-        { icon: CalendarDays, label: "Esdeveniments", href: "/dashboard/events" },
-        { icon: Newspaper, label: "Notícies", href: "/dashboard/news" },
-        { icon: Bell, label: "Notificacions", href: "/dashboard/notifications" },
-    ];
+    const extraItems = role === 'admin'
+        ? [
+            { icon: Newspaper, label: "Notícies", href: "/dashboard/news" },
+            { icon: Bell, label: "Notificacions", href: "/dashboard/notifications" },
+        ]
+        : [
+            { icon: CalendarDays, label: "Esdeveniments", href: "/dashboard/events" },
+            { icon: Newspaper, label: "Notícies", href: "/dashboard/news" },
+            { icon: Bell, label: "Notificacions", href: "/dashboard/notifications" },
+        ];
 
     const isActive = (href: string) => {
         if (href === '/dashboard' && pathname === '/dashboard') return true;

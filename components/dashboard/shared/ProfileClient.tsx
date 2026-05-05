@@ -123,12 +123,19 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
         setEmailPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const statCards = [
-        { label: "Mitjana", value: stats.avgGrade, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
-        { label: "Assignatures", value: String(stats.totalSubjects), icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-        { label: "Treballs lliurats", value: String(stats.submittedAssignments), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-        { label: "Treballs pendents", value: String(stats.pendingAssignments), icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
-    ];
+    const statCards = user.role === "admin"
+        ? [
+            { label: "Assignatures", value: String(stats.totalSubjects), icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+            { label: "Professors", value: String(stats.submittedAssignments), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+            { label: "Centre", value: user.institute?.name ? "Actiu" : "—", icon: School, color: "text-sky-500", bg: "bg-sky-500/10" },
+            { label: "Compte", value: user.is_active === false ? "Inactiu" : "Actiu", icon: Shield, color: "text-amber-500", bg: "bg-amber-500/10" },
+        ]
+        : [
+            { label: "Mitjana", value: stats.avgGrade, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
+            { label: "Assignatures", value: String(stats.totalSubjects), icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+            { label: "Treballs lliurats", value: String(stats.submittedAssignments), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+            { label: "Treballs pendents", value: String(stats.pendingAssignments), icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
+        ];
     const emailPreferenceItems = [
         { key: "assignment_submitted", label: "Lliuraments realitzats", description: "Avisar el professor quan un alumne lliura una tasca." },
         { key: "grade_posted", label: "Notes publicades", description: "Avisar l'alumne quan rep una qualificació." },
@@ -166,7 +173,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                         <div className="absolute top-0 right-0 p-4">
                             <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 capitalize">
                                 <Shield className="w-3.5 h-3.5" />
-                                {user.role === "teacher" ? "Professor" : "Alumne"}
+                                {roleLabel(user.role)}
                             </span>
                         </div>
 
@@ -273,7 +280,7 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                                     <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Rol</label>
                                     <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 capitalize cursor-not-allowed">
                                         <Shield className="w-4 h-4" />
-                                        {user.role === "teacher" ? "Professor" : "Alumne"}
+                                        {roleLabel(user.role)}
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
@@ -304,6 +311,12 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
                             <Lock className="w-5 h-5 text-indigo-500" />
                             <h2 className="text-lg font-semibold">Seguretat del compte</h2>
                         </div>
+
+                        {user.must_change_password && (
+                            <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+                                Has entrat amb una contrasenya temporal. Actualitza-la per continuar utilitzant Educon amb normalitat.
+                            </div>
+                        )}
 
                         {pwdMsg && (
                             <div className={`flex items-center gap-2 px-4 py-3 rounded-xl mb-5 text-sm font-medium ${pwdMsg.type === "success"
@@ -557,4 +570,10 @@ export default function ProfileClient({ user, userId, stats, recentGrades }: Pro
             </div>
         </div>
     );
+}
+
+function roleLabel(role: string) {
+    if (role === "admin") return "Admin";
+    if (role === "teacher") return "Professor";
+    return "Alumne";
 }

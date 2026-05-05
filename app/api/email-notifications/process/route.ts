@@ -1,5 +1,5 @@
 import { processEmailQueue } from "@/lib/email-service";
-import { supabase } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -23,6 +23,7 @@ async function handleProcess(request: NextRequest) {
         }
     }
 
+    const supabase = createAdminClient();
     await supabase.rpc("queue_assignment_deadline_emails");
     const result = await processEmailQueue({ limit: 50 });
     const status = result.success ? 200 : 503;

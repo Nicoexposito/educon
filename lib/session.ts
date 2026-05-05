@@ -62,11 +62,11 @@ export const getSession = cache(async () => {
             // Need to fetch user role from legacy db
             const { data: dbUser } = await supabase
                 .from('users')
-                .select('role')
+                .select('role, is_active')
                 .eq('id', user.id)
                 .single();
 
-            if (dbUser) {
+            if (dbUser && dbUser.is_active !== false) {
                 return {
                     userId: user.id,
                     role: dbUser.role

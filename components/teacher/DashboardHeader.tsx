@@ -80,7 +80,7 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                 </Link>
                 <div className="flex min-w-0 flex-col">
                      <span className="truncate font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
-                        {role === 'teacher' ? 'Panell del professor' : "Panell de l'alumne"}
+                        {role === 'admin' ? 'Panell d’administració' : role === 'teacher' ? 'Panell del professor' : "Panell de l'alumne"}
                     </span>
                     <span className="text-xs text-zinc-500 hidden sm:block">
                         {new Date().toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -92,7 +92,7 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                 {/* User info & institute */}
                 <div className="hidden md:flex flex-col items-end">
                     <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
-                        {user?.full_name || (role === 'teacher' ? 'Professor' : 'Alumne')}
+                        {user?.full_name || (role === 'admin' ? 'Admin' : role === 'teacher' ? 'Professor' : 'Alumne')}
                     </span>
                     {user?.institute?.name && (
                         <span className="flex items-center gap-1 text-xs text-zinc-500">
@@ -173,5 +173,6 @@ function getInitials(fullName?: string, email?: string, role?: string) {
     if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     if (email) return email.slice(0, 2).toUpperCase();
+    if (role === 'admin') return 'AD';
     return role === 'teacher' ? 'PR' : 'AL';
 }

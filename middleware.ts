@@ -44,6 +44,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  if (user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('is_active, must_change_password')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.is_active === false) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+
+    if (
+      profile?.must_change_password &&
+      !request.nextUrl.pathname.startsWith('/dashboard/profile')
+    ) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard/profile'
+      url.searchParams.set('must_change_password', '1')
+      return NextResponse.redirect(url)
+    }
+  }
+
   return supabaseResponse
 }
 

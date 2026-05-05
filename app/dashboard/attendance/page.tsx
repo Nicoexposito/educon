@@ -20,6 +20,7 @@ const STATUS_STYLES: Record<string, string> = {
 export default async function AttendancePage() {
     const session = await getSession();
     if (!session) redirect("/");
+    if (session.role === "admin") redirect("/dashboard/admin");
 
     const { subjects, attendance } = await getAttendanceData(session.userId as string, session.role as string);
     const rowsBySubject = new Map<string, any[]>();

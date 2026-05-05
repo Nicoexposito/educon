@@ -10,6 +10,10 @@ export default async function AssignmentsPage() {
         redirect('/');
     }
 
+    if (session.role === 'admin') {
+        redirect('/dashboard/admin');
+    }
+
     const [assignments, subjects] = await Promise.all([
         getAllAssignments(session.userId as string, session.role as string),
         session.role === 'teacher' ? getTeacherSubjects(session.userId as string) : Promise.resolve([] as any[]),

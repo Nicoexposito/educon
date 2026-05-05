@@ -14,6 +14,10 @@ export default async function AssignmentPage({ params }: { params: { id: string 
         redirect('/');
     }
 
+    if (session.role === 'admin') {
+        redirect('/dashboard/admin');
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 

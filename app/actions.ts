@@ -2,6 +2,7 @@
 
 import { supabase as legacySupabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createSession, deleteSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
@@ -12,32 +13,57 @@ export async function logout() {
 }
 
 export async function searchInstitutes(query: string) {
-    if (!query) return [];
+    const searchTerm = normalizeInstituteInput(query);
+    if (searchTerm.length < 2) return [];
 
-    const { data } = await legacySupabase
+    const { data, error } = await legacySupabase
         .from('institutes')
         .select('id, name')
-        .ilike('name', `%${query}%`)
-        .limit(5);
+        .ilike('name', `%${searchTerm}%`)
+        .order('name', { ascending: true })
+        .limit(8);
 
-    return data || [];
+    if (error) {
+        console.error('searchInstitutes error:', error);
+        return [];
+    }
+
+    return (data || [])
+        .sort((a, b) => {
+            const left = rankInstituteName(a.name, searchTerm);
+            const right = rankInstituteName(b.name, searchTerm);
+            if (left !== right) return left - right;
+            return a.name.localeCompare(b.name, 'ca');
+        })
+        .slice(0, 6);
 }
 
 export async function checkInstituteExists(name: string) {
-    const { count } = await legacySupabase
-        .from('institutes')
-        .select('*', { count: 'exact', head: true })
-        .eq('name', name);
+    const instituteName = normalizeInstituteInput(name);
+    if (!instituteName) return false;
 
-    return count ? count > 0 : false;
+    const { data, error } = await legacySupabase
+        .from('institutes')
+        .select('id')
+        .eq('name', instituteName)
+        .maybeSingle();
+
+    if (error) {
+        console.error('checkInstituteExists error:', error);
+        return false;
+    }
+
+    return Boolean(data);
 }
 
 export async function authenticateUser(email: string, password: string, instituteName: string) {
+    const cleanInstituteName = normalizeInstituteInput(instituteName);
+
     // 1. Get Institute ID
     const { data: institute } = await legacySupabase
         .from('institutes')
         .select('id')
-        .eq('name', instituteName)
+        .eq('name', cleanInstituteName)
         .single();
 
     if (!institute) return { success: false, error: 'Institut no trobat' };
@@ -56,7 +82,7 @@ export async function authenticateUser(email: string, password: string, institut
     // 3. Verify user belongs to the specified institute
     const { data: user } = await supabase
         .from('users')
-        .select('id, role, institute_id')
+        .select('id, role, institute_id, is_active, must_change_password')
         .eq('id', authData.user.id)
         .single();
 
@@ -65,10 +91,15 @@ export async function authenticateUser(email: string, password: string, institut
         return { success: false, error: "L'usuari no pertany a aquest institut" };
     }
 
+    if (user.is_active === false) {
+        await supabase.auth.signOut();
+        return { success: false, error: "Aquest compte està desactivat" };
+    }
+
     // Keep backwards compatibility with our custom session if other components still rely on it
     await createSession(user.id, user.role);
 
-    return { success: true };
+    return { success: true, mustChangePassword: Boolean(user.must_change_password) };
 }
 
 export async function changePassword(userId: string, currentPassword: string, newPassword: string) {
@@ -97,7 +128,30 @@ export async function changePassword(userId: string, currentPassword: string, ne
 
     if (updateError) return { success: false, error: 'Error en actualitzar la contrasenya.' };
 
+    const admin = createAdminClient();
+    await admin
+        .from('users')
+        .update({ must_change_password: false })
+        .eq('id', userId);
+
     return { success: true };
+}
+
+function normalizeInstituteInput(value: string) {
+    return value
+        .trim()
+        .replace(/[%_]/g, '')
+        .replace(/\s+/g, ' ')
+        .slice(0, 80);
+}
+
+function rankInstituteName(name: string, searchTerm: string) {
+    const normalizedName = name.toLocaleLowerCase('ca');
+    const normalizedTerm = searchTerm.toLocaleLowerCase('ca');
+
+    if (normalizedName === normalizedTerm) return 0;
+    if (normalizedName.startsWith(normalizedTerm)) return 1;
+    return 2;
 }
 
 export async function updateProfile(userId: string, fullName: string) {
@@ -116,7 +170,8 @@ export async function updateProfile(userId: string, fullName: string) {
         };
     }
 
-    const { data, error } = await supabase
+    const admin = createAdminClient();
+    const { data, error } = await admin
         .from('users')
         .update({ full_name: fullName.trim() })
         .eq('id', userId)
@@ -161,7 +216,8 @@ export async function updateEmailPreferences(userId: string, emailPreferences: R
         },
     };
 
-    const { error } = await supabase
+    const admin = createAdminClient();
+    const { error } = await admin
         .from('users')
         .update({ preferences: nextPreferences })
         .eq('id', userId);
