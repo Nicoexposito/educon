@@ -2,9 +2,9 @@
 
 import { StudentStats } from "@/components/student/StudentStats";
 import { TodayClasses } from "@/components/teacher/TodayClasses";
-import { RecentActivityLevel } from "@/components/teacher/RecentActivityLevel";
 import { CurrentClassWidget } from "@/components/dashboard/shared/CurrentClassWidget";
 import { AssignmentsListWidget } from "@/components/dashboard/shared/AssignmentsListWidget";
+import { SubjectsSummaryWidget } from "@/components/dashboard/shared/SubjectsSummaryWidget";
 import Link from "next/link";
 import { Upload } from "lucide-react";
 import { useStudentDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
@@ -33,7 +33,7 @@ export default function StudentHome({ data: initialData }: { data: any }) {
                         Bon dia, {firstName}
                     </h1>
                     <p className="text-muted-foreground mt-2">
-                        Tens <strong className="text-foreground font-semibold">{stats.assignmentsPending}</strong> tasques pendents aquesta setmana.
+                        Tienes <strong className="text-foreground font-semibold">{stats.assignmentsPending}</strong> trabajos pendientes de entregar.
                     </p>
                 </div>
                 <Link
@@ -59,7 +59,7 @@ export default function StudentHome({ data: initialData }: { data: any }) {
                     <div className="min-h-80">
                         <AssignmentsListWidget
                             items={data?.assignments || []}
-                            title="Tasques pendents"
+                            title="Pendientes de entregar"
                             role="student"
                         />
                     </div>
@@ -104,7 +104,7 @@ export default function StudentHome({ data: initialData }: { data: any }) {
                 {/* Side Column — 1/3 */}
                 <div className="space-y-6">
                     <div className="min-h-[28rem] lg:min-h-[600px]">
-                        <RecentActivityLevel items={data?.recentSubjectsAttendance || []} />
+                        <SubjectsSummaryWidget subjects={subjects} role="student" />
                     </div>
                 </div>
             </div>

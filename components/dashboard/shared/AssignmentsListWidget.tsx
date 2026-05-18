@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 
 interface PendingItem {
@@ -10,6 +10,7 @@ interface PendingItem {
     date: string; // Due date or submitted date
     status?: 'pending' | 'submitted' | 'late' | 'ungraded';
     type: 'assignment' | 'submission';
+    href: string;
 }
 
 export function AssignmentsListWidget({ items, title, role }: { items: any[], title: string, role: string }) {
@@ -24,7 +25,8 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                 subtitle: `Per ${item.student?.full_name || 'Estudiant'} • ${item.assignment?.subject?.name || 'Matèria'}`,
                 date: formatDate(item.submitted_at),
                 status: 'ungraded',
-                type: 'submission'
+                type: 'submission',
+                href: `/dashboard/assignments/${item.assignment_id}`,
             }
         } else {
             // Item is an assignment to submit
@@ -35,7 +37,8 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                 subtitle: item.subject?.name || 'Assignatura',
                 date: formatDate(item.due_date),
                 status: isSubmitted ? 'submitted' : 'pending',
-                type: 'assignment'
+                type: 'assignment',
+                href: `/dashboard/assignments/${item.id}`,
             }
         }
     });
@@ -43,9 +46,12 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
     return (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col h-full shadow-xs hover:shadow-md transition-shadow">
             <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
-                <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">{title}</h3>
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">Entrega de trabajos</p>
+                        <h3 className="mt-1 font-bold text-lg text-zinc-900 dark:text-zinc-100">{title}</h3>
+                    </div>
                 <Link href="/dashboard/assignments" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
-                    Veure-ho tot
+                    Ver todo
                 </Link>
             </div>
 
@@ -53,7 +59,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                 <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
                     {displayItems.length > 0 ? displayItems.map((item) => (
                         <Link
-                            href="/dashboard/assignments"
+                            href={item.href}
                             key={item.id}
                             className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors flex gap-4 items-center group cursor-pointer block"
                         >
@@ -81,7 +87,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                         </Link>
                     )) : (
                          <div className="p-8 text-center text-zinc-400 text-sm">
-                            <p>Estàs al dia! No hi ha tasques pendents.</p>
+                            <p>Estás al día. No hay trabajos pendientes.</p>
                         </div>
                     )}
                 </div>

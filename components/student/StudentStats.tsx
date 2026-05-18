@@ -22,7 +22,7 @@ export function StudentStats({ stats }: { stats: any }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatsCard
-                title="Mitjana global"
+                title="Media global"
                 value={avgGrade}
                 icon={<TrendingUp className="w-5 h-5 text-indigo-600" />}
                 trend={gradeTrend}
@@ -30,7 +30,7 @@ export function StudentStats({ stats }: { stats: any }) {
                 color="indigo"
             />
              <StatsCard
-                title="Tasques pendents"
+                title="Trabajos pendientes"
                 value={assignmentsPending.toString()}
                 icon={<BookOpen className="w-5 h-5 text-amber-600" />}
                 trend={assignmentsPending > 0 ? "Per fer" : "Al dia"}
@@ -39,7 +39,7 @@ export function StudentStats({ stats }: { stats: any }) {
                 correction={assignmentsPending > 0}
             />
              <StatsCard
-                title="Assistència"
+                title="Asistencia"
                 value="98%"
                 icon={<Clock className="w-5 h-5 text-emerald-600" />}
                 trend="Perfecta"
@@ -47,7 +47,7 @@ export function StudentStats({ stats }: { stats: any }) {
                 color="emerald"
             />
              <StatsCard
-                title="Dies restants de curs"
+                title="Días restantes de curso"
                 value={courseFinished ? "Acabat" : `${daysRemaining} dies`}
                 icon={courseFinished
                     ? <CheckCircle2 className="w-5 h-5 text-emerald-600" />

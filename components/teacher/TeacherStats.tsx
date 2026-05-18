@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, BookOpen, Clock, AlertCircle, TrendingUp, TrendingDown, Book, Calendar } from 'lucide-react';
+import { Users, BookOpen, TrendingUp, TrendingDown, Book, Calendar } from 'lucide-react';
 
 export function TeacherStats({ stats }: { stats: any }) {
     const pendingTasks = stats?.assignmentsPending || 0;
@@ -10,7 +10,7 @@ export function TeacherStats({ stats }: { stats: any }) {
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <KpiCard
-                title="Estudiants actius"
+                title="Alumnos activos"
                 value={activeStudents.toString()}
                 icon={<Users className="w-4 h-4" aria-hidden="true" />}
                 trend="Total"
@@ -18,7 +18,7 @@ export function TeacherStats({ stats }: { stats: any }) {
                 color="navy"
             />
             <KpiCard
-                title="Assignatures"
+                title="Asignaturas"
                 value={totalSubjects.toString()}
                 icon={<Book className="w-4 h-4" aria-hidden="true" />}
                 trend="Actives"
@@ -26,7 +26,7 @@ export function TeacherStats({ stats }: { stats: any }) {
                 color="amber"
             />
             <KpiCard
-                title="Tasques per corregir"
+                title="Trabajos por corregir"
                 value={pendingTasks.toString()}
                 icon={<BookOpen className="w-4 h-4" aria-hidden="true" />}
                 trend={pendingTasks > 0 ? "Requereix acció" : "Al dia"}
@@ -34,7 +34,7 @@ export function TeacherStats({ stats }: { stats: any }) {
                 color="emerald"
             />
             <KpiCard
-                title="Esdeveniments Próximos"
+                title="Eventos próximos"
                 value={upcomingEvents.toString()}
                 icon={<Calendar className="w-4 h-4" aria-hidden="true" />}
                 trend="Programats"

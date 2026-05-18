@@ -99,6 +99,34 @@ Compila producción:
 npm run build
 ```
 
+## Docker de producción
+
+La demo final se puede presentar con la misma build de producción que ejecuta `next start`.
+
+```bash
+docker compose -f docker-compose.production.yml --env-file .env up --build
+```
+
+Abre:
+
+```txt
+http://localhost:3000
+```
+
+Para parar el contenedor:
+
+```bash
+docker compose -f docker-compose.production.yml down
+```
+
+Si el puerto `3000` está ocupado:
+
+```bash
+HOST_PORT=3001 docker compose -f docker-compose.production.yml --env-file .env up --build
+```
+
+El archivo `.env` no se sube al repositorio. Docker Compose lo usa para pasar las variables públicas de Supabase al build y las claves privadas al runtime.
+
 ## Emails
 
 Educon guarda los correos en una cola dentro de Supabase (`email_notifications`) y los procesa con:

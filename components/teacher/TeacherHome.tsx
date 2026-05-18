@@ -1,14 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { Plus, CalendarDays } from "lucide-react";
 import { TeacherStats } from "@/components/teacher/TeacherStats";
-import { ScheduleWidget } from "@/components/dashboard/shared/ScheduleWidget";
-import { RecentActivityLevel } from "@/components/teacher/RecentActivityLevel";
 import { TodayClasses } from "@/components/teacher/TodayClasses";
 import { CurrentClassWidget } from "@/components/dashboard/shared/CurrentClassWidget";
 import { AssignmentsListWidget } from "@/components/dashboard/shared/AssignmentsListWidget";
+import { SubjectsSummaryWidget } from "@/components/dashboard/shared/SubjectsSummaryWidget";
 import { useTeacherDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
 
 export default function TeacherHome({ data: initialData }: { data: any }) {
@@ -35,7 +33,7 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                         Bon dia, {firstName}
                     </h1>
                     <p className="text-muted-foreground mt-2">
-                        Aquí tens el resum de la teva activitat acadèmica d&apos;avui.
+                        Tienes a mano la clase actual, el horario, tus asignaturas y los trabajos por corregir.
                     </p>
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:shrink-0">
@@ -70,7 +68,7 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                     <div className="min-h-80">
                         <AssignmentsListWidget
                             items={data?.pendingSubmissions || []}
-                            title="Treballs per corregir"
+                            title="Pendientes de corregir"
                             role="teacher"
                         />
                     </div>
@@ -115,7 +113,7 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                 {/* Side Column — 1/3 */}
                 <div className="space-y-6">
                     <div className="min-h-[28rem] lg:min-h-[600px]">
-                        <RecentActivityLevel items={data?.recentSubjectsAttendance || []} />
+                        <SubjectsSummaryWidget subjects={subjects} role="teacher" />
                     </div>
                 </div>
             </div>

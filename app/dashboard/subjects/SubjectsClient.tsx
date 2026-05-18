@@ -21,8 +21,15 @@ export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Les meves assignatures</h1>
-                    <p className="text-zinc-500 mt-2">Gestiona els teus cursos i el contingut acadèmic.</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">Materias</p>
+                    <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+                        {role === 'teacher' ? 'Materias del profesor' : 'Asignaturas del alumno'}
+                    </h1>
+                    <p className="text-zinc-500 mt-2">
+                        {role === 'teacher'
+                            ? 'Listado por categorías con horario, alumnos y acceso a cada materia.'
+                            : 'Consulta tus asignaturas, horarios y compañeros de clase.'}
+                    </p>
                 </div>
                 {role === 'teacher' && (
                     <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 font-medium text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto">

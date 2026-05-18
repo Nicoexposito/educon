@@ -6,7 +6,6 @@ import {
     FileText, Plus, ArrowUpDown, ArrowUp, ArrowDown,
     CheckCircle2, Clock, AlertCircle, RotateCcw, Filter
 } from "lucide-react";
-import { useRealtimeTable } from "@/lib/hooks/useRealtimeTable";
 import { createClient } from "@/lib/supabase/client";
 
 type SortKey = "title" | "subject" | "due_date" | "status";
@@ -29,8 +28,8 @@ const STUDENT_TABS: { key: TabKey; label: string; icon: React.ElementType }[] = 
 interface AssignmentsClientProps {
     assignments: any[];
     role: string;
-    userId: string;
     subjects: any[];
+    subjectFilter?: string;
 }
 
 function getAssignmentStatusForTab(assignment: any, role: string): TabKey {
@@ -62,7 +61,7 @@ function getAssignmentStatusForTab(assignment: any, role: string): TabKey {
     }
 }
 
-export default function AssignmentsClient({ assignments: initialAssignments, role, userId, subjects }: AssignmentsClientProps) {
+export default function AssignmentsClient({ assignments: initialAssignments, role, subjects, subjectFilter }: AssignmentsClientProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabKey>("pending");
     const [sortKey, setSortKey] = useState<SortKey>("due_date");
@@ -136,9 +135,13 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
 
     // Filter by tab
     const filteredAssignments = useMemo(() => {
-        if (role === "teacher" && activeTab === "not_submitted") return assignments; // "Totes"
-        return assignments.filter(a => getAssignmentStatusForTab(a, role) === activeTab);
-    }, [assignments, activeTab, role]);
+        const bySubject = subjectFilter
+            ? assignments.filter((assignment: any) => assignment.subject_id === subjectFilter)
+            : assignments;
+
+        if (role === "teacher" && activeTab === "not_submitted") return bySubject; // "Totes"
+        return bySubject.filter(a => getAssignmentStatusForTab(a, role) === activeTab);
+    }, [assignments, activeTab, role, subjectFilter]);
 
     // Sort
     const sortedAssignments = useMemo(() => {
@@ -271,7 +274,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                 <SortableHeader label="Títol" column="title" onSort={handleSort} sortIcon={<SortIcon column="title" />} />
                                 <SortableHeader label="Assignatura" column="subject" onSort={handleSort} sortIcon={<SortIcon column="subject" />} />
                                 <SortableHeader label="Data de lliurament" column="due_date" onSort={handleSort} sortIcon={<SortIcon column="due_date" />} />
-                                <SortableHeader label="Estat" column="status" onSort={handleSort} sortIcon={<SortIcon column="status" />} />
+                                <SortableHeader label={role === "teacher" ? "Entregas" : "Estat"} column="status" onSort={handleSort} sortIcon={<SortIcon column="status" />} />
                                 <th className="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100 text-right">Acción</th>
                             </tr>
                         </thead>
@@ -297,13 +300,12 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                     </td>
                                     <td className="px-6 py-4">
                                         {role === "teacher" ? (
-                                            <TeacherStatusBadge submissions={assignment.submissions || []} />
+                                            <TeacherStatusBadge submissions={assignment.submissions || []} totalStudents={assignment.subject?.enrollments?.length} />
                                         ) : (
                                             <StudentStatusBadge
                                                 status={assignment.status}
                                                 grade={assignment.grade}
                                                 dueDate={assignment.due_date}
-                                                lateDueDate={assignment.late_due_date}
                                             />
                                         )}
                                     </td>
@@ -312,7 +314,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                             onClick={() => router.push(`/dashboard/assignments/${assignment.id}`)}
                                             className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm hover:underline transition-colors"
                                         >
-                                            {role === "teacher" ? "Veure tasca" : (assignment.status === "graded" ? "Veure nota" : assignment.status === "submitted" ? "Veure lliurament" : "Lliurar")}
+                                            Ver
                                         </button>
                                     </td>
                                 </tr>
@@ -369,13 +371,12 @@ function AssignmentMobileCard({ assignment, role, onOpen }: { assignment: any; r
                 <div className="flex items-center justify-between gap-3">
                     <span className="text-sm font-semibold text-zinc-500">Estat</span>
                     {role === "teacher" ? (
-                        <TeacherStatusBadge submissions={assignment.submissions || []} />
+                        <TeacherStatusBadge submissions={assignment.submissions || []} totalStudents={assignment.subject?.enrollments?.length} />
                     ) : (
                         <StudentStatusBadge
                             status={assignment.status}
                             grade={assignment.grade}
                             dueDate={assignment.due_date}
-                            lateDueDate={assignment.late_due_date}
                         />
                     )}
                 </div>
@@ -385,7 +386,7 @@ function AssignmentMobileCard({ assignment, role, onOpen }: { assignment: any; r
                 onClick={onOpen}
                 className="mt-4 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-700"
             >
-                {role === "teacher" ? "Veure tasca" : (assignment.status === "graded" ? "Veure nota" : assignment.status === "submitted" ? "Veure lliurament" : "Lliurar")}
+                Ver
             </button>
         </article>
     );
@@ -410,12 +411,13 @@ function SortableHeader({ label, column, onSort, sortIcon }: {
     );
 }
 
-function TeacherStatusBadge({ submissions }: { submissions: any[] }) {
-    const total = submissions.length;
+function TeacherStatusBadge({ submissions, totalStudents }: { submissions: any[]; totalStudents?: number }) {
+    const delivered = submissions.length;
     const graded = submissions.filter((s: any) => s.grade !== null && s.grade !== undefined).length;
     const returned = submissions.filter((s: any) => s.status === "returned").length;
+    const total = totalStudents || delivered;
 
-    if (total === 0) {
+    if (delivered === 0) {
         return <span className="text-xs text-zinc-400">Sense lliuraments</span>;
     }
 
@@ -425,11 +427,12 @@ function TeacherStatusBadge({ submissions }: { submissions: any[] }) {
                 <div className="flex-1 h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden w-20">
                     <div
                         className="h-full rounded-full bg-emerald-500 transition-all"
-                        style={{ width: `${(graded / total) * 100}%` }}
+                        style={{ width: `${total > 0 ? (delivered / total) * 100 : 0}%` }}
                     />
                 </div>
-                <span className="text-xs text-zinc-500 tabular-nums">{graded}/{total}</span>
+                <span className="text-xs text-zinc-500 tabular-nums">{delivered}/{total}</span>
             </div>
+            <span className="text-xs text-zinc-500">{graded} corregidas</span>
             {returned > 0 && (
                 <span className="flex items-center gap-1 text-xs text-amber-500">
                     <RotateCcw className="w-3 h-3" /> {returned} retornades
@@ -439,11 +442,10 @@ function TeacherStatusBadge({ submissions }: { submissions: any[] }) {
     );
 }
 
-function StudentStatusBadge({ status, grade, dueDate, lateDueDate }: {
+function StudentStatusBadge({ status, grade, dueDate }: {
     status: string;
     grade?: number;
     dueDate: string;
-    lateDueDate?: string;
 }) {
     if (grade !== undefined && grade !== null) {
         return (

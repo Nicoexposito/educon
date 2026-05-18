@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRealtimeTable } from "@/lib/hooks/useRealtimeTable";
-import { BookOpen, FileText, Users, Link as LinkIcon, Download, Plus, Check, Loader2, ClipboardCheck } from "lucide-react";
+import { ArrowRight, BookOpen, Check, ClipboardCheck, Download, FileText, Link as LinkIcon, Loader2, Mail, Phone, Plus, Users } from "lucide-react";
 import { AIPlaceholder } from "@/components/ai/AIPlaceholder";
 import Link from "next/link";
 import { createResource, saveAttendance } from "@/lib/actions";
@@ -37,6 +37,10 @@ export function SubjectDetailsClient({
 
     const filteredAssignments = assignments.filter(a => a.subject_id === initialSubject.id);
     const filteredResources = resources.filter(r => r.subject_id === initialSubject.id);
+    const openAssignmentsCount = filteredAssignments.filter((assignment: any) => {
+        const limit = new Date(assignment.late_due_date || assignment.due_date);
+        return !Number.isNaN(limit.getTime()) && limit >= new Date();
+    }).length;
     const initialAttendanceMap = useMemo(() => new Map(initialAttendance.map((row: any) => [row.student_id, row.status])), [initialAttendance]);
     const [attendance, setAttendance] = useState<Record<string, string>>(() => {
         const result: Record<string, string> = {};
@@ -117,6 +121,12 @@ export function SubjectDetailsClient({
                 </div>
             </div>
 
+            <SubjectTools
+                role={role}
+                subjectId={initialSubject.id}
+                pendingCount={openAssignmentsCount}
+            />
+
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
                 {/* Main Column: Content & Assignments */}
                 <div className="lg:col-span-2 space-y-8">
@@ -125,11 +135,11 @@ export function SubjectDetailsClient({
                         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-indigo-600" />
-                                Tasques y Lliuraments
+                                Entrega de trabajos
                             </h2>
                              {role === 'teacher' && (
                                 <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/10 px-3 py-1.5 rounded-lg transition-colors">
-                                    + Crear tasca
+                                    + Crear trabajo
                                 </Link>
                             )}
                         </div>
@@ -159,11 +169,11 @@ export function SubjectDetailsClient({
                          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <LinkIcon className="w-5 h-5 text-emerald-600" />
-                                Continguts i recursos
+                                Contenidos y recursos
                             </h2>
                             {role === 'teacher' && (
                                 <button onClick={() => setIsResourceOpen((value) => !value)} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 px-3 py-1.5 rounded-lg transition-colors">
-                                    + Pujar fitxer
+                                    + Publicar contenido
                                 </button>
                             )}
                         </div>
@@ -176,7 +186,7 @@ export function SubjectDetailsClient({
                                     <option value="video">Video</option>
                                     <option value="file">Fitxer</option>
                                 </select>
-                                <input name="file_url" required placeholder="URL del fitxer, guia, horari o anunci" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
+                                <input name="file_url" required placeholder="URL del archivo, apuntes, vídeo o recurso" className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-emerald-500" />
                                 <button disabled={isPendingResource} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold">
                                     {isPendingResource ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                     Desar
@@ -208,7 +218,7 @@ export function SubjectDetailsClient({
                     </div>
                 </div>
 
-                {/* Sidebar Column: Students (Teacher) or Info (Student) */}
+                {/* Sidebar Column: Students and attendance */}
                 <div className="space-y-8">
                     {(role === 'teacher' || role === 'student') && (
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
@@ -218,14 +228,27 @@ export function SubjectDetailsClient({
                             </h2>
                             <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                                 {initialStudents.map((student: any) => (
-                                    <div key={student.id} className="flex items-center gap-3">
+                                    <div key={student.id} className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                                         <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold text-xs">
                                             {student.full_name ? student.full_name.split(' ').map((part: string) => part[0]).slice(0, 2).join('').toUpperCase() : student.email ? student.email.substring(0, 2).toUpperCase() : 'ST'}
                                         </div>
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <div className="text-sm font-medium truncate">{student.full_name || "Estudiant"}</div>
-                                            <div className="text-xs text-zinc-400 truncate">{student.email}</div>
+                                            <div className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400">
+                                                <Mail className="h-3 w-3 shrink-0" />
+                                                <span className="truncate">{student.email}</span>
+                                            </div>
+                                            <div className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400">
+                                                <Phone className="h-3 w-3 shrink-0" />
+                                                <span className="truncate">{student.phone || "Sin teléfono"}</span>
+                                            </div>
                                         </div>
+                                        <Link
+                                            href={`/dashboard/students/${student.id}`}
+                                            className="shrink-0 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
+                                        >
+                                            Ver
+                                        </Link>
                                     </div>
                                 ))}
                             </div>
@@ -237,7 +260,7 @@ export function SubjectDetailsClient({
                             <div className="flex items-center justify-between gap-3 mb-4">
                                 <h2 className="text-lg font-bold flex items-center gap-2">
                                     <ClipboardCheck className="w-5 h-5 text-emerald-500" />
-                                    Passar llista de hoy
+                                    Pasar lista de hoy
                                 </h2>
                                 <button
                                     onClick={handleAttendanceSave}
@@ -269,6 +292,10 @@ export function SubjectDetailsClient({
                                 ))}
                             </div>
                             {attendanceMsg && <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">{attendanceMsg}</p>}
+                            <Link href="/dashboard/attendance" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400">
+                                Listas anteriores
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
                         </div>
                     )}
 
@@ -290,6 +317,80 @@ export function SubjectDetailsClient({
                 </div>
             </div>
         </>
+    );
+}
+
+function SubjectTools({ role, subjectId, pendingCount }: { role: string; subjectId: string; pendingCount: number }) {
+    const isTeacher = role === 'teacher';
+    const tools = isTeacher
+        ? [
+            {
+                title: 'Entrega de trabajos',
+                description: `${pendingCount} trabajos activos para revisar o gestionar.`,
+                href: `/dashboard/assignments?subject=${subjectId}`,
+                icon: FileText,
+            },
+            {
+                title: 'Crear trabajo nuevo',
+                description: 'Publica una tarea para esta materia.',
+                href: `/dashboard/assignments/new?subject=${subjectId}`,
+                icon: Plus,
+            },
+            {
+                title: 'Listas anteriores',
+                description: 'Consulta asistencias guardadas.',
+                href: '/dashboard/attendance',
+                icon: ClipboardCheck,
+            },
+        ]
+        : [
+            {
+                title: 'Entrega de trabajos',
+                description: `${pendingCount} trabajos pendientes o activos en esta materia.`,
+                href: `/dashboard/assignments?subject=${subjectId}`,
+                icon: FileText,
+            },
+            {
+                title: 'Hacer una entrega',
+                description: 'Abre tus trabajos y sube el archivo correspondiente.',
+                href: `/dashboard/assignments?subject=${subjectId}`,
+                icon: Plus,
+            },
+            {
+                title: 'Listas anteriores',
+                description: 'Revisa tu historial de asistencia.',
+                href: '/dashboard/attendance',
+                icon: ClipboardCheck,
+            },
+        ];
+
+    return (
+        <section className="mb-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900" aria-label={isTeacher ? 'Eines del profesor' : 'Eines del alumno'}>
+            <div className="mb-4">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">
+                    {isTeacher ? 'Eines del profesor' : 'Eines del alumno'}
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">Acciones de la materia</h2>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+                {tools.map((tool) => (
+                    <Link
+                        key={tool.title}
+                        href={tool.href}
+                        className="group flex min-h-28 flex-col rounded-xl border border-zinc-100 bg-zinc-50 p-4 transition-colors hover:border-indigo-200 hover:bg-indigo-50/60 dark:border-zinc-800 dark:bg-zinc-800/30 dark:hover:border-indigo-900 dark:hover:bg-indigo-900/10"
+                    >
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <span className="rounded-lg bg-white p-2 text-indigo-600 shadow-xs dark:bg-zinc-900 dark:text-indigo-300">
+                                <tool.icon className="h-4 w-4" />
+                            </span>
+                            <ArrowRight className="h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-600" />
+                        </div>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{tool.title}</h3>
+                        <p className="mt-1 text-xs leading-relaxed text-zinc-500">{tool.description}</p>
+                    </Link>
+                ))}
+            </div>
+        </section>
     );
 }
 
