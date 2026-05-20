@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import { Bell, CheckCheck, Menu, School } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { markAllNotificationsRead } from '@/lib/actions';
 
@@ -72,12 +71,9 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
     return (
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-zinc-200 bg-white/80 px-3 backdrop-blur-md transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900/80 sm:px-6">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                 <button onClick={toggleSidebar} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg lg:hidden">
+                <button onClick={toggleSidebar} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg lg:hidden">
                     <Menu className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
                 </button>
-                <Link href="/dashboard" className="relative h-10 w-10 shrink-0">
-                    <Image src="/logo-transparent.png" alt="Educon" fill className="object-contain drop-shadow-sm" sizes="40px" priority />
-                </Link>
                 <div className="flex min-w-0 flex-col">
                      <span className="truncate font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
                         {role === 'admin' ? 'Panell d’administració' : role === 'teacher' ? 'Panell del professor' : "Panell de l'alumne"}

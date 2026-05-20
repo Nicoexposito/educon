@@ -85,6 +85,7 @@ export default async function AssignmentPage({ params }: { params: { id: string 
             grade: submission?.grade,
             feedback: submission?.feedback,
             file_url: submission?.file_url,
+            student_comment: submission?.student_comment,
             submitted_at: submission?.submitted_at
         };
 

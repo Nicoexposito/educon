@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { formatSubjectSchedule } from "@/lib/academic";
 
 export async function getDashboardData(userId: string, role: string) {
     const supabase = await createClient();
@@ -10,7 +9,7 @@ export async function getDashboardData(userId: string, role: string) {
         const [{ data: profile }, { data: subjects }] = await Promise.all([
             supabase
                 .from('users')
-                .select('id, full_name, email, avatar_url')
+                .select('full_name, email, avatar_url')
                 .eq('id', userId)
                 .single(),
             supabase
@@ -103,7 +102,7 @@ export async function getDashboardData(userId: string, role: string) {
         const [{ data: profile }, { data: enrollments }] = await Promise.all([
             supabase
                 .from('users')
-                .select('id, full_name, email, avatar_url')
+                .select('full_name, email, avatar_url')
                 .eq('id', userId)
                 .single(),
             supabase
@@ -125,7 +124,8 @@ export async function getDashboardData(userId: string, role: string) {
         const [
             { data: events },
             { data: gradedSubmissions },
-            { data: allAssignments },
+            { data: assignments },
+            { data: allFutureAssignments },
             { data: attendanceRows },
         ] = await Promise.all([
             supabase
@@ -143,7 +143,14 @@ export async function getDashboardData(userId: string, role: string) {
                 .from('assignments')
                 .select('*, subject:subjects(name)')
                 .in('subject_id', querySubjectIds)
-                .order('due_date', { ascending: true }),
+                .gt('due_date', now)
+                .order('due_date', { ascending: true })
+                .limit(5),
+            supabase
+                .from('assignments')
+                .select('id')
+                .in('subject_id', querySubjectIds)
+                .gt('due_date', now),
             supabase
                 .from('attendance')
                 .select('subject_id, date, status, subject:subjects(name, schedules:subject_schedules(*))')
@@ -156,12 +163,7 @@ export async function getDashboardData(userId: string, role: string) {
             ? (gradedSubmissions.reduce((sum: number, row: any) => sum + Number(row.grade), 0) / gradedSubmissions.length).toFixed(1)
             : "—";
 
-        const openAssignments = (allAssignments || []).filter((assignment: any) => {
-            const limitDate = new Date(assignment.late_due_date || assignment.due_date);
-            return !Number.isNaN(limitDate.getTime()) && limitDate >= new Date(now);
-        });
-
-        const assignmentIds = openAssignments.map((assignment: any) => assignment.id);
+        const assignmentIds = allFutureAssignments?.map((assignment: any) => assignment.id) || [];
         const { data: currentSubmissions } = assignmentIds.length > 0
             ? await supabase
                 .from('submissions')
@@ -170,10 +172,7 @@ export async function getDashboardData(userId: string, role: string) {
                 .in('assignment_id', assignmentIds)
             : { data: [] as any[] };
         const submittedIds = new Set((currentSubmissions || []).map((row: any) => row.assignment_id));
-        const pendingAssignments = openAssignments
-            .filter((assignment: any) => !submittedIds.has(assignment.id))
-            .map((assignment: any) => ({ ...assignment, status: 'pending' }));
-        const assignmentsPending = pendingAssignments.length;
+        const assignmentsPending = (allFutureAssignments || []).filter((assignment: any) => !submittedIds.has(assignment.id)).length;
 
         const attendanceBySubject = new Map<string, any>();
         (attendanceRows || []).forEach((row: any) => {
@@ -199,7 +198,7 @@ export async function getDashboardData(userId: string, role: string) {
             profile,
             subjects,
             events: events || [],
-            assignments: pendingAssignments.slice(0, 5),
+            assignments: assignments || [],
             recentSubjectsAttendance,
             stats: {
                 assignmentsPending,
@@ -314,7 +313,7 @@ export async function getSubjectDetails(subjectId: string, role: string) {
     if (role === 'teacher') {
         const { data: enrollments } = await supabase
             .from('enrollments')
-            .select('student:users(id, full_name, email, phone, avatar_url)')
+            .select('student:users(id, full_name, email, avatar_url)')
             .eq('subject_id', subjectId);
 
         // @ts-ignore
@@ -322,7 +321,7 @@ export async function getSubjectDetails(subjectId: string, role: string) {
     } else {
         const { data: enrollments } = await supabase
             .from('enrollments')
-            .select('student:users(id, full_name, email, phone, avatar_url)')
+            .select('student:users(id, full_name, email, avatar_url)')
             .eq('subject_id', subjectId);
 
         // @ts-ignore
@@ -345,7 +344,7 @@ export async function getAllAssignments(userId: string, role: string) {
         // For teachers: get assignments with full submission details
         const { data: assignments, error } = await supabase
             .from('assignments')
-            .select('*, subject:subjects(name, enrollments(id)), submissions(id, student_id, grade, feedback, file_url, submitted_at, status, student:users(full_name, email))')
+            .select('*, subject:subjects(name), submissions(id, student_id, grade, feedback, file_url, student_comment, submitted_at, status, student:users(full_name, email))')
             .eq('teacher_id', userId)
             .order('due_date', { ascending: true });
         if (error) console.error('Teacher assignments query error:', error);
@@ -363,14 +362,14 @@ export async function getAllAssignments(userId: string, role: string) {
 
         const { data: assignments } = await supabase
             .from('assignments')
-            .select('*, subject:subjects(name, enrollments(id))')
+            .select('*, subject:subjects(name)')
             .in('subject_id', subjectIds)
             .order('due_date', { ascending: true });
 
         // Get submissions status for these assignments
         const { data: submissions } = await supabase
             .from('submissions')
-            .select('assignment_id, grade, status, file_url, feedback, submitted_at')
+            .select('assignment_id, grade, status, file_url, student_comment, feedback, submitted_at')
             .eq('student_id', userId)
             .in('assignment_id', assignments?.map((a: any) => a.id) || []);
 
@@ -388,7 +387,11 @@ export async function getAllAssignments(userId: string, role: string) {
             return {
                 ...a,
                 status,
-                grade: sub?.grade
+                grade: sub?.grade,
+                feedback: sub?.feedback,
+                file_url: sub?.file_url,
+                student_comment: sub?.student_comment,
+                submitted_at: sub?.submitted_at
             };
         }) || [];
     }
@@ -408,7 +411,7 @@ export async function getSubjectStudents(subjectId: string) {
     const supabase = await createClient();
     const { data: enrollments } = await supabase
         .from('enrollments')
-        .select('student:users(id, full_name, email, phone)')
+        .select('student:users(id, full_name, email)')
         .eq('subject_id', subjectId);
     return enrollments?.map((e: any) => e.student) || [];
 }
@@ -450,6 +453,15 @@ export async function getGradesData(userId: string) {
         .eq('student_id', userId);
 
     return { submissions: submissions || [], gradeRows: gradeRows || [] };
+}
+
+function formatSubjectSchedule(subject: any) {
+    if (subject?.schedules?.length) {
+        return subject.schedules
+            .map((s: any) => `${s.day_of_week} ${String(s.start_time).slice(0, 5)}-${String(s.end_time).slice(0, 5)}`)
+            .join(', ');
+    }
+    return subject?.schedule || 'Horari no definit';
 }
 
 function attendanceStatusLabel(status: string) {

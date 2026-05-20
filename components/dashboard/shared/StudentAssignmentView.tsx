@@ -26,6 +26,8 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
     const isGraded = assignment.status === "graded";
     const isSubmitted = assignment.status === "submitted" || isGraded;
     const isReturned = assignment.status === "returned";
+    const submittedFileUrl = getSubmissionFileUrl(assignment);
+    const studentComment = getSubmissionComment(assignment);
 
     // Dates
     const now = new Date();
@@ -219,10 +221,10 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
 
                                 {isSubmitted && (
                                     <div className="py-2">
-                                        <span className="text-sm font-medium text-zinc-500 block mb-3">Fitxers enviados</span>
+                                        <span className="text-sm font-medium text-zinc-500 block mb-3">Fitxers enviats</span>
                                         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-xl">
-                                            {assignment.file_url ? (
-                                                <a href={assignment.file_url} target="_blank" className="flex items-center gap-3 group text-left">
+                                            {submittedFileUrl ? (
+                                                <a href={submittedFileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group text-left">
                                                     <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-500">
                                                         <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                                     </div>
@@ -232,8 +234,17 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                                     </div>
                                                 </a>
                                             ) : (
-                                                <p className="text-sm italic text-zinc-500 text-center py-2">Només s'ha enviat text/comentari.</p>
+                                                <p className="text-sm italic text-zinc-500 text-center py-2">No hi ha fitxer adjunt.</p>
                                             )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {isSubmitted && studentComment && (
+                                    <div className="py-2">
+                                        <span className="text-sm font-medium text-zinc-500 block mb-3">Comentari enviat</span>
+                                        <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm leading-6 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                                            {studentComment}
                                         </div>
                                     </div>
                                 )}
@@ -265,16 +276,19 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                 {/* File Upload */}
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Pujar fitxer</label>
-                                    <div className="relative border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:border-indigo-400 transition-colors cursor-pointer group">
+                                    <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-zinc-200 transition-colors hover:border-indigo-400 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800/50 cursor-pointer group">
                                          <input
                                             type="file"
                                             onChange={(e) => setFile(e.target.files?.[0] || null)}
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                         />
-                                        <div className="p-4 flex flex-col items-center justify-center text-center">
+                                        <div className="flex min-w-0 flex-col items-center justify-center p-4 text-center">
                                             {file ? (
-                                                <div className="text-emerald-600 dark:text-emerald-400 font-bold text-sm flex items-center gap-2">
-                                                    <CheckCircle2 className="w-5 h-5" /> {file.name}
+                                                <div className="flex w-full min-w-0 items-center justify-center gap-2 px-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                                    <CheckCircle2 className="h-5 w-5 shrink-0" />
+                                                    <span className="min-w-0 max-w-full truncate" title={file.name}>
+                                                        {file.name}
+                                                    </span>
                                                 </div>
                                             ) : (
                                                 <>
@@ -330,4 +344,28 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
             </div>
         </div>
     );
+}
+
+function getSubmissionFileUrl(assignment: any) {
+    return getHttpUrl(assignment.file_url);
+}
+
+function getSubmissionComment(assignment: any) {
+    const explicitComment = typeof assignment.student_comment === "string" ? assignment.student_comment.trim() : "";
+    if (explicitComment) return explicitComment;
+
+    const legacyContent = typeof assignment.file_url === "string" ? assignment.file_url.trim() : "";
+    if (!legacyContent || getHttpUrl(legacyContent)) return "";
+    return legacyContent;
+}
+
+function getHttpUrl(value?: string | null) {
+    if (!value) return "";
+    try {
+        const url = new URL(value.trim());
+        if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+        return url.toString();
+    } catch {
+        return "";
+    }
 }

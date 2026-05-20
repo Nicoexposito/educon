@@ -26,6 +26,8 @@ export default function StudentAssignmentModal({ assignment, userId, onClose }: 
     const isGraded = assignment.status === "graded";
     const isSubmitted = assignment.status === "submitted" || isGraded;
     const isReturned = assignment.status === "returned";
+    const submittedFileUrl = getSubmissionFileUrl(assignment);
+    const studentComment = getSubmissionComment(assignment);
 
     // Dates
     const now = new Date();
@@ -162,15 +164,24 @@ export default function StudentAssignmentModal({ assignment, userId, onClose }: 
                                 <div>
                                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">El teu lliurament</p>
                                     <div className="bg-white dark:bg-zinc-900/50 p-3 rounded-xl text-sm border border-zinc-200 dark:border-zinc-800">
-                                        {assignment.file_url?.startsWith('http') ? (
-                                            <a href={assignment.file_url} target="_blank" className="text-indigo-600 underline flex items-center gap-1.5">
+                                        {submittedFileUrl ? (
+                                            <a href={submittedFileUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline flex items-center gap-1.5">
                                                 <ExternalLink className="w-3.5 h-3.5" /> Veure el fitxer lliurat
                                             </a>
                                         ) : (
-                                            assignment.file_url || "Sense contingut registrat."
+                                            "Sense fitxer adjunt."
                                         )}
                                     </div>
                                 </div>
+
+                                {studentComment && (
+                                    <div>
+                                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Comentari enviat</p>
+                                        <div className="whitespace-pre-line bg-white dark:bg-zinc-900/50 p-4 rounded-xl text-sm text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800">
+                                            {studentComment}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {isGraded && assignment.feedback && (
                                     <div>
@@ -255,4 +266,28 @@ export default function StudentAssignmentModal({ assignment, userId, onClose }: 
             </div>
         </div>
     );
+}
+
+function getSubmissionFileUrl(assignment: any) {
+    return getHttpUrl(assignment.file_url);
+}
+
+function getSubmissionComment(assignment: any) {
+    const explicitComment = typeof assignment.student_comment === "string" ? assignment.student_comment.trim() : "";
+    if (explicitComment) return explicitComment;
+
+    const legacyContent = typeof assignment.file_url === "string" ? assignment.file_url.trim() : "";
+    if (!legacyContent || getHttpUrl(legacyContent)) return "";
+    return legacyContent;
+}
+
+function getHttpUrl(value?: string | null) {
+    if (!value) return "";
+    try {
+        const url = new URL(value.trim());
+        if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+        return url.toString();
+    } catch {
+        return "";
+    }
 }

@@ -66,17 +66,19 @@ export function SubjectCard({ subject, role }: SubjectCardProps) {
                         <Clock className="w-4 h-4" />
                         <span className="line-clamp-1">{scheduleText}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4" />
-                        <span>{subject.student_count ?? subject.students_count ?? "—"} Alumnos</span>
-                    </div>
+                    {role === 'teacher' && (
+                        <div className="flex items-center gap-1.5">
+                            <Users className="w-4 h-4" />
+                            <span>{subject.student_count ?? subject.students_count ?? "—"} Alumnes</span>
+                        </div>
+                    )}
                 </div>
 
                 <Link
                     href={`/dashboard/subjects/${subject.id}`}
                     className="mt-auto w-full py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 font-medium flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all"
                 >
-                    Ver
+                    {role === 'teacher' ? 'Gestionar' : 'Entrar'}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
             </div>

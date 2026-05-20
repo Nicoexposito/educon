@@ -1,59 +1,39 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { ArrowRight, BookOpen, Clock } from "lucide-react";
+import { Clock, MapPin, ArrowRight } from "lucide-react";
 import Link from 'next/link';
-import { formatScheduleRange, getCurrentClassForSubjects, getNextClassForSubjects } from "@/lib/academic";
 
 export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
-    const { currentClass, nextClass } = useMemo(() => {
-        if (!subjects || subjects.length === 0) return { currentClass: null, nextClass: null };
-        const now = new Date();
-        return {
-            currentClass: getCurrentClassForSubjects(subjects, now),
-            nextClass: getNextClassForSubjects(subjects, now),
-        };
+    const currentClass = useMemo(() => {
+        if (!subjects || subjects.length === 0) return null;
+        return subjects[0];
     }, [subjects]);
 
     if (!currentClass) {
         return (
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex h-full flex-col">
-                <div className="mb-5 flex items-center justify-between gap-3">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">La clase actual</p>
-                        <h2 className="mt-1 text-lg font-bold text-foreground">Sin clase en curso</h2>
-                    </div>
-                    <div className="rounded-xl bg-secondary p-2 text-muted-foreground">
-                        <BookOpen className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                </div>
-                <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border bg-secondary/40 px-4 py-8 text-center">
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">No hay una clase activa ahora mismo.</p>
-                        {nextClass && (
-                            <p className="mt-2 text-xs text-muted-foreground">
-                                Próxima: <span className="font-semibold text-foreground">{nextClass.name}</span> a las {formatScheduleRange(nextClass.activeSchedule)}
-                            </p>
-                        )}
-                    </div>
-                </div>
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex items-center justify-center text-muted-foreground h-full">
+                <p className="text-sm text-center">No tens classes actives en aquest moment.</p>
             </div>
         );
     }
 
-    const scheduleLabel = formatScheduleRange(currentClass.activeSchedule, currentClass.schedule || 'Horario no definido');
-
     return (
         <div className="rounded-2xl p-6 text-white shadow-lg relative overflow-hidden h-full flex flex-col"
             style={{
-                background: 'linear-gradient(135deg, oklch(0.31 0.08 245) 0%, oklch(0.52 0.12 185) 100%)',
+                background: 'linear-gradient(135deg, var(--primary) 0%, oklch(0.26 0.06 258) 100%)',
             }}
         >
-            <div className="absolute inset-x-0 top-0 h-1 bg-white/25" aria-hidden="true" />
+            {/* Decorative geometry */}
+            <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10"
+                style={{ background: 'var(--accent)', filter: 'blur(40px)' }}
+                aria-hidden="true"
+            />
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full opacity-10 border-2 border-white"
+                aria-hidden="true"
+            />
 
             <div className="relative z-10 flex flex-col h-full">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-white/65">La clase actual</p>
-
                 {/* Status badge */}
                 <div className="flex items-center gap-3 mb-5">
                     <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
@@ -62,7 +42,7 @@ export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
                     </span>
                     <span className="text-white/70 text-xs font-medium flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                        <time>{scheduleLabel}</time>
+                        <time>10:00&nbsp;&ndash;&nbsp;11:30</time>
                     </span>
                 </div>
 
@@ -72,14 +52,12 @@ export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
                 >
                     {currentClass.name}
                 </h2>
-                <p className="text-white/65 text-sm mb-6">
-                    {currentClass.category || currentClass.description || 'Asignatura en curso'}
-                </p>
+                <p className="text-white/60 text-sm mb-6">Grup A &nbsp;&bull;&nbsp; Batxillerat</p>
 
                 <div className="mt-auto flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-white/75 bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg">
-                        <BookOpen className="w-3.5 h-3.5" aria-hidden="true" />
-                        <span>{currentClass.student_count ?? currentClass.students_count ?? 0} alumnos</span>
+                    <div className="flex items-center gap-2 text-xs text-white/70 bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg">
+                        <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>Aula 204</span>
                     </div>
 
                     <Link

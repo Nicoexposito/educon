@@ -14,6 +14,12 @@ interface GradeModalProps {
     onClose: () => void;
 }
 
+const AI_LANGUAGE_OPTIONS = [
+    { value: "ca", label: "CAT" },
+    { value: "es", label: "CAS" },
+    { value: "en", label: "ENG" },
+] as const;
+
 export default function GradeModal({ assignment, onClose }: GradeModalProps) {
     const router = useRouter();
     const submissions: any[] = assignment.submissions || [];
@@ -29,8 +35,9 @@ export default function GradeModal({ assignment, onClose }: GradeModalProps) {
     // AI grading
     const [showAI, setShowAI] = useState(false);
     const [aiCriteria, setAiCriteria] = useState("");
-    const [aiResult, setAiResult] = useState<{ grade: number; justification: string } | null>(null);
+    const [aiResult, setAiResult] = useState<{ grade: number; teacherComment: string; studentFeedback: string; confidence: string; shouldReturn: boolean } | null>(null);
     const [isAILoading, setIsAILoading] = useState(false);
+    const [aiLanguage, setAiLanguage] = useState<(typeof AI_LANGUAGE_OPTIONS)[number]["value"]>("ca");
 
     const handleSelectSubmission = (idx: number) => {
         setSelectedIdx(idx);
@@ -84,9 +91,15 @@ export default function GradeModal({ assignment, onClose }: GradeModalProps) {
         setIsAILoading(true);
         setAiResult(null);
         try {
-            const result = await aiGradeEstimate(selectedSubmission.file_url || "", aiCriteria);
+            const result = await aiGradeEstimate(selectedSubmission.file_url || "", aiCriteria, aiLanguage);
             if (result.success) {
-                setAiResult({ grade: result.grade, justification: result.justification });
+                setAiResult({
+                    grade: result.grade,
+                    teacherComment: result.teacherComment,
+                    studentFeedback: result.studentFeedback,
+                    confidence: result.confidence,
+                    shouldReturn: result.shouldReturn,
+                });
             }
         } catch {
             setMsg({ type: "error", text: "Error en contactar amb la IA." });
@@ -97,7 +110,7 @@ export default function GradeModal({ assignment, onClose }: GradeModalProps) {
     const acceptAIGrade = () => {
         if (aiResult) {
             setGrade(String(aiResult.grade));
-            setFeedback(aiResult.justification);
+            setFeedback(aiResult.studentFeedback);
             setShowAI(false);
         }
     };
@@ -229,14 +242,14 @@ export default function GradeModal({ assignment, onClose }: GradeModalProps) {
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
-                                            <MessageSquare className="w-4 h-4 text-indigo-500" /> Comentari / Retorn
+                                            <MessageSquare className="w-4 h-4 text-indigo-500" /> Feedback per a l'alumne
                                         </label>
                                         <textarea
                                             value={feedback}
                                             onChange={e => setFeedback(e.target.value)}
-                                            rows={3}
-                                            placeholder="Escriu un comentari per a l'alumne..."
-                                            className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none"
+                                            rows={7}
+                                            placeholder="Escriu què ha fet mal l'alumne, què ha de corregir i com pot millorar..."
+                                            className="min-h-44 w-full resize-y rounded-xl border border-zinc-200 bg-white px-4 py-3 text-base leading-7 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-900/50"
                                         />
                                     </div>
                                 </div>
@@ -261,12 +274,12 @@ export default function GradeModal({ assignment, onClose }: GradeModalProps) {
                                     </button>
                                     <button
                                         onClick={() => setShowAI(!showAI)}
-                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all active:scale-95 ml-auto ${showAI
+                                        className={`ml-auto flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-black transition-all active:scale-95 ${showAI
                                             ? "bg-violet-600 text-white shadow-md shadow-violet-500/20"
                                             : "border border-violet-300 dark:border-violet-600 text-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10"
                                             }`}
                                     >
-                                        <Sparkles className="w-4 h-4" />
+                                        <Sparkles className="w-5 h-5" />
                                         Qualificar amb IA
                                     </button>
                                 </div>
@@ -278,6 +291,20 @@ export default function GradeModal({ assignment, onClose }: GradeModalProps) {
                                             <Sparkles className="w-5 h-5 text-violet-600 dark:text-violet-400" />
                                             <h3 className="font-semibold text-violet-900 dark:text-violet-200">Qualificació assistida per IA</h3>
                                         </div>
+
+                                        <label className="flex w-fit items-center gap-2 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-violet-700 dark:border-violet-500/20 dark:bg-zinc-900/50 dark:text-violet-300">
+                                            Idioma IA
+                                            <select
+                                                value={aiLanguage}
+                                                onChange={(event) => setAiLanguage(event.target.value as typeof aiLanguage)}
+                                                disabled={isAILoading}
+                                                className="bg-transparent text-sm font-black tracking-normal text-zinc-900 outline-none dark:text-zinc-100"
+                                            >
+                                                {AI_LANGUAGE_OPTIONS.map((option) => (
+                                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                                ))}
+                                            </select>
+                                        </label>
 
                                         <div className="space-y-1.5">
                                             <label className="text-sm font-medium text-violet-700 dark:text-violet-300">
@@ -308,8 +335,19 @@ export default function GradeModal({ assignment, onClose }: GradeModalProps) {
                                                     <span className="text-sm font-medium text-violet-700 dark:text-violet-300">Nota estimada per IA:</span>
                                                     <span className="text-2xl font-bold text-violet-600 dark:text-violet-400">{aiResult.grade}/10</span>
                                                 </div>
-                                                <div className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-3 max-h-40 overflow-y-auto">
-                                                    {aiResult.justification}
+                                                <div className="grid gap-3 md:grid-cols-2">
+                                                    <div>
+                                                        <p className="mb-1 text-xs font-black uppercase tracking-widest text-zinc-400">Para el profesor</p>
+                                                        <div className="max-h-52 overflow-y-auto whitespace-pre-wrap rounded-lg bg-zinc-50 p-3 text-sm leading-6 text-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300">
+                                                            {aiResult.teacherComment}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="mb-1 text-xs font-black uppercase tracking-widest text-zinc-400">Para el alumno</p>
+                                                        <div className="max-h-52 overflow-y-auto whitespace-pre-wrap rounded-lg bg-zinc-50 p-3 text-sm leading-6 text-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300">
+                                                            {aiResult.studentFeedback}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-3 pt-1">
                                                     <button

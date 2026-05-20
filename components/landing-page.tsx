@@ -226,6 +226,7 @@ const copy = {
 type LandingCopy = (typeof copy)[Lang];
 
 const photos = {
+    hero: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&w=2200&q=86",
     teacher: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1600&q=82",
     student: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1600&q=82",
     classroom: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1600&q=82",
@@ -553,17 +554,17 @@ export default function LandingPage() {
             <main id="top">
                 <section className="relative min-h-[92svh] overflow-hidden bg-[#101b2d] px-5 pt-28 text-white md:px-8 md:pt-32">
                     <div
-                        className="absolute inset-0 bg-[#c9c5bb]"
+                        className="absolute inset-0 scale-[1.03] bg-cover bg-center"
                         style={{
-                            backgroundImage:
-                                "linear-gradient(rgba(16,27,45,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(16,27,45,0.08) 1px, transparent 1px)",
-                            backgroundSize: "48px 48px",
+                            backgroundImage: `url(${photos.hero})`,
+                            backgroundPosition: "center 44%",
                         }}
                         aria-hidden="true"
                     />
-                    <div className="absolute inset-0 bg-[#101b2d]/34" />
-                    <div className="absolute inset-y-0 left-0 w-full bg-[#101b2d]/48 md:w-[70%] lg:w-[58%]" />
-                    <div className="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-[#101b2d]/50 to-transparent" />
+                    <div className="absolute inset-0 bg-[#101b2d]/32" />
+                    <div className="absolute inset-y-0 left-0 w-full bg-linear-to-r from-[#07111f]/95 via-[#101b2d]/76 to-[#101b2d]/10" />
+                    <div className="absolute inset-x-0 bottom-0 h-56 bg-linear-to-t from-[#101b2d]/82 via-[#101b2d]/34 to-transparent" />
+                    <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-[#07111f]/60 to-transparent" />
                     <div className="relative mx-auto flex min-h-[calc(92svh-8rem)] max-w-7xl flex-col justify-end pb-8">
                         <motion.div
                             initial={{ opacity: 0, y: 18 }}
