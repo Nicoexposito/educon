@@ -137,7 +137,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
             });
 
             setAiSuggestions(enriched);
-            setSelectedSuggestionIds(new Set(enriched.map((item) => item.submissionId)));
+            setSelectedSuggestionIds(new Set(enriched.map((item) => item.submissionId).filter((id): id is string => Boolean(id))));
             setAIReviewOpen(true);
         });
     };
