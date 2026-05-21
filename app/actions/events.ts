@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
 import { processEmailQueue } from "@/lib/email-service";
 
 async function uploadEventImage(supabase: any, imageFile: File): Promise<string> {
@@ -141,7 +140,7 @@ export async function getAllEvents() {
     const supabase = await createClient();
     const { data } = await supabase
         .from('events')
-        .select('*')
+        .select('id, title, description, start_time, end_time, type, institute_id, subject_id, image_url, location, created_by')
         .gte('end_time', new Date().toISOString())
         .order('start_time', { ascending: true });
     return data || [];
@@ -151,7 +150,7 @@ export async function getEventById(eventId: string) {
     const supabase = await createClient();
     const { data } = await supabase
         .from('events')
-        .select('*')
+        .select('id, title, description, start_time, end_time, type, institute_id, subject_id, image_url, location, created_by')
         .eq('id', eventId)
         .single();
     return data;

@@ -13,7 +13,7 @@ export default async function NotificationsPage() {
     const supabase = await createClient();
     const { data: notifications } = await supabase
         .from('notifications')
-        .select('*')
+        .select('id, user_id, message, type, read, created_at')
         .eq('user_id', session.userId)
         .order('created_at', { ascending: false });
 

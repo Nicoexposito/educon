@@ -11,7 +11,9 @@ export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any
     });
 
     const groupedSubjects = subjects.reduce((acc: any, subject: any) => {
-        const cat = subject.category || 'General';
+        const cat = role === 'student'
+            ? subject.course?.name || subject.category || 'Sense curs'
+            : subject.category || 'General';
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(subject);
         return acc;
@@ -22,7 +24,7 @@ export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Les meves assignatures</h1>
-                    <p className="text-zinc-500 mt-2">Gestiona els teus cursos i el contingut acadèmic.</p>
+                    <p className="text-zinc-500 mt-2">{role === 'student' ? 'Assignatures agrupades pel teu curs o classe.' : 'Gestiona les teves classes i el contingut acadèmic.'}</p>
                 </div>
                 {role === 'teacher' && (
                     <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 font-medium text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto">

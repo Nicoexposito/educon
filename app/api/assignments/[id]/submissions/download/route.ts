@@ -17,8 +17,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
     const { id: assignmentId } = await Promise.resolve(context.params);
     const body = await request.json().catch(() => ({}));
-    const submissionIds = Array.isArray(body.submissionIds)
-        ? body.submissionIds.filter((id: unknown) => typeof id === "string")
+    const submissionIds: string[] = Array.isArray(body.submissionIds)
+        ? body.submissionIds.filter((id: unknown): id is string => typeof id === "string")
         : [];
 
     if (!submissionIds.length) {
@@ -50,19 +50,24 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         return NextResponse.json({ success: false, error: "No s'han pogut llegir els lliuraments." }, { status: 500 });
     }
 
-    const files: ZipFile[] = [];
-    for (const submission of submissions || []) {
-        const fileUrl = getHttpUrl(submission.file_url);
-        if (!fileUrl) continue;
+    const submissionOrder = new Map<string, number>(submissionIds.map((id, index) => [id, index]));
+    const selectedSubmissions = (submissions || [])
+        .slice()
+        .sort((a, b) => (submissionOrder.get(a.id) ?? 0) - (submissionOrder.get(b.id) ?? 0));
 
-        const downloaded = await downloadSubmissionFile(fileUrl);
-        if (!downloaded.success) continue;
+    const downloadedFiles = await mapWithConcurrency(selectedSubmissions, 4, async (submission, index): Promise<ZipFile | null> => {
+        const fileUrl = getHttpUrl(submission.file_url);
+        if (!fileUrl) return null;
+
+        const downloaded = await downloadSubmissionFile(fileUrl, service);
+        if (!downloaded.success) return null;
 
         const student = Array.isArray(submission.student) ? submission.student[0] : submission.student;
         const studentName = student?.full_name || student?.email || "alumne";
-        const fileName = buildSubmissionFileName(files.length + 1, studentName, fileUrl, downloaded.mimeType);
-        files.push({ name: fileName, bytes: downloaded.bytes });
-    }
+        const fileName = buildSubmissionFileName(index + 1, studentName, fileUrl, downloaded.mimeType);
+        return { name: fileName, bytes: downloaded.bytes };
+    });
+    const files = downloadedFiles.filter((file): file is ZipFile => Boolean(file));
 
     if (!files.length) {
         return NextResponse.json({ success: false, error: "No s'ha pogut descarregar cap fitxer seleccionat." }, { status: 400 });
@@ -91,7 +96,7 @@ function getHttpUrl(value?: string | null) {
     }
 }
 
-async function downloadSubmissionFile(url: string): Promise<{ success: true; bytes: Uint8Array; mimeType: string } | { success: false; error: string }> {
+async function downloadSubmissionFile(url: string, service: ReturnType<typeof createAdminClient>): Promise<{ success: true; bytes: Uint8Array; mimeType: string } | { success: false; error: string }> {
     try {
         const response = await fetch(url);
         if (response.ok) {
@@ -111,7 +116,6 @@ async function downloadSubmissionFile(url: string): Promise<{ success: true; byt
         return { success: false, error: "URL no compatible." };
     }
 
-    const service = createAdminClient();
     const { data, error } = await service.storage
         .from(storagePath.bucket)
         .download(storagePath.path);
@@ -126,6 +130,26 @@ async function downloadSubmissionFile(url: string): Promise<{ success: true; byt
         bytes: new Uint8Array(buffer),
         mimeType: normalizeMimeType(data.type || inferMimeTypeFromUrl(url)),
     };
+}
+
+async function mapWithConcurrency<T, R>(
+    items: T[],
+    limit: number,
+    mapper: (item: T, index: number) => Promise<R>,
+) {
+    const results = new Array<R>(items.length);
+    let nextIndex = 0;
+    const workerCount = Math.min(Math.max(limit, 1), items.length);
+
+    await Promise.all(Array.from({ length: workerCount }, async () => {
+        while (nextIndex < items.length) {
+            const currentIndex = nextIndex;
+            nextIndex += 1;
+            results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+        }
+    }));
+
+    return results;
 }
 
 function parseSupabaseStoragePath(url: string) {

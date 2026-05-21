@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     FileText, Plus, ArrowUpDown, ArrowUp, ArrowDown,
     CheckCircle2, Clock, AlertCircle, RotateCcw, Filter
 } from "lucide-react";
-import { useRealtimeTable } from "@/lib/hooks/useRealtimeTable";
 import { createClient } from "@/lib/supabase/client";
 
 type SortKey = "title" | "subject" | "due_date" | "status";
@@ -70,49 +69,66 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
 
     // Realtime state
     const [assignments, setAssignments] = useState(initialAssignments);
-    const supabase = createClient();
+    const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
         setAssignments(initialAssignments);
     }, [initialAssignments]);
 
     useEffect(() => {
-        // Listen for new assignments
-        const assignmentsChannel = supabase.channel('realtime:assignments_client')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, (payload) => {
-                if (payload.eventType === 'INSERT') {
-                    setAssignments(prev => {
-                        if (prev.some(a => a.id === payload.new.id)) return prev;
-                        // For a new assignment, we don't have the subject join, so this is a simplified approach.
-                        // In a real robust implementation, we might fetch the specific relation or invalidate cache.
-                        return [...prev, { ...payload.new, subject: subjects.find(s => s.id === payload.new.subject_id), submissions: [] }];
-                    });
-                } else if (payload.eventType === 'UPDATE') {
-                    setAssignments(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a));
-                } else if (payload.eventType === 'DELETE') {
-                    setAssignments(prev => prev.filter(a => a.id !== payload.old.id));
-                }
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, (payload) => {
-                const newSubmission = payload.new as any;
-                const oldSubmission = payload.old as any;
-                // When a submission happens, update the assignment's submissions list
-                if (role === 'teacher') {
-                    setAssignments(prev => prev.map(a => {
-                        if (a.id === newSubmission.assignment_id || (oldSubmission && a.id === oldSubmission.assignment_id)) {
-                            const submissions = a.submissions ? [...a.submissions] : [];
-                            if (payload.eventType === 'INSERT') {
-                                if (!submissions.some((s: any) => s.id === newSubmission.id)) submissions.push(newSubmission);
-                            } else if (payload.eventType === 'UPDATE') {
-                                const idx = submissions.findIndex((s: any) => s.id === newSubmission.id);
-                                if (idx > -1) submissions[idx] = { ...submissions[idx], ...newSubmission };
+        const channels: ReturnType<typeof supabase.channel>[] = [];
+
+        if (role === 'teacher') {
+            const assignmentsChannel = supabase.channel(`realtime:assignments_client:${userId}`)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'assignments',
+                    filter: `teacher_id=eq.${userId}`,
+                }, (payload) => {
+                    if (payload.eventType === 'INSERT') {
+                        setAssignments(prev => {
+                            if (prev.some(a => a.id === payload.new.id)) return prev;
+                            // For a new assignment, we don't have the subject join, so this is a simplified approach.
+                            // In a real robust implementation, we might fetch the specific relation or invalidate cache.
+                            return [...prev, { ...payload.new, subject: subjects.find(s => s.id === payload.new.subject_id), submissions: [] }];
+                        });
+                    } else if (payload.eventType === 'UPDATE') {
+                        setAssignments(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a));
+                    } else if (payload.eventType === 'DELETE') {
+                        setAssignments(prev => prev.filter(a => a.id !== payload.old.id));
+                    }
+                })
+                .subscribe();
+
+            channels.push(assignmentsChannel);
+        }
+
+        if (role === 'student') {
+            const submissionsChannel = supabase.channel(`realtime:submissions_client:${userId}`)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'submissions',
+                    filter: `student_id=eq.${userId}`,
+                }, (payload) => {
+                    const newSubmission = payload.new as any;
+                    if (payload.eventType === 'DELETE') {
+                        const oldSubmission = payload.old as any;
+                        setAssignments(prev => prev.map(a => a.id === oldSubmission.assignment_id
+                            ? {
+                                ...a,
+                                status: 'pending',
+                                grade: undefined,
+                                feedback: undefined,
+                                file_url: undefined,
+                                student_comment: undefined,
+                                submitted_at: undefined,
                             }
-                            return { ...a, submissions };
-                        }
-                        return a;
-                    }));
-                } else {
-                    // For student, update status
+                            : a));
+                        return;
+                    }
+
                     setAssignments(prev => prev.map(a => {
                         if (a.id === newSubmission.assignment_id) {
                             return {
@@ -127,14 +143,18 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                         }
                         return a;
                     }));
-                }
-            })
-            .subscribe();
+                })
+                .subscribe();
+
+            channels.push(submissionsChannel);
+        }
 
         return () => {
-            supabase.removeChannel(assignmentsChannel);
+            channels.forEach((channel) => {
+                supabase.removeChannel(channel);
+            });
         };
-    }, [supabase, subjects, role]);
+    }, [supabase, subjects, role, userId]);
 
     const tabs = role === "teacher" ? TEACHER_TABS : STUDENT_TABS;
 
@@ -472,9 +492,10 @@ function StudentStatusBadge({ status, grade, dueDate, lateDueDate }: {
     }
 
     const now = new Date();
-    const isPastOiginal = now > new Date(dueDate);
+    const limitDate = lateDueDate ? new Date(lateDueDate) : new Date(dueDate);
+    const isPastLimit = now > limitDate;
 
-    if (isPastOiginal) {
+    if (isPastLimit) {
         return (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400">
                 <AlertCircle className="w-3.5 h-3.5" /> Sense lliurar

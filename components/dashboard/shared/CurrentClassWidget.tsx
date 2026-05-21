@@ -3,11 +3,24 @@
 import React, { useMemo } from 'react';
 import { Clock, MapPin, ArrowRight } from "lucide-react";
 import Link from 'next/link';
+import { flattenTodaySchedules, formatScheduleTime, isScheduleActive, type ScheduleEntry } from '@/lib/schedule-utils';
 
-export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
+type CurrentSubject = {
+    id?: string;
+    name?: string | null;
+    category?: string | null;
+    course?: { name?: string | null; code?: string | null } | null;
+    schedule?: string | null;
+    schedules?: ScheduleEntry[] | null;
+    room?: string | null;
+    location?: string | null;
+};
+
+export function CurrentClassWidget({ subjects }: { subjects: CurrentSubject[] }) {
     const currentClass = useMemo(() => {
         if (!subjects || subjects.length === 0) return null;
-        return subjects[0];
+        const now = new Date();
+        return flattenTodaySchedules(subjects, now).find((subject) => isScheduleActive(subject, now)) || null;
     }, [subjects]);
 
     if (!currentClass) {
@@ -17,6 +30,12 @@ export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
             </div>
         );
     }
+
+    const scheduleLabel = formatScheduleTime(currentClass.activeSchedule);
+    const className = currentClass.name || "Classe actual";
+    const detailLabel = currentClass.category || currentClass.course?.name || currentClass.course?.code || "Assignatura";
+    const location = currentClass.activeSchedule?.room || currentClass.activeSchedule?.location || currentClass.room || currentClass.location || "Aula pendent";
+    const href = currentClass.id ? `/dashboard/subjects/${currentClass.id}` : "/dashboard/subjects";
 
     return (
         <div className="rounded-2xl p-6 text-white shadow-lg relative overflow-hidden h-full flex flex-col"
@@ -42,7 +61,7 @@ export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
                     </span>
                     <span className="text-white/70 text-xs font-medium flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                        <time>10:00&nbsp;&ndash;&nbsp;11:30</time>
+                        <time>{scheduleLabel}</time>
                     </span>
                 </div>
 
@@ -50,19 +69,19 @@ export function CurrentClassWidget({ subjects }: { subjects: any[] }) {
                     className="text-2xl font-bold leading-tight mb-1"
                     style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
                 >
-                    {currentClass.name}
+                    {className}
                 </h2>
-                <p className="text-white/60 text-sm mb-6">Grup A &nbsp;&bull;&nbsp; Batxillerat</p>
+                <p className="text-white/60 text-sm mb-6">{detailLabel}</p>
 
                 <div className="mt-auto flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs text-white/70 bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg">
                         <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
-                        <span>Aula 204</span>
+                        <span>{location}</span>
                     </div>
 
                     <Link
-                        href={`/dashboard/subjects/${currentClass.id}`}
-                        aria-label={`Veure detalls de ${currentClass.name}`}
+                        href={href}
+                        aria-label={`Veure detalls de ${className}`}
                         className="p-2.5 bg-[var(--accent)] text-[var(--accent-foreground)] rounded-xl hover:opacity-90 transition-opacity shadow-sm focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
                     >
                         <ArrowRight className="w-4 h-4" aria-hidden="true" />

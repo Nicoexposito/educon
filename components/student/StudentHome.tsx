@@ -6,15 +6,49 @@ import { RecentActivityLevel } from "@/components/teacher/RecentActivityLevel";
 import { CurrentClassWidget } from "@/components/dashboard/shared/CurrentClassWidget";
 import { AssignmentsListWidget } from "@/components/dashboard/shared/AssignmentsListWidget";
 import Link from "next/link";
-import { Upload } from "lucide-react";
+import { Award, GraduationCap, Upload } from "lucide-react";
 import { useStudentDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
 
-export default function StudentHome({ data: initialData }: { data: any }) {
-    const data = useStudentDashboardRealtime(initialData);
+type StudentCourse = {
+    id?: string;
+    name?: string | null;
+    code?: string | null;
+};
+
+type StudentDashboardData = {
+    profile?: { full_name?: string | null };
+    courses?: StudentCourse[];
+    subjects?: Record<string, unknown>[];
+    assignments?: Record<string, unknown>[];
+    gradeChart?: GradeChartItem[];
+    recentSubjectsAttendance?: Record<string, unknown>[];
+    stats?: {
+        assignmentsPending?: number;
+        avgGrade?: string;
+        attendanceRate?: string;
+    };
+};
+
+type GradeChartItem = {
+    id: string;
+    subject: string;
+    title: string;
+    score: number;
+    max: number;
+    date?: string | null;
+};
+
+export default function StudentHome({ data: initialData }: { data: StudentDashboardData }) {
+    const data = useStudentDashboardRealtime(initialData) as StudentDashboardData;
 
     const subjects = data?.subjects || [];
     const stats = data?.stats || { assignmentsPending: 0, avgGrade: "0.0" };
     const profile = data?.profile;
+    const courses = data?.courses || [];
+    const gradeChart = data?.gradeChart || [];
+    const courseNames = courses.map((course) => course.name || course.code).filter(Boolean);
+    const courseLabel = courseNames.join(", ");
+    const coursePrefix = courseNames.length > 1 ? "Classes" : "Classe";
     const firstName = profile?.full_name?.split(' ')[0] || 'Alumne';
 
     return (
@@ -35,6 +69,12 @@ export default function StudentHome({ data: initialData }: { data: any }) {
                     <p className="text-muted-foreground mt-2">
                         Tens <strong className="text-foreground font-semibold">{stats.assignmentsPending}</strong> tasques pendents aquesta setmana.
                     </p>
+                    {courseLabel && (
+                        <p className="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
+                            <GraduationCap className="h-4 w-4" />
+                            {coursePrefix}: {courseLabel}
+                        </p>
+                    )}
                 </div>
                 <Link
                     href="/dashboard/assignments"
@@ -70,34 +110,39 @@ export default function StudentHome({ data: initialData }: { data: any }) {
                             className="font-semibold text-base text-foreground mb-6"
                             style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
                         >
-                            Evolució de Notes
+                            Últimes notes
                         </h2>
-                        <div className="flex h-36 items-end justify-between gap-2 overflow-x-auto px-1 sm:gap-3">
-                            {[
-                                { label: 'Mates', pct: 70 },
-                                { label: 'Física', pct: 85 },
-                                { label: 'Hist.', pct: 60 },
-                                { label: 'Anglès', pct: 90 },
-                                { label: 'Prog.', pct: 95 },
-                            ].map(({ label, pct }) => (
-                                <div key={label} className="group flex min-w-14 flex-1 flex-col items-center gap-2">
-                                    <span className="text-xs font-semibold text-foreground opacity-0 group-hover:opacity-100 transition-opacity tabular-nums">
-                                        {pct}%
-                                    </span>
-                                    <div className="w-full bg-secondary rounded-lg relative h-28 overflow-hidden flex items-end">
-                                        <div
-                                            style={{ height: `${pct}%` }}
-                                            className="w-full bg-[var(--primary)] dark:bg-[var(--accent)] rounded-lg transition-all duration-500 group-hover:opacity-90"
-                                            role="img"
-                                            aria-label={`${label}: ${pct}%`}
-                                        />
-                                    </div>
-                                    <span className="text-xs text-muted-foreground truncate w-full text-center">
-                                        {label}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                        {gradeChart.length > 0 ? (
+                            <div className="flex h-44 items-end justify-between gap-2 overflow-x-auto px-1 sm:gap-3">
+                                {gradeChart.map((grade) => {
+                                    const pct = Math.max(0, Math.min(100, (grade.score / grade.max) * 100));
+                                    const label = grade.subject || grade.title;
+                                    return (
+                                        <div key={grade.id} className="group flex min-w-16 flex-1 flex-col items-center gap-2">
+                                            <span className="text-xs font-semibold text-foreground tabular-nums">
+                                                {formatGrade(grade.score)}/{formatGrade(grade.max)}
+                                            </span>
+                                            <div className="relative flex h-28 w-full items-end overflow-hidden rounded-lg bg-secondary">
+                                                <div
+                                                    style={{ height: `${pct}%` }}
+                                                    className="w-full rounded-lg bg-[var(--primary)] transition-all duration-500 group-hover:opacity-90 dark:bg-[var(--accent)]"
+                                                    role="img"
+                                                    aria-label={`${grade.title}: ${formatGrade(grade.score)} de ${formatGrade(grade.max)}`}
+                                                />
+                                            </div>
+                                            <span className="w-full truncate text-center text-xs text-muted-foreground" title={`${grade.subject} · ${grade.title}`}>
+                                                {label}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="flex h-44 flex-col items-center justify-center rounded-xl border border-dashed border-border text-center text-sm text-muted-foreground">
+                                <Award className="mb-3 h-8 w-8 text-muted-foreground/50" />
+                                <p className="font-medium text-foreground">Encara no hi ha notes publicades.</p>
+                            </div>
+                        )}
                     </section>
                 </div>
 
@@ -110,4 +155,8 @@ export default function StudentHome({ data: initialData }: { data: any }) {
             </div>
         </main>
     );
+}
+
+function formatGrade(value: number) {
+    return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }

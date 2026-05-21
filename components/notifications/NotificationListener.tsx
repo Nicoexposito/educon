@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 // Aquest component escolta esdeveniments a la taula "notifications"
 // i pot disparar un toast o una alerta global a la interf?cie.
 
 export function NotificationListener({ userId }: { userId?: string }) {
-    const supabase = createClient();
-    const [notifications, setNotifications] = useState<any[]>([]);
-    const channelRef = useRef<any>(null);
+    const supabase = useMemo(() => createClient(), []);
+    const channelRef = useRef<RealtimeChannel | null>(null);
 
     useEffect(() => {
         if (!userId) return;
@@ -31,10 +31,9 @@ export function NotificationListener({ userId }: { userId?: string }) {
                 },
                 (payload) => {
                     if (!isSubscribed) return;
-                    console.log("[Notification] Notificació nova rebuda:", payload.new);
                     // Aquí en el futur pots afegir lògica per mostrar un toast
                     // toast(payload.new.message)
-                    setNotifications((prev) => [...prev, payload.new]);
+                    void payload;
                 }
             )
             .subscribe();

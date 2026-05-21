@@ -3,13 +3,17 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import type { AdminAnnouncement, AdminEnrollmentWithStudent, AdminSubject, AdminUser } from "@/lib/admin-types";
+import type { AdminAnnouncement, AdminCourse, AdminEnrollmentWithStudent, AdminStudentSubjectMap, AdminSubject, AdminUser } from "@/lib/admin-types";
 
 type RelationOne<T> = T | T[] | null | undefined;
 type AdminTeacherReference = Pick<AdminUser, "id" | "full_name" | "email">;
 type AdminAuthorReference = Pick<AdminUser, "full_name" | "email">;
 type AdminSubjectRow = Omit<AdminSubject, "teacher"> & {
     teacher?: RelationOne<AdminTeacherReference>;
+};
+type AdminCourseJoinRow = AdminCourse & {
+    course_subjects?: { subject_id: string | null }[] | null;
+    course_students?: { student_id: string | null }[] | null;
 };
 type AdminAnnouncementRow = Omit<AdminAnnouncement, "author"> & {
     author?: RelationOne<AdminAuthorReference>;
@@ -63,6 +67,7 @@ export async function getAdminDashboardData() {
     const [
         { count: teacherCount },
         { count: studentCount },
+        { count: courseCount },
         { count: subjectCount },
         { count: activeAnnouncements },
         { data: upcomingSchedules },
@@ -70,23 +75,28 @@ export async function getAdminDashboardData() {
     ] = await Promise.all([
         supabase
             .from("users")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("institute_id", instituteId)
             .eq("role", "teacher")
             .eq("is_active", true),
         supabase
             .from("users")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("institute_id", instituteId)
             .eq("role", "student")
             .eq("is_active", true),
         supabase
+            .from("courses")
+            .select("id", { count: "exact", head: true })
+            .eq("institute_id", instituteId)
+            .eq("is_active", true),
+        supabase
             .from("subjects")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("institute_id", instituteId),
         supabase
             .from("posts")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("institute_id", instituteId),
         supabase
             .from("subjects")
@@ -107,6 +117,7 @@ export async function getAdminDashboardData() {
         stats: {
             teacherCount: teacherCount || 0,
             studentCount: studentCount || 0,
+            courseCount: courseCount || 0,
             subjectCount: subjectCount || 0,
             activeAnnouncements: activeAnnouncements || 0,
         },
@@ -119,16 +130,42 @@ export async function getAdminUsersData() {
     const { instituteId } = await getCurrentAdminContext();
     const supabase = await createClient();
 
-    const { data: users } = await supabase
-        .from("users")
-        .select("id, full_name, email, phone, role, is_active, must_change_password, created_at")
-        .eq("institute_id", instituteId)
-        .in("role", ["teacher", "student"])
-        .order("role")
-        .order("full_name");
+    const [{ data: users }, { data: subjects }] = await Promise.all([
+        supabase
+            .from("users")
+            .select("id, full_name, email, phone, role, is_active, must_change_password, created_at")
+            .eq("institute_id", instituteId)
+            .in("role", ["teacher", "student"])
+            .order("role")
+            .order("full_name"),
+        supabase
+            .from("subjects")
+            .select("id, name, category, color, schedule, schedules:subject_schedules(id, day_of_week, start_time, end_time)")
+            .eq("institute_id", instituteId)
+            .order("category")
+            .order("name"),
+    ]);
+
+    const subjectIds = (subjects || []).map((subject) => subject.id);
+    let studentSubjectIds: AdminStudentSubjectMap = {};
+
+    if (subjectIds.length > 0) {
+        const { data: enrollments } = await supabase
+            .from("enrollments")
+            .select("student_id, subject_id")
+            .in("subject_id", subjectIds);
+
+        studentSubjectIds = (enrollments || []).reduce<AdminStudentSubjectMap>((map, enrollment) => {
+            if (!enrollment.student_id || !enrollment.subject_id) return map;
+            map[enrollment.student_id] = [...(map[enrollment.student_id] || []), enrollment.subject_id];
+            return map;
+        }, {});
+    }
 
     return {
         users: users || [],
+        subjects: ((subjects || []) as AdminSubjectRow[]).map(normalizeSubject),
+        studentSubjectIds,
     };
 }
 
@@ -139,7 +176,7 @@ export async function getAdminSubjectsData() {
     const [{ data: subjects }, { data: teachers }, { data: students }] = await Promise.all([
         supabase
             .from("subjects")
-            .select("*, teacher:users!teacher_id(id, full_name, email), schedules:subject_schedules(*), enrollments(id)")
+            .select("id, name, description, teacher_id, institute_id, schedule, color, category, teacher:users!teacher_id(id, full_name, email), schedules:subject_schedules(id, subject_id, day_of_week, start_time, end_time), enrollments(id)")
             .eq("institute_id", instituteId)
             .order("category")
             .order("name"),
@@ -169,13 +206,69 @@ export async function getAdminSubjectsData() {
     };
 }
 
+export async function getAdminCoursesData() {
+    const { instituteId } = await getCurrentAdminContext();
+    const supabase = await createClient();
+
+    const [coursesResult, { data: subjects }, { data: students }, { data: teachers }] = await Promise.all([
+        supabase
+            .from("courses")
+            .select("id, institute_id, name, code, description, tutor_id, tutoring_subject_id, is_active, created_at, course_subjects(subject_id), course_students(student_id)")
+            .eq("institute_id", instituteId)
+            .order("name"),
+        supabase
+            .from("subjects")
+            .select("id, name, category, color, schedule, teacher_id, teacher:users!teacher_id(id, full_name, email), schedules:subject_schedules(id, subject_id, day_of_week, start_time, end_time)")
+            .eq("institute_id", instituteId)
+            .order("category")
+            .order("name"),
+        supabase
+            .from("users")
+            .select("id, full_name, email, phone, role, is_active")
+            .eq("institute_id", instituteId)
+            .eq("role", "student")
+            .eq("is_active", true)
+            .order("full_name"),
+        supabase
+            .from("users")
+            .select("id, full_name, email")
+            .eq("institute_id", instituteId)
+            .eq("role", "teacher")
+            .eq("is_active", true)
+            .order("full_name"),
+    ]);
+    const schemaReady = !isMissingCoursesSchemaError(coursesResult.error?.message);
+    const courses = schemaReady ? coursesResult.data : [];
+
+    return {
+        courses: ((courses || []) as AdminCourseJoinRow[]).map((course) => ({
+            ...course,
+            subject_ids: (course.course_subjects || [])
+                .map((row) => row.subject_id)
+                .filter((subjectId): subjectId is string => Boolean(subjectId)),
+            student_ids: (course.course_students || [])
+                .map((row) => row.student_id)
+                .filter((studentId): studentId is string => Boolean(studentId)),
+        })),
+        subjects: ((subjects || []) as AdminSubjectRow[]).map(normalizeSubject),
+        students: students || [],
+        teachers: teachers || [],
+        schemaReady,
+    };
+}
+
+function isMissingCoursesSchemaError(message?: string | null) {
+    if (!message) return false;
+    return /courses|course_students|course_subjects|schema cache|relationship/i.test(message);
+}
+
 export async function getAdminSubjectDetails(subjectId: string) {
     const { instituteId } = await getCurrentAdminContext();
     const supabase = await createClient();
 
     const { data: subject } = await supabase
         .from("subjects")
-        .select("*, teacher:users!teacher_id(id, full_name, email), schedules:subject_schedules(*)")
+        .select("id, name, description, teacher_id, institute_id, schedule, color, category, teacher:users!teacher_id(id, full_name, email), schedules:subject_schedules(id, subject_id, day_of_week, start_time, end_time)")
         .eq("id", subjectId)
         .eq("institute_id", instituteId)
         .single();
@@ -224,7 +317,7 @@ export async function getAdminScheduleData() {
     const [{ data: subjects }, { data: teachers }, { data: students }] = await Promise.all([
         supabase
             .from("subjects")
-            .select("id, name, category, teacher:users!teacher_id(id, full_name), schedules:subject_schedules(*)")
+            .select("id, name, category, teacher_id, teacher:users!teacher_id(id, full_name), schedules:subject_schedules(id, subject_id, day_of_week, start_time, end_time)")
             .eq("institute_id", instituteId)
             .order("name"),
         supabase

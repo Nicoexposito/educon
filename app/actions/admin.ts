@@ -16,6 +16,7 @@ type ActionResult = {
 const ADMIN_PATHS = [
     "/dashboard",
     "/dashboard/admin",
+    "/dashboard/admin/courses",
     "/dashboard/admin/users",
     "/dashboard/admin/subjects",
     "/dashboard/admin/schedule",
@@ -58,6 +59,10 @@ function normalizeAudience(value: string): AnnouncementAudience {
     return "all";
 }
 
+function normalizeOptionalId(value: string) {
+    return value || null;
+}
+
 function generateTemporaryPassword() {
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
     let password = "Educon-";
@@ -69,6 +74,11 @@ function generateTemporaryPassword() {
 
 function errorMessage(error: unknown, fallback: string) {
     return error instanceof Error ? error.message || fallback : fallback;
+}
+
+function isAuthAlreadyRegistered(message?: string) {
+    if (!message) return false;
+    return /already (been )?registered|already exists|already.*email/i.test(message);
 }
 
 function revalidateAdminPaths(extraPaths: string[] = []) {
@@ -98,6 +108,7 @@ export async function createAdminUser(formData: FormData): Promise<ActionResult>
     const admin = await requireAdmin();
     if (!admin) return { success: false, error: "No autoritzat." };
 
+    const assignedInstituteId = admin.instituteId;
     const fullName = getText(formData, "full_name");
     const email = getText(formData, "email").toLowerCase();
     const phone = getText(formData, "phone");
@@ -115,39 +126,122 @@ export async function createAdminUser(formData: FormData): Promise<ActionResult>
 
     try {
         const service = createAdminClient();
-        const { data: created, error: authError } = await service.auth.admin.createUser({
+        const { data: existingProfile, error: existingProfileError } = await service
+            .from("users")
+            .select("id, institute_id")
+            .eq("email", email)
+            .maybeSingle();
+
+        if (existingProfileError) {
+            return { success: false, error: existingProfileError.message };
+        }
+
+        if (existingProfile?.institute_id && existingProfile.institute_id !== assignedInstituteId) {
+            return { success: false, error: "Aquest correu ja pertany a un altre centre." };
+        }
+
+        const authAttributes = {
             email,
             password: temporaryPassword,
             email_confirm: true,
-            user_metadata: { full_name: fullName },
+            user_metadata: {
+                full_name: fullName,
+                role,
+                institute_id: assignedInstituteId,
+            },
             app_metadata: {
                 role,
-                institute_id: admin.instituteId,
+                institute_id: assignedInstituteId,
             },
-        });
+        };
 
-        if (authError || !created.user) {
-            return { success: false, error: authError?.message || "No s'ha pogut crear l'usuari." };
+        let userId: string | null = null;
+        let createdAuthUser = false;
+        let auditEvent = "user.created";
+
+        if (existingProfile) {
+            const { data: created, error: authError } = await service.auth.admin.createUser({
+                id: existingProfile.id,
+                ...authAttributes,
+            });
+
+            if (created.user && !authError) {
+                userId = created.user.id;
+                createdAuthUser = true;
+                auditEvent = "user.repaired";
+            } else if (isAuthAlreadyRegistered(authError?.message)) {
+                const { data: existingAuth } = await service.auth.admin.getUserById(existingProfile.id);
+                if (existingAuth?.user) {
+                    if (existingProfile.institute_id === assignedInstituteId) {
+                        return { success: false, error: "Aquest correu ja existeix. Fes servir el botó Reset per reiniciar la contrasenya." };
+                    }
+
+                    const { error: authUpdateError } = await service.auth.admin.updateUserById(existingProfile.id, authAttributes);
+                    if (authUpdateError) return { success: false, error: authUpdateError.message };
+
+                    userId = existingProfile.id;
+                    auditEvent = "user.claimed";
+                } else {
+                    return {
+                        success: false,
+                        error: "Aquest correu ja existeix a Auth amb un altre identificador. Revisa la llista o reinicia la contrasenya.",
+                    };
+                }
+            } else {
+                return { success: false, error: authError?.message || "No s'ha pogut crear l'usuari a Auth." };
+            }
         }
 
-        const { error: profileError } = await service.from("users").insert({
-            id: created.user.id,
-            email,
-            full_name: fullName,
-            phone: phone || null,
-            role,
-            institute_id: admin.instituteId,
-            is_active: true,
-            must_change_password: true,
-            created_by: admin.userId,
-        });
+        if (!userId) {
+            const { data: created, error: authError } = await service.auth.admin.createUser(authAttributes);
+
+            if (authError || !created.user) {
+                return {
+                    success: false,
+                    error: isAuthAlreadyRegistered(authError?.message)
+                        ? "Aquest correu ja existeix a l'autenticació. Revisa la llista o reinicia la contrasenya."
+                        : authError?.message || "No s'ha pogut crear l'usuari.",
+                };
+            }
+
+            userId = created.user.id;
+            createdAuthUser = true;
+            auditEvent = existingProfile ? "user.repaired" : "user.created";
+        }
+
+        if (!userId) {
+            return { success: false, error: "No s'ha pogut obtenir l'identificador de l'usuari." };
+        }
+
+        const { error: profileError } = await service
+            .from("users")
+            .upsert({
+                id: userId,
+                email,
+                full_name: fullName,
+                phone: phone || null,
+                role,
+                institute_id: assignedInstituteId,
+                is_active: true,
+                must_change_password: true,
+                created_by: admin.userId,
+            }, {
+                onConflict: "id",
+            });
 
         if (profileError) {
-            await service.auth.admin.deleteUser(created.user.id);
-            return { success: false, error: profileError.message };
+            if (createdAuthUser && userId) {
+                await service.auth.admin.deleteUser(userId);
+            }
+            return {
+                success: false,
+                error: profileError.code === "23505"
+                    ? "Ja existeix un usuari amb aquest correu o identificador."
+                    : profileError.message,
+            };
         }
 
-        await writeAuditLog("user.created", "user", created.user.id, { role, email });
+        await writeAuditLog(auditEvent, "user", userId, { role, email });
         revalidateAdminPaths();
         return { success: true, temporaryPassword };
     } catch (error: unknown) {
@@ -159,6 +253,7 @@ export async function updateAdminUser(formData: FormData): Promise<ActionResult>
     const admin = await requireAdmin();
     if (!admin) return { success: false, error: "No autoritzat." };
 
+    const assignedInstituteId = admin.instituteId;
     const userId = getText(formData, "user_id");
     const fullName = getText(formData, "full_name");
     const email = getText(formData, "email").toLowerCase();
@@ -178,14 +273,18 @@ export async function updateAdminUser(formData: FormData): Promise<ActionResult>
             .eq("id", userId)
             .single();
 
-        if (!existing || existing.institute_id !== admin.instituteId) {
+        if (!existing || existing.institute_id !== assignedInstituteId) {
             return { success: false, error: "Usuari no trobat en aquest institut." };
         }
 
         const { error: authError } = await service.auth.admin.updateUserById(userId, {
             email,
-            user_metadata: { full_name: fullName },
-            app_metadata: { role, institute_id: admin.instituteId },
+            user_metadata: {
+                full_name: fullName,
+                role,
+                institute_id: assignedInstituteId,
+            },
+            app_metadata: { role, institute_id: assignedInstituteId },
         });
 
         if (authError) return { success: false, error: authError.message };
@@ -197,10 +296,11 @@ export async function updateAdminUser(formData: FormData): Promise<ActionResult>
                 email,
                 phone: phone || null,
                 role,
+                institute_id: assignedInstituteId,
                 is_active: isActive,
             })
             .eq("id", userId)
-            .eq("institute_id", admin.instituteId);
+            .eq("institute_id", assignedInstituteId);
 
         if (error) return { success: false, error: error.message };
 
@@ -232,6 +332,29 @@ export async function deactivateAdminUser(userId: string): Promise<ActionResult>
         return { success: true };
     } catch (error: unknown) {
         return { success: false, error: errorMessage(error, "No s'ha pogut desactivar l'usuari.") };
+    }
+}
+
+export async function activateAdminUser(userId: string): Promise<ActionResult> {
+    const admin = await requireAdmin();
+    if (!admin) return { success: false, error: "No autoritzat." };
+
+    try {
+        const service = createAdminClient();
+        const { error } = await service
+            .from("users")
+            .update({ is_active: true })
+            .eq("id", userId)
+            .eq("institute_id", admin.instituteId)
+            .in("role", ["teacher", "student"]);
+
+        if (error) return { success: false, error: error.message };
+
+        await writeAuditLog("user.activated", "user", userId);
+        revalidateAdminPaths();
+        return { success: true };
+    } catch (error: unknown) {
+        return { success: false, error: errorMessage(error, "No s'ha pogut activar l'usuari.") };
     }
 }
 
@@ -274,6 +397,448 @@ export async function resetTemporaryPassword(userId: string, temporaryPassword?:
         return { success: true, temporaryPassword: nextPassword };
     } catch (error: unknown) {
         return { success: false, error: errorMessage(error, "No s'ha pogut reiniciar la contrasenya.") };
+    }
+}
+
+export async function updateStudentSubjectEnrollments(studentId: string, subjectIds: string[]): Promise<ActionResult> {
+    const admin = await requireAdmin();
+    if (!admin) return { success: false, error: "No autoritzat." };
+    if (!studentId) return { success: false, error: "Alumne no vàlid." };
+
+    const requestedSubjectIds = Array.from(new Set(subjectIds.filter(Boolean)));
+
+    try {
+        const service = createAdminClient();
+        const [{ data: student }, { data: subjects, error: subjectsError }] = await Promise.all([
+            service
+                .from("users")
+                .select("id")
+                .eq("id", studentId)
+                .eq("institute_id", admin.instituteId)
+                .eq("role", "student")
+                .single(),
+            service
+                .from("subjects")
+                .select("id")
+                .eq("institute_id", admin.instituteId),
+        ]);
+
+        if (!student) return { success: false, error: "Alumne no trobat en aquest institut." };
+        if (subjectsError) return { success: false, error: subjectsError.message };
+
+        const instituteSubjectIds = (subjects || []).map((subject: { id: string }) => subject.id);
+        const instituteSubjectSet = new Set(instituteSubjectIds);
+        const validSubjectIds = requestedSubjectIds.filter((subjectId) => instituteSubjectSet.has(subjectId));
+
+        if (validSubjectIds.length !== requestedSubjectIds.length) {
+            return { success: false, error: "Alguna assignatura no pertany a aquest institut." };
+        }
+
+        let currentSubjectIds: string[] = [];
+        if (instituteSubjectIds.length > 0) {
+            const { data: currentEnrollments, error: currentError } = await service
+                .from("enrollments")
+                .select("subject_id")
+                .eq("student_id", studentId)
+                .in("subject_id", instituteSubjectIds);
+
+            if (currentError) return { success: false, error: currentError.message };
+            currentSubjectIds = (currentEnrollments || [])
+                .map((enrollment: { subject_id: string | null }) => enrollment.subject_id)
+                .filter((subjectId): subjectId is string => Boolean(subjectId));
+        }
+
+        const selectedSubjectSet = new Set(validSubjectIds);
+        const currentSubjectSet = new Set(currentSubjectIds);
+        const subjectIdsToAdd = validSubjectIds.filter((subjectId) => !currentSubjectSet.has(subjectId));
+        const subjectIdsToRemove = currentSubjectIds.filter((subjectId) => !selectedSubjectSet.has(subjectId));
+
+        if (subjectIdsToRemove.length > 0) {
+            const { error: deleteError } = await service
+                .from("enrollments")
+                .delete()
+                .eq("student_id", studentId)
+                .is("course_id", null)
+                .in("subject_id", subjectIdsToRemove);
+
+            if (deleteError) return { success: false, error: deleteError.message };
+        }
+
+        if (subjectIdsToAdd.length > 0) {
+            const { error: insertError } = await service
+                .from("enrollments")
+                .upsert(subjectIdsToAdd.map((subjectId) => ({ subject_id: subjectId, student_id: studentId })), {
+                    onConflict: "subject_id,student_id",
+                });
+
+            if (insertError) return { success: false, error: insertError.message };
+        }
+
+        const affectedSubjectIds = Array.from(new Set([...subjectIdsToAdd, ...subjectIdsToRemove]));
+        await writeAuditLog("student.subjects_updated", "user", studentId, { subjectIds: validSubjectIds });
+        revalidateAdminPaths([
+            "/dashboard/subjects",
+            ...affectedSubjectIds.flatMap((subjectId) => [
+                `/dashboard/admin/subjects/${subjectId}`,
+                `/dashboard/subjects/${subjectId}`,
+            ]),
+        ]);
+        return { success: true };
+    } catch (error: unknown) {
+        return { success: false, error: errorMessage(error, "No s'han pogut actualitzar les assignatures.") };
+    }
+}
+
+type CourseTutoringRow = {
+    id: string;
+    institute_id?: string | null;
+    name?: string | null;
+    code?: string | null;
+    tutor_id?: string | null;
+    tutoring_subject_id?: string | null;
+};
+
+function tutoringSubjectName(course: CourseTutoringRow) {
+    const label = (course.name || course.code || "CURS").trim();
+    return `TUTORIA ${label}`.replace(/\s+/g, " ");
+}
+
+async function validateCourseTutor(service: ReturnType<typeof createAdminClient>, admin: { instituteId: string }, tutorId: string | null) {
+    if (!tutorId) return null;
+
+    const { data: tutor, error } = await service
+        .from("users")
+        .select("id")
+        .eq("id", tutorId)
+        .eq("institute_id", admin.instituteId)
+        .eq("role", "teacher")
+        .eq("is_active", true)
+        .maybeSingle();
+
+    if (error) return error.message;
+    if (!tutor) return "El tutor ha de ser un professor actiu del centre.";
+    return null;
+}
+
+async function ensureTutoringSubjectForCourse(
+    service: ReturnType<typeof createAdminClient>,
+    admin: { instituteId: string },
+    course: CourseTutoringRow,
+): Promise<{ subjectId: string | null; error?: string }> {
+    if (!course.tutor_id) return { subjectId: null };
+
+    const name = tutoringSubjectName(course);
+    let subjectId = course.tutoring_subject_id || null;
+
+    if (subjectId) {
+        const { data: existingSubject, error } = await service
+            .from("subjects")
+            .select("id")
+            .eq("id", subjectId)
+            .eq("institute_id", admin.instituteId)
+            .maybeSingle();
+
+        if (error) return { subjectId: null, error: error.message };
+        if (!existingSubject) subjectId = null;
+    }
+
+    if (!subjectId) {
+        const { data: matchingSubjects, error } = await service
+            .from("subjects")
+            .select("id")
+            .eq("institute_id", admin.instituteId)
+            .eq("name", name)
+            .limit(1);
+
+        if (error) return { subjectId: null, error: error.message };
+        subjectId = matchingSubjects?.[0]?.id || null;
+    }
+
+    if (subjectId) {
+        const { error } = await service
+            .from("subjects")
+            .update({
+                name,
+                category: "Tutoria",
+                teacher_id: course.tutor_id,
+                institute_id: admin.instituteId,
+                description: `Tutoria del curs ${course.name || name}`,
+                color: "#7c3aed",
+            })
+            .eq("id", subjectId)
+            .eq("institute_id", admin.instituteId);
+
+        if (error) return { subjectId: null, error: error.message };
+    } else {
+        const { data: subject, error } = await service
+            .from("subjects")
+            .insert({
+                name,
+                category: "Tutoria",
+                teacher_id: course.tutor_id,
+                institute_id: admin.instituteId,
+                description: `Tutoria del curs ${course.name || name}`,
+                color: "#7c3aed",
+            })
+            .select("id")
+            .single();
+
+        if (error || !subject) return { subjectId: null, error: error?.message || "No s'ha pogut crear l'assignatura de tutoria." };
+        subjectId = subject.id;
+    }
+
+    if (course.tutoring_subject_id !== subjectId) {
+        const { error } = await service
+            .from("courses")
+            .update({ tutoring_subject_id: subjectId, updated_at: new Date().toISOString() })
+            .eq("id", course.id)
+            .eq("institute_id", admin.instituteId);
+
+        if (error) return { subjectId: null, error: error.message };
+    }
+
+    const { error: courseSubjectError } = await service
+        .from("course_subjects")
+        .upsert({ course_id: course.id, subject_id: subjectId }, { onConflict: "course_id,subject_id" });
+
+    if (courseSubjectError) return { subjectId: null, error: courseSubjectError.message };
+
+    return { subjectId };
+}
+
+async function syncTutoringSubjectEnrollments(
+    service: ReturnType<typeof createAdminClient>,
+    courseId: string,
+    subjectId: string | null,
+) {
+    if (!subjectId) return null;
+
+    const { data: courseStudents, error: studentsError } = await service
+        .from("course_students")
+        .select("student_id")
+        .eq("course_id", courseId);
+
+    if (studentsError) return studentsError.message;
+
+    const enrollments = (courseStudents || [])
+        .map((row: { student_id: string | null }) => row.student_id)
+        .filter((studentId): studentId is string => Boolean(studentId))
+        .map((studentId) => ({
+            subject_id: subjectId,
+            student_id: studentId,
+            course_id: courseId,
+        }));
+
+    if (enrollments.length === 0) return null;
+
+    const { error } = await service
+        .from("enrollments")
+        .upsert(enrollments, { onConflict: "subject_id,student_id", ignoreDuplicates: true });
+
+    return error?.message || null;
+}
+
+export async function createAdminCourse(formData: FormData): Promise<ActionResult> {
+    const admin = await requireAdmin();
+    if (!admin) return { success: false, error: "No autoritzat." };
+
+    const name = getText(formData, "name");
+    const code = getText(formData, "code");
+    const description = getText(formData, "description");
+    const tutorId = normalizeOptionalId(getText(formData, "tutor_id"));
+
+    if (!name) return { success: false, error: "El nom del curs és obligatori." };
+
+    try {
+        const service = createAdminClient();
+        const tutorError = await validateCourseTutor(service, admin, tutorId);
+        if (tutorError) return { success: false, error: tutorError };
+
+        const { data: course, error } = await service
+            .from("courses")
+            .insert({
+                institute_id: admin.instituteId,
+                name,
+                code: code || null,
+                description: description || null,
+                tutor_id: tutorId,
+                is_active: true,
+            })
+            .select("id, institute_id, name, code, tutor_id, tutoring_subject_id")
+            .single();
+
+        if (error || !course) return { success: false, error: error?.message || "No s'ha pogut crear el curs." };
+
+        const tutoring = await ensureTutoringSubjectForCourse(service, admin, course);
+        if (tutoring.error) return { success: false, error: tutoring.error };
+
+        await writeAuditLog("course.created", "course", course.id, { name, code, tutorId });
+        revalidateAdminPaths();
+        return { success: true };
+    } catch (error: unknown) {
+        return { success: false, error: errorMessage(error, "No s'ha pogut crear el curs.") };
+    }
+}
+
+export async function updateAdminCourse(formData: FormData): Promise<ActionResult> {
+    const admin = await requireAdmin();
+    if (!admin) return { success: false, error: "No autoritzat." };
+
+    const courseId = getText(formData, "course_id");
+    const name = getText(formData, "name");
+    const code = getText(formData, "code");
+    const description = getText(formData, "description");
+    const tutorId = normalizeOptionalId(getText(formData, "tutor_id"));
+    const isActive = getText(formData, "is_active") !== "false";
+
+    if (!courseId || !name) return { success: false, error: "Falten camps obligatoris." };
+
+    try {
+        const service = createAdminClient();
+        const tutorError = await validateCourseTutor(service, admin, tutorId);
+        if (tutorError) return { success: false, error: tutorError };
+
+        const { data: course, error } = await service
+            .from("courses")
+            .update({
+                name,
+                code: code || null,
+                description: description || null,
+                tutor_id: tutorId,
+                is_active: isActive,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", courseId)
+            .eq("institute_id", admin.instituteId)
+            .select("id, institute_id, name, code, tutor_id, tutoring_subject_id")
+            .single();
+
+        if (error) return { success: false, error: error.message };
+        if (!course) return { success: false, error: "Curs no trobat." };
+
+        const tutoring = await ensureTutoringSubjectForCourse(service, admin, course);
+        if (tutoring.error) return { success: false, error: tutoring.error };
+
+        const enrollmentError = await syncTutoringSubjectEnrollments(service, courseId, tutoring.subjectId);
+        if (enrollmentError) return { success: false, error: enrollmentError };
+
+        await writeAuditLog("course.updated", "course", courseId, { name, code, tutorId, isActive });
+        revalidateAdminPaths();
+        return { success: true };
+    } catch (error: unknown) {
+        return { success: false, error: errorMessage(error, "No s'ha pogut actualitzar el curs.") };
+    }
+}
+
+export async function updateAdminCourseMembership(courseId: string, subjectIds: string[], studentIds: string[]): Promise<ActionResult> {
+    const admin = await requireAdmin();
+    if (!admin) return { success: false, error: "No autoritzat." };
+    if (!courseId) return { success: false, error: "Curs no vàlid." };
+
+    const requestedSubjectIds = Array.from(new Set(subjectIds.filter(Boolean)));
+    const requestedStudentIds = Array.from(new Set(studentIds.filter(Boolean)));
+
+    try {
+        const service = createAdminClient();
+        const [{ data: course }, { data: subjects }, { data: students }] = await Promise.all([
+            service
+                .from("courses")
+                .select("id, institute_id, name, code, tutor_id, tutoring_subject_id")
+                .eq("id", courseId)
+                .eq("institute_id", admin.instituteId)
+                .single(),
+            requestedSubjectIds.length > 0
+                ? service
+                    .from("subjects")
+                    .select("id")
+                    .eq("institute_id", admin.instituteId)
+                    .in("id", requestedSubjectIds)
+                : Promise.resolve({ data: [] as { id: string }[] }),
+            requestedStudentIds.length > 0
+                ? service
+                    .from("users")
+                    .select("id")
+                    .eq("institute_id", admin.instituteId)
+                    .eq("role", "student")
+                    .eq("is_active", true)
+                    .in("id", requestedStudentIds)
+                : Promise.resolve({ data: [] as { id: string }[] }),
+        ]);
+
+        if (!course) return { success: false, error: "Curs no trobat." };
+
+        let validSubjectIds = (subjects || []).map((subject: { id: string }) => subject.id);
+        const validStudentIds = (students || []).map((student: { id: string }) => student.id);
+
+        if (validSubjectIds.length !== requestedSubjectIds.length) {
+            return { success: false, error: "Alguna assignatura no pertany a aquest institut." };
+        }
+
+        if (validStudentIds.length !== requestedStudentIds.length) {
+            return { success: false, error: "Algun alumne no pertany a aquest institut o no està actiu." };
+        }
+
+        const tutoring = await ensureTutoringSubjectForCourse(service, admin, course);
+        if (tutoring.error) return { success: false, error: tutoring.error };
+        validSubjectIds = Array.from(new Set([...validSubjectIds, tutoring.subjectId].filter((subjectId): subjectId is string => Boolean(subjectId))));
+
+        const [deleteSubjects, deleteStudents, deleteEnrollments] = await Promise.all([
+            service.from("course_subjects").delete().eq("course_id", courseId),
+            service.from("course_students").delete().eq("course_id", courseId),
+            service.from("enrollments").delete().eq("course_id", courseId),
+        ]);
+
+        if (deleteSubjects.error) return { success: false, error: deleteSubjects.error.message };
+        if (deleteStudents.error) return { success: false, error: deleteStudents.error.message };
+        if (deleteEnrollments.error) return { success: false, error: deleteEnrollments.error.message };
+
+        if (validSubjectIds.length > 0) {
+            const { error } = await service
+                .from("course_subjects")
+                .upsert(validSubjectIds.map((subjectId) => ({ course_id: courseId, subject_id: subjectId })), {
+                    onConflict: "course_id,subject_id",
+                });
+            if (error) return { success: false, error: error.message };
+        }
+
+        if (validStudentIds.length > 0) {
+            const { error } = await service
+                .from("course_students")
+                .upsert(validStudentIds.map((studentId) => ({ course_id: courseId, student_id: studentId })), {
+                    onConflict: "course_id,student_id",
+                });
+            if (error) return { success: false, error: error.message };
+        }
+
+        const nextEnrollments = validSubjectIds.flatMap((subjectId) =>
+            validStudentIds.map((studentId) => ({
+                subject_id: subjectId,
+                student_id: studentId,
+                course_id: courseId,
+            })),
+        );
+
+        if (nextEnrollments.length > 0) {
+            const { error } = await service
+                .from("enrollments")
+                .upsert(nextEnrollments, { onConflict: "subject_id,student_id", ignoreDuplicates: true });
+            if (error) return { success: false, error: error.message };
+        }
+
+        await writeAuditLog("course.membership_updated", "course", courseId, {
+            subjectIds: validSubjectIds,
+            studentIds: validStudentIds,
+        });
+        revalidateAdminPaths([
+            "/dashboard/subjects",
+            ...validSubjectIds.flatMap((subjectId) => [
+                `/dashboard/admin/subjects/${subjectId}`,
+                `/dashboard/subjects/${subjectId}`,
+            ]),
+        ]);
+        return { success: true };
+    } catch (error: unknown) {
+        return { success: false, error: errorMessage(error, "No s'ha pogut actualitzar el curs.") };
     }
 }
 

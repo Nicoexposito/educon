@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -6,14 +6,16 @@ interface UseRealtimeTableProps<T> {
   table: string;
   initialData?: T[];
   filter?: string;
+  enabled?: boolean;
   schema?: string;
   pk?: keyof T; // Primary key for matching updates/deletes, defaults to 'id'
 }
 
-export function useRealtimeTable<T extends Record<string, any>>({
+export function useRealtimeTable<T extends Record<string, unknown>>({
   table,
   initialData = [],
   filter,
+  enabled = true,
   schema = 'public',
   pk = 'id' as keyof T,
 }: UseRealtimeTableProps<T>) {
@@ -21,13 +23,16 @@ export function useRealtimeTable<T extends Record<string, any>>({
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     // Evitar memory leaks e inicializaciones duplicadas
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
+
+    if (!enabled) return;
 
     const channelName = `realtime:${schema}:${table}${filter ? `:${filter}` : ''}`;
 
@@ -44,8 +49,6 @@ export function useRealtimeTable<T extends Record<string, any>>({
         },
         (payload) => {
           if (!isSubscribed) return;
-
-          console.log(`[Realtime ${table}] Payload recibido:`, payload);
 
           setData((currentData) => {
             switch (payload.eventType) {
@@ -72,16 +75,12 @@ export function useRealtimeTable<T extends Record<string, any>>({
       .subscribe((status, err) => {
         if (!isSubscribed) return;
 
-        console.log(`[Realtime ${table}] Cambio de estado:`, status);
-
         if (status === 'SUBSCRIBED') {
-          console.log(`[Realtime ${table}] Conectado exitosamente.`);
           setIsConnected(true);
           setError(null);
         }
 
         if (status === 'CLOSED') {
-          console.log(`[Realtime ${table}] Conexión cerrada.`);
           setIsConnected(false);
         }
 
@@ -99,18 +98,11 @@ export function useRealtimeTable<T extends Record<string, any>>({
     return () => {
       isSubscribed = false;
       if (channelRef.current) {
-        console.log(`[Realtime ${table}] Limpiando suscripción (Unsubscribe).`);
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
-  }, [table, filter, schema, pk, supabase]);
+  }, [table, filter, schema, pk, supabase, enabled]);
 
-  // Actualiza los datos internos si initialData cambia drásticamente desde SSR
-  const initialDataStr = JSON.stringify(initialData);
-  useEffect(() => {
-    setData(initialData);
-  }, [initialDataStr]);
-
-  return { data, isConnected, error };
+  return { data, isConnected: enabled ? isConnected : false, error: enabled ? error : null };
 }

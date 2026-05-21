@@ -8,7 +8,7 @@ async function getProfileData(userId: string, role: string) {
     // 1. User + institute
     const { data: user, error: userError } = await supabase
         .from('users')
-        .select('*, institute:institutes(name)')
+        .select('id, email, role, institute_id, full_name, avatar_url, preferences, phone, is_active, must_change_password, created_at, created_by, updated_at, institute:institutes(name)')
         .eq('id', userId)
         .single();
 
@@ -34,7 +34,7 @@ async function getProfileData(userId: string, role: string) {
         // Count enrolled subjects
         const { count: subjectCount } = await supabase
             .from('enrollments')
-            .select('*', { count: 'exact', head: true })
+            .select('id', { count: 'exact', head: true })
             .eq('student_id', userId);
 
         // Get all submissions with grades for this student
@@ -95,12 +95,12 @@ async function getProfileData(userId: string, role: string) {
     } else if (role === 'teacher') {
         const { count: subjectCount } = await supabase
             .from('subjects')
-            .select('*', { count: 'exact', head: true })
+            .select('id', { count: 'exact', head: true })
             .eq('teacher_id', userId);
 
         const { count: pendingToGrade } = await supabase
             .from('submissions')
-            .select('*, assignment:assignments!inner(teacher_id)', { count: 'exact', head: true })
+            .select('id, assignment:assignments!inner(teacher_id)', { count: 'exact', head: true })
             .eq('assignment.teacher_id', userId)
             .is('grade', null);
 
@@ -113,14 +113,14 @@ async function getProfileData(userId: string, role: string) {
     } else {
         const { count: teacherCount } = await supabase
             .from('users')
-            .select('*', { count: 'exact', head: true })
+            .select('id', { count: 'exact', head: true })
             .eq('institute_id', user.institute_id)
             .eq('role', 'teacher')
             .eq('is_active', true);
 
         const { count: subjectCount } = await supabase
             .from('subjects')
-            .select('*', { count: 'exact', head: true })
+            .select('id', { count: 'exact', head: true })
             .eq('institute_id', user.institute_id);
 
         stats = {

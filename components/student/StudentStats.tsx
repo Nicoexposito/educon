@@ -3,12 +3,28 @@
 import React from 'react';
 import { BookOpen, CalendarCheck, Clock, AlertCircle, ArrowUpRight, ArrowDownRight, TrendingUp, CheckCircle2 } from 'lucide-react';
 
-export function StudentStats({ stats }: { stats: any }) {
-    const assignmentsPending = stats?.assignmentsPending || 0;
-    const avgGrade = stats?.avgGrade || "0.0";
+type StudentStatsData = {
+    assignmentsPending?: number;
+    avgGrade?: string;
+    attendanceRate?: string;
+};
 
-    // Mock trends for demo
-    const gradeTrend = "+0.2";
+type StatsColor = "indigo" | "emerald" | "amber" | "violet" | "rose";
+
+type StatsCardProps = {
+    title: string;
+    value: string;
+    icon: React.ReactNode;
+    trend?: string;
+    trendUp?: boolean;
+    color: StatsColor;
+    correction?: boolean;
+};
+
+export function StudentStats({ stats }: { stats: StudentStatsData }) {
+    const assignmentsPending = stats?.assignmentsPending || 0;
+    const avgGrade = stats?.avgGrade || "—";
+    const attendanceRate = stats?.attendanceRate || "—";
 
     // Calculate remaining days until June 22, 2026
     const endDate = new Date(2026, 5, 22); // Month is 0-indexed, so 5 = June
@@ -25,8 +41,8 @@ export function StudentStats({ stats }: { stats: any }) {
                 title="Mitjana global"
                 value={avgGrade}
                 icon={<TrendingUp className="w-5 h-5 text-indigo-600" />}
-                trend={gradeTrend}
-                trendUp={true}
+                trend={avgGrade === "—" ? "Sense notes" : "Notes reals"}
+                trendUp={avgGrade !== "—"}
                 color="indigo"
             />
              <StatsCard
@@ -40,10 +56,10 @@ export function StudentStats({ stats }: { stats: any }) {
             />
              <StatsCard
                 title="Assistència"
-                value="98%"
+                value={attendanceRate}
                 icon={<Clock className="w-5 h-5 text-emerald-600" />}
-                trend="Perfecta"
-                trendUp={true}
+                trend={attendanceRate === "—" ? "Sense dades" : "Registres reals"}
+                trendUp={attendanceRate !== "—"}
                 color="emerald"
             />
              <StatsCard
@@ -61,14 +77,14 @@ export function StudentStats({ stats }: { stats: any }) {
     );
 }
 
-function StatsCard({ title, value, icon, trend, trendUp, color, correction }: any) {
+function StatsCard({ title, value, icon, trend, trendUp, color, correction }: StatsCardProps) {
     const colorStyles = {
         indigo: "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
         emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
         amber: "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
         violet: "bg-violet-50 text-violet-600 dark:bg-violet-900/20 dark:text-violet-400",
         rose: "bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400",
-    }[color as string] || "bg-zinc-100 text-zinc-600";
+    }[color] || "bg-zinc-100 text-zinc-600";
 
     return (
         <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs hover:shadow-md transition-shadow group">

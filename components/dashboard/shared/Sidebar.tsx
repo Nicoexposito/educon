@@ -16,6 +16,7 @@ import {
     Award,
     UserCog,
     Megaphone,
+    GraduationCap,
     ChevronLeft,
     ChevronRight,
     Loader2,
@@ -57,6 +58,7 @@ export function Sidebar({ role, profile, isMobileOpen, setIsMobileOpen }: Sideba
     const roleItems = role === 'admin'
         ? [
             { icon: UserCog, label: "Usuaris", href: "/dashboard/admin/users" },
+            { icon: GraduationCap, label: "Cursos", href: "/dashboard/admin/courses" },
             { icon: BookOpen, label: "Assignatures", href: "/dashboard/admin/subjects" },
             { icon: CalendarDays, label: "Horaris", href: "/dashboard/admin/schedule" },
             { icon: Megaphone, label: "Anuncis", href: "/dashboard/admin/announcements" },

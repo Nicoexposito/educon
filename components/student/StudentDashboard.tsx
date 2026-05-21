@@ -19,6 +19,14 @@ import { StudentStats } from "./StudentStats";
 import { TodayClasses } from "@/components/teacher/TodayClasses"; // Reuse
 import { RecentActivityLevel } from "@/components/teacher/RecentActivityLevel"; // Reuse or create student specific? Let's reuse for now, maybe data filters it
 
+type GradeChartItem = {
+    id: string;
+    subject?: string;
+    title?: string;
+    score: number;
+    max: number;
+};
+
 export default function StudentDashboard({ data }: { data: any }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [activeView, setActiveView] = useState('dashboard');
@@ -26,6 +34,7 @@ export default function StudentDashboard({ data }: { data: any }) {
 
     const subjects = data?.subjects || [];
     const stats = data?.stats || { assignmentsPending: 0, avgGrade: "0.0" };
+    const gradeChart = (data?.gradeChart || []) as GradeChartItem[];
 
     const handleLogout = async () => {
         await logout();
@@ -76,21 +85,30 @@ export default function StudentDashboard({ data }: { data: any }) {
                                  <div className="flex justify-between items-center mb-6">
                                      <h3 className="font-bold text-lg">Evolució de les notes</h3>
                                  </div>
-                                 <div className="h-48 flex items-end justify-between gap-4 px-4">
-                                     {['Matemáticas', 'Física', 'Historia', 'Inglés', 'Programación'].map((subj, i) => (
-                                         <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                                             <div className="w-full bg-indigo-50 dark:bg-indigo-900/10 rounded-t-lg relative h-32 flex items-end justify-center">
-                                                 <div
-                                                    style={{ height: `${[70, 85, 60, 90, 95][i]}%` }}
-                                                    className="w-full mx-2 bg-indigo-500 rounded-t-md opacity-80 group-hover:opacity-100 transition-all duration-500"
-                                                 />
-                                             </div>
-                                             <div className="text-xs text-zinc-400 truncate w-full text-center">
-                                                {subj.substring(0, 3)}
-                                             </div>
-                                         </div>
-                                     ))}
-                                 </div>
+                                 {gradeChart.length > 0 ? (
+                                    <div className="h-48 flex items-end justify-between gap-4 px-4">
+                                        {gradeChart.map((grade) => {
+                                            const pct = Math.max(0, Math.min(100, (Number(grade.score) / Number(grade.max || 10)) * 100));
+                                            return (
+                                                <div key={grade.id} className="flex-1 flex flex-col items-center gap-2 group">
+                                                    <div className="w-full bg-indigo-50 dark:bg-indigo-900/10 rounded-t-lg relative h-32 flex items-end justify-center">
+                                                        <div
+                                                            style={{ height: `${pct}%` }}
+                                                            className="w-full mx-2 bg-indigo-500 rounded-t-md opacity-80 group-hover:opacity-100 transition-all duration-500"
+                                                        />
+                                                    </div>
+                                                    <div className="text-xs text-zinc-400 truncate w-full text-center">
+                                                        {grade.subject || grade.title}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                 ) : (
+                                    <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-zinc-200 text-sm text-zinc-500 dark:border-zinc-800">
+                                        Encara no hi ha notes publicades.
+                                    </div>
+                                 )}
                              </div>
                         </div>
 

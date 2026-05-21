@@ -24,7 +24,7 @@ export default async function AssignmentPage({ params }: { params: { id: string 
     // Fetch assignment details
     const { data: assignment, error } = await supabase
         .from('assignments')
-        .select('*, subject:subjects(name)')
+        .select('id, subject_id, title, description, due_date, created_at, content_url, teacher_id, start_date, is_corrected, late_due_date, subject:subjects(name)')
         .eq('id', id)
         .single();
 
@@ -48,7 +48,7 @@ export default async function AssignmentPage({ params }: { params: { id: string 
 
         const { data: submissions } = await supabase
             .from('submissions')
-            .select('*')
+            .select('id, assignment_id, student_id, file_url, submitted_at, grade, feedback, status, student_comment')
             .eq('assignment_id', assignment.id);
 
         // Map submissions to students
@@ -74,7 +74,7 @@ export default async function AssignmentPage({ params }: { params: { id: string 
         // Fetch student's submission
         const { data: submission } = await supabase
             .from('submissions')
-            .select('*')
+            .select('id, assignment_id, student_id, file_url, submitted_at, grade, feedback, status, student_comment')
             .eq('assignment_id', assignment.id)
             .eq('student_id', session.userId)
             .single();

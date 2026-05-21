@@ -33,6 +33,21 @@ export type AdminSubject = {
     schedules?: AdminSchedule[] | null;
     enrollments?: { id: string }[] | null;
     student_count?: number;
+    course?: Pick<AdminCourse, "id" | "name" | "code"> | null;
+};
+
+export type AdminCourse = {
+    id: string;
+    institute_id?: string | null;
+    name: string | null;
+    code?: string | null;
+    description?: string | null;
+    tutor_id?: string | null;
+    tutoring_subject_id?: string | null;
+    is_active?: boolean | null;
+    created_at?: string | null;
+    subject_ids?: string[];
+    student_ids?: string[];
 };
 
 export type AdminAnnouncement = {
@@ -48,3 +63,5 @@ export type AdminEnrollmentWithStudent = {
     id: string;
     student: AdminUser | AdminUser[] | null;
 };
+
+export type AdminStudentSubjectMap = Record<string, string[]>;

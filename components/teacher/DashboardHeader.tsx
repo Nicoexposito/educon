@@ -10,17 +10,38 @@ interface DashboardHeaderProps {
     role: string;
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
-    user?: { full_name?: string; email?: string; avatar_url?: string; institute?: { name?: string } };
+    user?: {
+        id?: string;
+        full_name?: string;
+        email?: string;
+        avatar_url?: string;
+        institute?: { name?: string };
+        courses?: Array<{ id?: string; name?: string | null; code?: string | null }>;
+    };
 }
 
-export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: DashboardHeaderProps) {
+type HeaderNotification = {
+    id: string;
+    message: string;
+    read?: boolean | null;
+    created_at: string;
+};
+
+export function DashboardHeader({ role, toggleSidebar, user }: DashboardHeaderProps) {
     const supabase = useMemo(() => createClient(), []);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<HeaderNotification[]>([]);
     const [isPending, startTransition] = useTransition();
-    const userId = (user as any)?.id;
+    const userId = user?.id;
     const unreadCount = notifications.filter((notification) => !notification.read).length;
     const initials = getInitials(user?.full_name, user?.email, role);
+    const courseNames = role === 'student'
+        ? (user?.courses || []).map((course) => course.name || course.code).filter(Boolean)
+        : [];
+    const courseLabel = courseNames.length > 0
+        ? `${courseNames.length > 1 ? 'Classes' : 'Classe'}: ${courseNames.join(', ')}`
+        : '';
+    const headerSubtitle = courseLabel || new Date().toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     useEffect(() => {
         if (!userId) return;
@@ -28,7 +49,7 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
         let active = true;
         supabase
             .from('notifications')
-            .select('*')
+            .select('id, message, read, created_at')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
             .limit(8)
@@ -44,8 +65,11 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                 filter: `user_id=eq.${userId}`,
             }, (payload) => {
                 setNotifications((prev) => {
-                    if (payload.eventType === 'INSERT') return [payload.new, ...prev].slice(0, 8);
-                    if (payload.eventType === 'UPDATE') return prev.map((item) => item.id === payload.new.id ? payload.new : item);
+                    if (payload.eventType === 'INSERT') return [payload.new as HeaderNotification, ...prev].slice(0, 8);
+                    if (payload.eventType === 'UPDATE') {
+                        const nextNotification = payload.new as HeaderNotification;
+                        return prev.map((item) => item.id === nextNotification.id ? nextNotification : item);
+                    }
                     if (payload.eventType === 'DELETE') return prev.filter((item) => item.id !== payload.old.id);
                     return prev;
                 });
@@ -78,8 +102,8 @@ export function DashboardHeader({ role, isSidebarOpen, toggleSidebar, user }: Da
                      <span className="truncate font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
                         {role === 'admin' ? 'Panell d’administració' : role === 'teacher' ? 'Panell del professor' : "Panell de l'alumne"}
                     </span>
-                    <span className="text-xs text-zinc-500 hidden sm:block">
-                        {new Date().toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    <span className="max-w-[42vw] truncate text-xs text-zinc-500 sm:max-w-[48vw] md:max-w-none">
+                        {headerSubtitle}
                     </span>
                 </div>
             </div>

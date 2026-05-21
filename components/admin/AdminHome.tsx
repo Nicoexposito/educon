@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bell, BookOpen, CalendarDays, Megaphone, UserCog, Users } from "lucide-react";
+import { ArrowRight, Bell, BookOpen, CalendarDays, GraduationCap, Megaphone, UserCog, Users } from "lucide-react";
 import type { AdminSchedule, AdminSubject, AdminUser } from "@/lib/admin-types";
 
 type AdminHomeProps = {
@@ -7,6 +7,7 @@ type AdminHomeProps = {
         stats: {
             teacherCount: number;
             studentCount: number;
+            courseCount: number;
             subjectCount: number;
             activeAnnouncements: number;
         };
@@ -19,13 +20,15 @@ export default function AdminHome({ data }: AdminHomeProps) {
     const stats = [
         { label: "Professors actius", value: data.stats.teacherCount, icon: UserCog, tone: "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300" },
         { label: "Alumnes actius", value: data.stats.studentCount, icon: Users, tone: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" },
-        { label: "Assignatures", value: data.stats.subjectCount, icon: BookOpen, tone: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300" },
+        { label: "Cursos", value: data.stats.courseCount, icon: GraduationCap, tone: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300" },
+        { label: "Assignatures", value: data.stats.subjectCount, icon: BookOpen, tone: "bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300" },
         { label: "Anuncis", value: data.stats.activeAnnouncements, icon: Bell, tone: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300" },
     ];
 
     const actions = [
         { href: "/dashboard/admin/users", label: "Crear usuari", description: "Alta de professors i alumnes", icon: UserCog },
-        { href: "/dashboard/admin/subjects", label: "Assignatura nova", description: "Professor, categoria i alumnat", icon: BookOpen },
+        { href: "/dashboard/admin/courses", label: "Organitzar cursos", description: "Assignatures i alumnat per curs", icon: GraduationCap },
+        { href: "/dashboard/admin/subjects", label: "Assignatura nova", description: "Professor i horari de classe", icon: BookOpen },
         { href: "/dashboard/admin/schedule", label: "Gestionar horaris", description: "Classes per professor i assignatura", icon: CalendarDays },
         { href: "/dashboard/admin/announcements", label: "Publicar anunci", description: "Comunicació global del centre", icon: Megaphone },
     ];
@@ -47,7 +50,7 @@ export default function AdminHome({ data }: AdminHomeProps) {
                 </Link>
             </header>
 
-            <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 {stats.map((stat) => {
                     const Icon = stat.icon;
                     return (
@@ -66,7 +69,7 @@ export default function AdminHome({ data }: AdminHomeProps) {
                 })}
             </section>
 
-            <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
+            <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
                 {actions.map((action) => {
                     const Icon = action.icon;
                     return (

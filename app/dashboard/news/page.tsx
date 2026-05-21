@@ -21,7 +21,7 @@ async function getNews(userId: string, role: string) {
 
     const { data } = await supabase
         .from('posts')
-        .select('*')
+        .select('id, title, content, author_id, institute_id, created_at, subject_id, audience')
         .eq('institute_id', profile.institute_id)
         .in('audience', audiences)
         .order('created_at', { ascending: false });
