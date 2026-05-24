@@ -1,4 +1,4 @@
-# Educon V.0.6.13 (responsive)
+# Educon V.0.6.14 (responsive)
 
 Educon es una plataforma educativa para conectar profesores y alumnos en un mismo entorno: clases, tareas, entregas, asistencia, calificaciones, eventos, noticias y notificaciones.
 
