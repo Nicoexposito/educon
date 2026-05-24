@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { Plus, CalendarDays } from "lucide-react";
 import { TeacherStats } from "@/components/teacher/TeacherStats";
 import { ScheduleWidget } from "@/components/dashboard/shared/ScheduleWidget";
 import { RecentActivityLevel } from "@/components/teacher/RecentActivityLevel";
-import { TodayClasses } from "@/components/teacher/TodayClasses";
 import { CurrentClassWidget } from "@/components/dashboard/shared/CurrentClassWidget";
 import { AssignmentsListWidget } from "@/components/dashboard/shared/AssignmentsListWidget";
+import { SubjectsOverviewWidget } from "@/components/dashboard/shared/SubjectsOverviewWidget";
 import { useTeacherDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
 
 export default function TeacherHome({ data: initialData }: { data: any }) {
@@ -51,7 +50,7 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                         <Plus className="w-4 h-4" aria-hidden="true" />
-                        Tasca nova
+                        Treball nou
                     </Link>
                 </div>
             </header>
@@ -64,13 +63,13 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:[&>*]:min-h-80">
                         <CurrentClassWidget subjects={subjects} />
-                        <TodayClasses subjects={subjects} />
+                        <ScheduleWidget subjects={subjects} />
                     </div>
 
                     <div className="min-h-80">
                         <AssignmentsListWidget
                             items={data?.pendingSubmissions || []}
-                            title="Treballs per corregir"
+                            title="Entrega de treballs"
                             role="teacher"
                         />
                     </div>
@@ -81,12 +80,14 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                             className="font-semibold text-base text-foreground mb-4"
                             style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
                         >
-                            Accesos Ràpids
+                            Eines del professor
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {[
-                                { label: 'Crear esdeveniment', href: '/dashboard/events/new' },
-                                { label: 'Pujar notes', href: '/dashboard/subjects' },
+                                { label: 'Treball nou', href: '/dashboard/assignments/new' },
+                                { label: 'Continguts', href: '/dashboard/subjects' },
+                                { label: 'Horari', href: '/dashboard/schedule' },
+                                { label: 'Esdeveniment', href: '/dashboard/events/new' },
                             ].map(({ label, href }) => (
                                 <Link
                                     key={href}
@@ -96,24 +97,15 @@ export default function TeacherHome({ data: initialData }: { data: any }) {
                                     {label}
                                 </Link>
                             ))}
-                            <button
-                                onClick={() => window.alert('Funció no implementada: enviar missatge')}
-                                className="p-4 rounded-xl bg-secondary hover:bg-accent/10 hover:text-accent-foreground border border-border hover:border-accent/30 transition-colors duration-150 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                            >
-                                Enviar missatge
-                            </button>
-                            <button
-                                onClick={() => window.alert('Descarregant informe...')}
-                                className="p-4 rounded-xl bg-secondary hover:bg-accent/10 hover:text-accent-foreground border border-border hover:border-accent/30 transition-colors duration-150 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                            >
-                                Informe
-                            </button>
                         </div>
                     </section>
                 </div>
 
                 {/* Side Column — 1/3 */}
                 <div className="space-y-6">
+                    <div className="min-h-80">
+                        <SubjectsOverviewWidget subjects={subjects} role="teacher" />
+                    </div>
                     <div className="min-h-[28rem] lg:min-h-[600px]">
                         <RecentActivityLevel items={data?.recentSubjectsAttendance || []} />
                     </div>

@@ -37,12 +37,24 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
     // Load students when subject changes
     useEffect(() => {
         if (!subjectId) return;
-        setLoadingStudents(true);
-        getSubjectStudents(subjectId).then((data) => {
-            setStudents(data);
-            setSelectedStudentIds(new Set(data.map((s: any) => s.id)));
-            setLoadingStudents(false);
+        let isCancelled = false;
+
+        void Promise.resolve().then(async () => {
+            if (isCancelled) return;
+            setLoadingStudents(true);
+            try {
+                const data = await getSubjectStudents(subjectId);
+                if (isCancelled) return;
+                setStudents(data);
+                setSelectedStudentIds(new Set(data.map((s: any) => s.id)));
+            } finally {
+                if (!isCancelled) setLoadingStudents(false);
+            }
         });
+
+        return () => {
+            isCancelled = true;
+        };
     }, [subjectId]);
 
     const allSelected = students.length > 0 && selectedStudentIds.size === students.length;
@@ -85,7 +97,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
             return;
         }
         if (!dueDate) {
-            setMsg({ type: "error", text: "La data de lliurament és obligatòria." });
+            setMsg({ type: "error", text: "La data d'entrega és obligatòria." });
             return;
         }
 
@@ -100,7 +112,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
             });
 
             if (result.success) {
-                setMsg({ type: "success", text: "Tasca creada correctament." });
+                setMsg({ type: "success", text: "Treball creat correctament." });
                 router.refresh();
                 setTimeout(() => onClose(), 1000);
             } else {
@@ -120,7 +132,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                     <div className="flex items-center gap-2">
                         <Plus className="w-5 h-5 text-indigo-500" />
-                        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Tasca nova</h2>
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Treball nou</h2>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
                         <X className="w-5 h-5" />
@@ -178,7 +190,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             rows={4}
-                            placeholder="Descriu la tasca, els requisits, les fonts permeses..."
+                            placeholder="Descriu el treball, els requisits, les fonts permeses..."
                             className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none placeholder:text-zinc-400"
                         />
                     </div>
@@ -187,7 +199,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
-                                <Calendar className="w-4 h-4 text-indigo-500" /> Data de lliurament *
+                                <Calendar className="w-4 h-4 text-indigo-500" /> Data d&apos;entrega *
                             </label>
                             <input
                                 type="datetime-local"
@@ -230,7 +242,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                             >
                                 <FileUp className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mb-2" />
                                 <span className="text-sm text-zinc-500">Arrossega fitxers o fes clic per seleccionar-los</span>
-                                <span className="text-xs text-zinc-400 mt-1">PDF, DOCX, imágenes, etc.</span>
+                                <span className="text-xs text-zinc-400 mt-1">PDF, DOCX, imatges, etc.</span>
                             </label>
                         </div>
                         {files.length > 0 && (
@@ -309,7 +321,7 @@ export default function CreateAssignmentModal({ subjects, teacherId, onClose }: 
                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
                     >
                         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        Crear tasca
+                        Crear treball
                     </button>
                 </div>
             </div>

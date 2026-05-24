@@ -1,6 +1,10 @@
+"use client";
+
 import React from 'react';
-import { CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { currentShortDayName, flattenTodaySchedules, formatScheduleTime, isScheduleActive, type ScheduleEntry } from '@/lib/schedule-utils';
+import { useCurrentTime } from '@/lib/hooks/useCurrentTime';
 
 type ScheduleSubject = {
     id?: string;
@@ -11,13 +15,25 @@ type ScheduleSubject = {
 };
 
 export function ScheduleWidget({ subjects }: { subjects: ScheduleSubject[] }) {
-    const now = new Date();
+    const now = useCurrentTime();
     const currentDay = currentShortDayName(now);
     const todaysClasses = flattenTodaySchedules(subjects, now);
 
     return (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-4">Horari d&apos;avui ({currentDay})</h3>
+        <div className="flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Horari</h3>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Avui ({currentDay})</p>
+                </div>
+                <Link
+                    href="/dashboard/schedule"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                    Veure
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+            </div>
 
             <div className="flex-1 space-y-3">
                 {todaysClasses.length > 0 ? todaysClasses.map((subj, idx) => (

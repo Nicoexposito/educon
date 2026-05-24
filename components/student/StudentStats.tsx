@@ -46,10 +46,10 @@ export function StudentStats({ stats }: { stats: StudentStatsData }) {
                 color="indigo"
             />
              <StatsCard
-                title="Tasques pendents"
+                title="Entrega de treballs"
                 value={assignmentsPending.toString()}
                 icon={<BookOpen className="w-5 h-5 text-amber-600" />}
-                trend={assignmentsPending > 0 ? "Per fer" : "Al dia"}
+                trend={assignmentsPending > 0 ? "Per entregar" : "Al dia"}
                 trendUp={assignmentsPending === 0} // Up is good (no pending)
                 color="amber"
                 correction={assignmentsPending > 0}

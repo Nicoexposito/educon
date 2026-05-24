@@ -31,8 +31,8 @@ export default async function AssignmentPage({ params }: { params: { id: string 
     if (error || !assignment) {
         return (
             <div className="max-w-4xl mx-auto py-12 px-6 text-center">
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Tasca no trobada</h1>
-                <Link href="/dashboard/assignments" className="text-indigo-600 mt-4 inline-block hover:underline">Tornar a les tasques</Link>
+                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Treball no trobat</h1>
+                <Link href="/dashboard/assignments" className="text-indigo-600 mt-4 inline-block hover:underline">Tornar als treballs</Link>
             </div>
         );
     }

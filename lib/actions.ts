@@ -6,6 +6,9 @@ import { getSession } from "@/lib/session";
 import { processEmailQueue } from "@/lib/email-service";
 import { revalidatePath } from "next/cache";
 
+const SURO_BUCKET = "suro";
+const SURO_MAX_FILE_SIZE = 50 * 1024 * 1024;
+
 // --- Assignments ---
 
 export async function createAssignment(formData: FormData) {
@@ -332,6 +335,11 @@ export async function returnSubmission(submissionId: string, feedback: string) {
 }
 
 export async function createResource(formData: FormData) {
+    const session = await getSession();
+    if (!session || session.role !== "teacher") {
+        return { success: false, error: "No autoritzat." };
+    }
+
     const supabase = await createClient();
     const subject_id = formData.get("subject_id") as string;
     const title = formData.get("title") as string;
@@ -340,6 +348,16 @@ export async function createResource(formData: FormData) {
 
     if (!subject_id || !title || !file_url) {
         return { success: false, error: "El títol i l'enllaç són obligatoris." };
+    }
+
+    const { data: subject } = await supabase
+        .from("subjects")
+        .select("id, teacher_id")
+        .eq("id", subject_id)
+        .single();
+
+    if (!subject || subject.teacher_id !== session.userId) {
+        return { success: false, error: "Només pots publicar continguts a les teves assignatures." };
     }
 
     const { error } = await supabase.from("resources").insert({
@@ -355,7 +373,249 @@ export async function createResource(formData: FormData) {
     }
 
     revalidatePath(`/dashboard/subjects/${subject_id}`);
+    revalidatePath("/dashboard/suro");
+    revalidatePath("/dashboard");
     return { success: true };
+}
+
+export async function createSuroItem(formData: FormData) {
+    const session = await getSession();
+    if (!session || session.role !== "teacher") {
+        return { success: false, error: "No autoritzat." };
+    }
+
+    const subjectId = String(formData.get("subject_id") || "");
+    const title = String(formData.get("title") || "").trim();
+    const description = String(formData.get("description") || "").trim();
+    const rawType = String(formData.get("item_type") || "note");
+    const attachmentUrl = String(formData.get("attachment_url") || "").trim();
+    const file = formData.get("file") as File | null;
+    const eventStart = String(formData.get("event_start") || "");
+    const eventEnd = String(formData.get("event_end") || "");
+    const allowedTypes = new Set(["note", "pdf", "book", "image", "video", "link", "event"]);
+    const itemType = allowedTypes.has(rawType) ? rawType : "note";
+    const hasFile = isValidUploadFile(file);
+    const manualAttachmentUrl = attachmentUrl ? getHttpUrl(attachmentUrl) : null;
+
+    if (!subjectId || !title) {
+        return { success: false, error: "Assignatura i títol són obligatoris." };
+    }
+
+    if (attachmentUrl && !manualAttachmentUrl) {
+        return { success: false, error: "L'URL de l'adjunt no és vàlida." };
+    }
+
+    if (hasFile && file.size > SURO_MAX_FILE_SIZE) {
+        return { success: false, error: "El fitxer no pot superar els 50 MB." };
+    }
+
+    if (itemType !== "note" && itemType !== "event" && !hasFile && !manualAttachmentUrl) {
+        return { success: false, error: "Aquest tipus de publicació necessita un enllaç o fitxer." };
+    }
+
+    if (itemType === "event" && !eventStart) {
+        return { success: false, error: "Els esdeveniments del suro necessiten data d'inici." };
+    }
+
+    try {
+        const service = createAdminClient();
+        const { data: subject } = await service
+            .from("subjects")
+            .select("id, teacher_id")
+            .eq("id", subjectId)
+            .single();
+
+        if (!subject || subject.teacher_id !== session.userId) {
+            return { success: false, error: "Només pots publicar al suro de les teves assignatures." };
+        }
+
+        let uploadedPath: string | null = null;
+        let uploadedUrl: string | null = null;
+
+        if (hasFile) {
+            const upload = await uploadSuroFile(service, subjectId, session.userId as string, file);
+            if (!upload.success) return { success: false, error: upload.error };
+            uploadedPath = upload.path;
+            uploadedUrl = upload.publicUrl;
+        }
+
+        const { error } = await service.from("suro_items").insert({
+            subject_id: subjectId,
+            teacher_id: session.userId,
+            item_type: itemType,
+            title,
+            description: description || null,
+            attachment_url: uploadedUrl || manualAttachmentUrl || null,
+            event_start: itemType === "event" ? eventStart : null,
+            event_end: itemType === "event" && eventEnd ? eventEnd : null,
+        });
+
+        if (error) {
+            console.error("Error creating suro item:", error);
+            if (uploadedPath) {
+                await service.storage.from(SURO_BUCKET).remove([uploadedPath]);
+            }
+            return {
+                success: false,
+                error: isMissingSuroSchemaError(error.message)
+                    ? "Cal aplicar la migració de base de dades del suro."
+                    : "Error en publicar al suro.",
+            };
+        }
+
+        revalidatePath("/dashboard/suro");
+        revalidatePath(`/dashboard/subjects/${subjectId}`);
+        revalidatePath("/dashboard");
+        return { success: true };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Error en publicar al suro.";
+        return { success: false, error: message };
+    }
+}
+
+async function uploadSuroFile(
+    service: ReturnType<typeof createAdminClient>,
+    subjectId: string,
+    teacherId: string,
+    file: File,
+): Promise<{ success: true; publicUrl: string; path: string } | { success: false; error: string }> {
+    const bucket = await ensureSuroBucket(service);
+    if (!bucket.success) return bucket;
+
+    const filePath = buildSuroFilePath(subjectId, teacherId, file.name);
+    const { error: uploadError } = await service.storage
+        .from(SURO_BUCKET)
+        .upload(filePath, file, {
+            cacheControl: "3600",
+            contentType: file.type || "application/octet-stream",
+            upsert: false,
+        });
+
+    if (uploadError) {
+        console.error("Error uploading suro file:", uploadError);
+        return { success: false, error: "No s'ha pogut pujar el fitxer al bucket." };
+    }
+
+    const { data: publicUrlData } = service.storage
+        .from(SURO_BUCKET)
+        .getPublicUrl(filePath);
+
+    return { success: true, publicUrl: publicUrlData.publicUrl, path: filePath };
+}
+
+async function ensureSuroBucket(service: ReturnType<typeof createAdminClient>) {
+    const { data: bucket, error: getError } = await service.storage.getBucket(SURO_BUCKET);
+
+    if (!bucket && getError) {
+        const { error: createError } = await service.storage.createBucket(SURO_BUCKET, {
+            public: true,
+            fileSizeLimit: SURO_MAX_FILE_SIZE,
+        });
+
+        if (createError && !isStorageConflictError(createError.message)) {
+            console.error("Error creating suro bucket:", createError);
+            return { success: false as const, error: "No s'ha pogut crear el bucket del suro." };
+        }
+
+        return { success: true as const };
+    }
+
+    if (bucket && !bucket.public) {
+        const { error: updateError } = await service.storage.updateBucket(SURO_BUCKET, {
+            public: true,
+            fileSizeLimit: SURO_MAX_FILE_SIZE,
+        });
+
+        if (updateError) {
+            console.error("Error updating suro bucket:", updateError);
+            return { success: false as const, error: "No s'ha pogut fer públic el bucket del suro." };
+        }
+    }
+
+    return { success: true as const };
+}
+
+function isValidUploadFile(file: File | null): file is File {
+    return Boolean(file && file.size > 0 && file.name && file.name !== "undefined");
+}
+
+function buildSuroFilePath(subjectId: string, teacherId: string, fileName: string) {
+    const cleanName = sanitizeStorageFileName(fileName);
+    const randomId = typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2);
+
+    return `${subjectId}/${teacherId}/${Date.now()}-${randomId}-${cleanName}`;
+}
+
+function sanitizeStorageFileName(fileName: string) {
+    const fallback = "fitxer";
+    const [baseName, ...rest] = fileName.split(".");
+    const extension = rest.length > 0 ? rest.pop() || "bin" : "bin";
+    const safeBase = (baseName || fallback)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9_-]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 72) || fallback;
+    const safeExtension = extension
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]+/g, "")
+        .toLowerCase()
+        .slice(0, 12) || "bin";
+
+    return `${safeBase}.${safeExtension}`;
+}
+
+function isStorageConflictError(message?: string | null) {
+    if (!message) return false;
+    return /already exists|duplicate|conflict/i.test(message);
+}
+
+export async function deleteSuroItem(itemId: string) {
+    const session = await getSession();
+    if (!session || session.role !== "teacher") {
+        return { success: false, error: "No autoritzat." };
+    }
+
+    if (!itemId) return { success: false, error: "Publicació no vàlida." };
+
+    try {
+        const service = createAdminClient();
+        const { data: item } = await service
+            .from("suro_items")
+            .select("id, subject_id, teacher_id")
+            .eq("id", itemId)
+            .single();
+
+        if (!item || item.teacher_id !== session.userId) {
+            return { success: false, error: "Només pots eliminar les teves publicacions." };
+        }
+
+        const { error } = await service.from("suro_items").delete().eq("id", itemId);
+        if (error) {
+            return {
+                success: false,
+                error: isMissingSuroSchemaError(error.message)
+                    ? "Cal aplicar la migració de base de dades del suro."
+                    : "No s'ha pogut eliminar la publicació.",
+            };
+        }
+
+        revalidatePath("/dashboard/suro");
+        revalidatePath(`/dashboard/subjects/${item.subject_id}`);
+        revalidatePath("/dashboard");
+        return { success: true };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "No s'ha pogut eliminar la publicació.";
+        return { success: false, error: message };
+    }
+}
+
+function isMissingSuroSchemaError(message?: string | null) {
+    if (!message) return false;
+    return /suro_items|schema cache|relationship/i.test(message);
 }
 
 export async function saveAttendance(subjectId: string, entries: Array<{ student_id: string; status: string }>, date?: string) {

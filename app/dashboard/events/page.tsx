@@ -18,7 +18,7 @@ export default async function EventsPage() {
         <div className="mx-auto min-h-screen max-w-7xl bg-zinc-50 px-4 py-5 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 sm:px-6 lg:px-8 lg:py-8">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">Esdeveniments y Activitates</h1>
+                    <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">Esdeveniments i activitats</h1>
                     <p className="text-zinc-500">Estigues al dia del que passa a Educon.</p>
                 </div>
                 {session.role === 'teacher' && (

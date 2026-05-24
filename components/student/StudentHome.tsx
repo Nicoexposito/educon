@@ -1,10 +1,11 @@
 "use client";
 
 import { StudentStats } from "@/components/student/StudentStats";
-import { TodayClasses } from "@/components/teacher/TodayClasses";
 import { RecentActivityLevel } from "@/components/teacher/RecentActivityLevel";
 import { CurrentClassWidget } from "@/components/dashboard/shared/CurrentClassWidget";
 import { AssignmentsListWidget } from "@/components/dashboard/shared/AssignmentsListWidget";
+import { ScheduleWidget } from "@/components/dashboard/shared/ScheduleWidget";
+import { SubjectsOverviewWidget } from "@/components/dashboard/shared/SubjectsOverviewWidget";
 import Link from "next/link";
 import { Award, GraduationCap, Upload } from "lucide-react";
 import { useStudentDashboardRealtime } from "@/lib/hooks/useDashboardRealtime";
@@ -67,7 +68,7 @@ export default function StudentHome({ data: initialData }: { data: StudentDashbo
                         Bon dia, {firstName}
                     </h1>
                     <p className="text-muted-foreground mt-2">
-                        Tens <strong className="text-foreground font-semibold">{stats.assignmentsPending}</strong> tasques pendents aquesta setmana.
+                        Tens <strong className="text-foreground font-semibold">{stats.assignmentsPending}</strong> treballs pendents d&apos;entregar aquesta setmana.
                     </p>
                     {courseLabel && (
                         <p className="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
@@ -81,7 +82,7 @@ export default function StudentHome({ data: initialData }: { data: StudentDashbo
                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white shadow-sm transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:shrink-0"
                 >
                     <Upload className="w-4 h-4" aria-hidden="true" />
-                    Lliurar tasca
+                    Entregar treball
                 </Link>
             </header>
 
@@ -93,13 +94,13 @@ export default function StudentHome({ data: initialData }: { data: StudentDashbo
                 <div className="lg:col-span-2 space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:[&>*]:min-h-80">
                         <CurrentClassWidget subjects={subjects} />
-                        <TodayClasses subjects={subjects} />
+                        <ScheduleWidget subjects={subjects} />
                     </div>
 
                     <div className="min-h-80">
                         <AssignmentsListWidget
                             items={data?.assignments || []}
-                            title="Tasques pendents"
+                            title="Entrega de treballs"
                             role="student"
                         />
                     </div>
@@ -148,6 +149,9 @@ export default function StudentHome({ data: initialData }: { data: StudentDashbo
 
                 {/* Side Column — 1/3 */}
                 <div className="space-y-6">
+                    <div className="min-h-80">
+                        <SubjectsOverviewWidget subjects={subjects} role="student" />
+                    </div>
                     <div className="min-h-[28rem] lg:min-h-[600px]">
                         <RecentActivityLevel items={data?.recentSubjectsAttendance || []} />
                     </div>

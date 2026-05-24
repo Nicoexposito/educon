@@ -2,15 +2,33 @@
 
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
-import { useRealtimeTable } from '@/lib/hooks/useRealtimeTable';
 import Link from 'next/link';
+import { formatScheduleTime, minutesFromTime, type ScheduleEntry } from '@/lib/schedule-utils';
+
+type TimeRow = {
+    id: string;
+    time: string;
+    startMinutes: number;
+    endMinutes: number;
+    isBreak?: boolean;
+    label?: string;
+};
+
+type ScheduleGridEntry = {
+    day: string;
+    subject: any;
+    schedule: ScheduleEntry;
+    startMinutes: number;
+    endMinutes: number;
+    fullDate: Date;
+};
 
 export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents, assignments: initialAssignments }: { subjects: any[], events: any[], assignments: any[] }) {
-    const { data: subjects } = useRealtimeTable({ table: 'subjects', initialData: initialSubjects });
-    const { data: events } = useRealtimeTable({ table: 'events', initialData: initialEvents });
-    const { data: assignments } = useRealtimeTable({ table: 'assignments', initialData: initialAssignments });
+    const subjects = initialSubjects;
+    const events = initialEvents;
+    const assignments = initialAssignments;
     const [weekOffset, setWeekOffset] = useState(0);
-    const [selectedSlot, setSelectedSlot] = useState<{ day: string, subject: any, timeId: string, fullDate: Date } | null>(null);
+    const [selectedSlot, setSelectedSlot] = useState<ScheduleGridEntry | null>(null);
 
     const days = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
 
@@ -114,24 +132,16 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
     };
 
     const daysWithDates = getDaysWithDates();
-    const timeSlots = [
-        { time: '08:00 - 09:00', id: '08:00' },
-        { time: '09:00 - 10:00', id: '09:00' },
-        { time: '10:00 - 11:00', id: '10:00' },
-        { time: '11:00 - 11:30', id: 'patio', isBreak: true, label: 'PATI' },
-        { time: '11:30 - 12:30', id: '11:30' },
-        { time: '12:30 - 13:30', id: '12:30' },
-    ];
+    const timeRows = buildTimeRows(subjects);
+    const entriesByDay = new Map(
+        daysWithDates.map((dayObj) => [
+            dayObj.name,
+            getScheduleEntriesForDay(subjects, dayObj.name, dayObj.fullDate),
+        ]),
+    );
 
-    // We no longer need static schedules or placeholder mappings.
-    // Instead we dynamically search the subjects array and their relational schedules list.
-    const findSubjectForSlot = (day: string, timeId: string) => {
-        if (!subjects || subjects.length === 0) return null;
-        return subjects.find(subj =>
-            subj.schedules && subj.schedules.some((s: any) =>
-                s.day_of_week === day && s.start_time.startsWith(timeId)
-            )
-        );
+    const findEntryStartingAt = (day: string, startMinutes: number) => {
+        return (entriesByDay.get(day) || []).find((entry) => entry.startMinutes === startMinutes) || null;
     };
 
     // Filter assignments/events by selected subject if one is selected
@@ -158,7 +168,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
     };
 
     const selectedTasks = selectedSlot ? getSubjectDetails(selectedSlot.subject, selectedSlot.fullDate) : [];
-    const selectedTimeLabel = selectedSlot ? timeSlots.find(t => t.id === selectedSlot.timeId)?.time || "" : "";
+    const selectedTimeLabel = selectedSlot ? formatScheduleTime(selectedSlot.schedule) : "";
 
     return (
         <div className="space-y-6">
@@ -232,7 +242,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                         </div>
 
                         <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                            {timeSlots.map((slot) => {
+                            {timeRows.map((slot) => {
                                 if (slot.isBreak) {
                                     return (
                                         <div key={slot.id} className="flex items-center justify-between bg-zinc-50 px-4 py-3 text-xs font-black uppercase tracking-[0.22em] text-zinc-400 dark:bg-zinc-950/30">
@@ -242,26 +252,30 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                                     );
                                 }
 
-                                const actualSubject = !dayObj.status.isHoliday ? findSubjectForSlot(dayObj.name, slot.id) : null;
-                                const hasDeliveries = actualSubject ? hasDeliveriesForSlot(actualSubject, dayObj.fullDate) : false;
-                                const isSelected = selectedSlot?.day === dayObj.name && selectedSlot?.timeId === slot.id;
+                                const entry = !dayObj.status.isHoliday ? findEntryStartingAt(dayObj.name, slot.startMinutes) : null;
+                                const isContinuation = !entry && (entriesByDay.get(dayObj.name) || [])
+                                    .some((item) => item.startMinutes < slot.startMinutes && item.endMinutes > slot.startMinutes);
+                                if (isContinuation) return null;
+
+                                const hasDeliveries = entry ? hasDeliveriesForSlot(entry.subject, dayObj.fullDate) : false;
+                                const isSelected = selectedSlot?.day === dayObj.name && selectedSlot?.startMinutes === slot.startMinutes;
 
                                 return (
                                     <button
                                         key={slot.id}
                                         type="button"
-                                        disabled={!actualSubject}
-                                        onClick={() => actualSubject && setSelectedSlot({ day: dayObj.name, subject: actualSubject, timeId: slot.id, fullDate: dayObj.fullDate })}
-                                        className={`flex w-full items-center gap-4 px-4 py-3 text-left transition ${actualSubject ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/40' : 'cursor-default opacity-60'} ${isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
+                                        disabled={!entry}
+                                        onClick={() => entry && setSelectedSlot(entry)}
+                                        className={`flex w-full items-center gap-4 px-4 py-3 text-left transition ${entry ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/40' : 'cursor-default opacity-60'} ${isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
                                     >
-                                        <span className="w-24 shrink-0 text-xs font-bold text-zinc-500">{slot.time}</span>
+                                        <span className="w-24 shrink-0 text-xs font-bold text-zinc-500">{entry ? formatScheduleTime(entry.schedule) : slot.time}</span>
                                         <span className="min-w-0 flex-1">
                                             {dayObj.status.isHoliday ? (
                                                 <span className="text-sm font-semibold text-red-400">{dayObj.status.name}</span>
-                                            ) : actualSubject ? (
+                                            ) : entry ? (
                                                 <>
                                                     <span className={`block truncate text-sm font-black ${hasDeliveries ? 'text-orange-800 dark:text-orange-200' : 'text-indigo-800 dark:text-indigo-200'}`}>
-                                                        {actualSubject.name}
+                                                        {entry.subject.name}
                                                     </span>
                                                     {hasDeliveries && <span className="mt-0.5 block text-xs font-semibold text-orange-500">Entrega aquest dia</span>}
                                                 </>
@@ -310,74 +324,90 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
                         ))}
                     </div>
 
-                    <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                        {timeSlots.map((slot) => {
-                            if (slot.isBreak) {
-                                return (
-                                    <div key={slot.id} className="grid grid-cols-6 min-h-[3rem] bg-zinc-100/50 dark:bg-zinc-900/30">
-                                        <div className="p-3 text-center text-xs text-zinc-500 font-medium flex items-center justify-center border-r border-zinc-200 dark:border-zinc-800">
-                                            {slot.time}
-                                        </div>
-                                        <div className="col-span-5 flex items-center justify-center p-3">
-                                            <span className="font-bold text-zinc-400 dark:text-zinc-500 tracking-[0.3em] uppercase text-xs">
-                                                {slot.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            }
+                    <div
+                        className="grid grid-cols-6"
+                        style={{ gridTemplateRows: timeRows.map((row) => row.isBreak ? '3rem' : '6rem').join(' ') }}
+                    >
+                        {timeRows.map((slot, rowIndex) => (
+                            <React.Fragment key={slot.id}>
+                                <div
+                                    className={`border-r border-t border-zinc-200 text-center text-xs font-medium text-zinc-500 dark:border-zinc-800 ${slot.isBreak ? 'bg-zinc-100/50 p-3 dark:bg-zinc-900/30' : 'bg-zinc-50/50 p-4 dark:bg-zinc-900/10'} flex items-center justify-center`}
+                                    style={{ gridColumn: 1, gridRow: rowIndex + 1 }}
+                                >
+                                    {slot.time}
+                                </div>
 
-                            return (
-                                <div key={slot.id} className="grid grid-cols-6 min-h-[6rem]">
-                                    <div className="p-4 text-center text-xs text-zinc-500 font-medium border-r border-zinc-200 dark:border-zinc-800 flex items-center justify-center bg-zinc-50/50 dark:bg-zinc-900/10">
-                                        {slot.time}
+                                {slot.isBreak ? (
+                                    <div
+                                        className="flex items-center justify-center border-t border-zinc-200 bg-zinc-100/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/30"
+                                        style={{ gridColumn: '2 / span 5', gridRow: rowIndex + 1 }}
+                                    >
+                                        <span className="text-xs font-bold uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-500">
+                                            {slot.label}
+                                        </span>
                                     </div>
-                                    {daysWithDates.map((dayObj) => {
-                                        const day = dayObj.name;
-
-                                        if (dayObj.status.isHoliday) {
-                                            return (
-                                                <div key={day} className="border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 p-2 relative bg-red-50/30 dark:bg-red-900/5 flex items-center justify-center overflow-hidden">
-                                                    <span className="text-red-400/60 dark:text-red-500/30 text-[10px] font-bold uppercase tracking-widest text-center leading-tight">
+                                ) : (
+                                    daysWithDates.map((dayObj, dayIndex) => (
+                                        <div
+                                            key={`${slot.id}-${dayObj.name}`}
+                                            className={`relative border-r border-t border-zinc-200 p-1 last:border-r-0 dark:border-zinc-800 ${dayObj.status.isHoliday ? 'bg-red-50/30 dark:bg-red-900/5' : dayObj.isToday ? 'bg-indigo-50/10 dark:bg-indigo-900/5' : ''}`}
+                                            style={{ gridColumn: dayIndex + 2, gridRow: rowIndex + 1 }}
+                                        >
+                                            {dayObj.status.isHoliday && (
+                                                <div className="flex h-full items-center justify-center overflow-hidden">
+                                                    <span className="text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-red-400/60 dark:text-red-500/30">
                                                         {dayObj.status.name}
                                                     </span>
                                                 </div>
-                                            );
-                                        }
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </React.Fragment>
+                        ))}
 
-                                        const actualSubject = findSubjectForSlot(day, slot.id);
-                                        const isSelected = selectedSlot?.day === day && selectedSlot?.timeId === slot.id;
+                        {daysWithDates.flatMap((dayObj, dayIndex) => {
+                            if (dayObj.status.isHoliday) return [];
 
-                                        const hasDeliveries = hasDeliveriesForSlot(actualSubject, dayObj.fullDate);
+                            return (entriesByDay.get(dayObj.name) || []).map((entry) => {
+                                const startRow = findRowIndexForMinute(timeRows, entry.startMinutes);
+                                const endRow = findRowIndexForMinute(timeRows, entry.endMinutes);
+                                if (startRow === -1 || endRow === -1 || endRow <= startRow) return null;
 
-                                        return (
-                                            <div key={day} className={`border-r border-zinc-200 dark:border-zinc-800 last:border-r-0 p-1 relative ${dayObj.isToday ? 'bg-indigo-50/10 dark:bg-indigo-900/5' : ''}`}>
-                                                {actualSubject ? (
-                                                    <div
-                                                        onClick={() => setSelectedSlot({ day, subject: actualSubject, timeId: slot.id, fullDate: dayObj.fullDate })}
-                                                        className={`h-full w-full rounded-lg p-2 flex flex-col justify-center items-center text-center transition-all cursor-pointer select-none
-                                                        ${isSelected
-                                                            ? 'ring-2 ring-indigo-500 bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800'
-                                                            : hasDeliveries
-                                                                ? 'bg-orange-100/80 hover:bg-orange-200/80 dark:bg-orange-900/40 dark:hover:bg-orange-800/50 border border-orange-200 dark:border-orange-800 shadow-sm'
-                                                                : 'bg-indigo-50/50 hover:bg-indigo-100/50 dark:bg-indigo-950/20 dark:hover:bg-indigo-900/30 border border-indigo-100/50 dark:border-indigo-900/50 hover:border-indigo-200 dark:hover:border-indigo-800'}
-                                                        `}
-                                                    >
-                                                        <div className={`font-bold text-xs ${isSelected ? 'text-indigo-900 dark:text-indigo-200' : hasDeliveries ? 'text-orange-900 dark:text-orange-200' : 'text-indigo-700 dark:text-indigo-300'}`}>
-                                                            {actualSubject.name}
-                                                        </div>
-                                                        {hasDeliveries && (
-                                                            <div className="mt-1 flex items-center justify-center">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ) : null}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            );
+                                const rowSpan = endRow - startRow;
+                                const isSelected = selectedSlot?.day === entry.day && selectedSlot?.startMinutes === entry.startMinutes && selectedSlot?.subject?.id === entry.subject?.id;
+                                const hasDeliveries = hasDeliveriesForSlot(entry.subject, dayObj.fullDate);
+
+                                return (
+                                    <div
+                                        key={`${entry.subject.id || entry.subject.name}-${entry.day}-${entry.startMinutes}`}
+                                        className="z-10 p-1"
+                                        style={{ gridColumn: dayIndex + 2, gridRow: `${startRow + 1} / span ${rowSpan}` }}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedSlot(entry)}
+                                            className={`flex h-full w-full select-none flex-col items-center justify-center rounded-lg border p-2 text-center transition-all
+                                            ${isSelected
+                                                ? 'border-indigo-200 bg-indigo-100 ring-2 ring-indigo-500 dark:border-indigo-800 dark:bg-indigo-900/40'
+                                                : hasDeliveries
+                                                    ? 'border-orange-200 bg-orange-100/80 shadow-sm hover:bg-orange-200/80 dark:border-orange-800 dark:bg-orange-900/40 dark:hover:bg-orange-800/50'
+                                                    : 'border-indigo-100/50 bg-indigo-50/70 hover:border-indigo-200 hover:bg-indigo-100/70 dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:hover:border-indigo-800 dark:hover:bg-indigo-900/30'}
+                                            `}
+                                        >
+                                            <span className={`text-xs font-bold ${isSelected ? 'text-indigo-900 dark:text-indigo-200' : hasDeliveries ? 'text-orange-900 dark:text-orange-200' : 'text-indigo-700 dark:text-indigo-300'}`}>
+                                                {entry.subject.name}
+                                            </span>
+                                            <span className="mt-1 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+                                                {formatScheduleTime(entry.schedule)}
+                                            </span>
+                                            {hasDeliveries && (
+                                                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-orange-500" />
+                                            )}
+                                        </button>
+                                    </div>
+                                );
+                            }).filter(Boolean);
                         })}
                     </div>
                 </div>
@@ -395,7 +425,7 @@ export function ScheduleGrid({ subjects: initialSubjects, events: initialEvents,
             </div>
 
             <div className="mt-8">
-                <h2 className="text-xl font-bold mb-4">Próximos Esdeveniments Globales</h2>
+                <h2 className="text-xl font-bold mb-4">Pròxims esdeveniments globals</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {events.map((evt: any) => (
                         <div key={evt.id} className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-start gap-3">
@@ -424,7 +454,7 @@ function SelectedSlotPanel({
     onClose,
     className = "",
 }: {
-    selectedSlot: { day: string, subject: any, timeId: string, fullDate: Date };
+    selectedSlot: ScheduleGridEntry;
     selectedTimeLabel: string;
     tasks: any[];
     onClose: () => void;
@@ -453,7 +483,7 @@ function SelectedSlotPanel({
                 <div>
                     <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         <Clock className="h-4 w-4 text-zinc-400" />
-                        Tasques relacionades
+                        Treballs relacionats
                     </h4>
                     <div className="space-y-3">
                         {tasks.length > 0 ? (
@@ -494,6 +524,91 @@ function SelectedSlotPanel({
             </div>
         </div>
     );
+}
+
+function buildTimeRows(subjects: any[]): TimeRow[] {
+    const boundaries = new Set([480, 540, 600, 660, 690, 750, 810]);
+
+    subjects.forEach((subject) => {
+        getSubjectSchedules(subject).forEach((schedule) => {
+            const start = minutesFromTime(schedule.start_time);
+            const end = minutesFromTime(schedule.end_time);
+            if (start !== null && end !== null && end > start) {
+                boundaries.add(start);
+                boundaries.add(end);
+            }
+        });
+    });
+
+    const sorted = Array.from(boundaries).sort((a, b) => a - b);
+
+    return sorted.slice(0, -1).map((startMinutes) => {
+        const endMinutes = sorted[sorted.indexOf(startMinutes) + 1];
+        const isBreak = startMinutes === 660 && endMinutes === 690;
+        return {
+            id: isBreak ? 'patio' : formatMinutes(startMinutes),
+            time: `${formatMinutes(startMinutes)} - ${formatMinutes(endMinutes)}`,
+            startMinutes,
+            endMinutes,
+            isBreak,
+            label: isBreak ? 'PATI' : undefined,
+        };
+    });
+}
+
+function getScheduleEntriesForDay(subjects: any[], day: string, fullDate: Date): ScheduleGridEntry[] {
+    return subjects
+        .flatMap((subject) => {
+            return getSubjectSchedules(subject)
+                .filter((schedule) => schedule.day_of_week === day)
+                .map((schedule) => {
+                    const startMinutes = minutesFromTime(schedule.start_time);
+                    const endMinutes = minutesFromTime(schedule.end_time);
+                    if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) return null;
+
+                    return {
+                        day,
+                        subject,
+                        schedule,
+                        startMinutes,
+                        endMinutes,
+                        fullDate,
+                    };
+                });
+        })
+        .filter((entry): entry is ScheduleGridEntry => Boolean(entry))
+        .sort((a, b) => a.startMinutes - b.startMinutes);
+}
+
+function getSubjectSchedules(subject: any): ScheduleEntry[] {
+    if (subject?.schedules?.length) return subject.schedules;
+    if (!subject?.schedule) return [];
+
+    return String(subject.schedule)
+        .split(',')
+        .map((chunk) => chunk.trim())
+        .reduce<ScheduleEntry[]>((schedules, chunk) => {
+            const day = chunk.match(/^(Dilluns|Dimarts|Dimecres|Dijous|Divendres)/)?.[1];
+            const time = chunk.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+            if (!day || !time) return schedules;
+
+            schedules.push({
+                day_of_week: day,
+                start_time: time[1],
+                end_time: time[2],
+            });
+            return schedules;
+        }, []);
+}
+
+function findRowIndexForMinute(rows: TimeRow[], minute: number) {
+    return rows.findIndex((row) => row.startMinutes === minute);
+}
+
+function formatMinutes(totalMinutes: number) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
 function formatDate(value: string) {

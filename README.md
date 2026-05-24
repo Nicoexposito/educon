@@ -212,6 +212,12 @@ app/icon.png
 
 Los emails usan `logo-transparent.png` mediante una URL absoluta basada en `NEXT_PUBLIC_APP_URL`.
 
+La guia d'estil visual i d'interfície està en:
+
+```txt
+docs/guia-estils.md
+```
+
 ## Estado del Proyecto
 
 Educon está en desarrollo activo. La base funcional ya incluye paneles, asignaturas, tareas, asistencia, notas y notificaciones. Las siguientes mejoras naturales son:

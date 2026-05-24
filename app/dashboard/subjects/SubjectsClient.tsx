@@ -2,12 +2,12 @@
 
 import { useRealtimeTable } from "@/lib/hooks/useRealtimeTable";
 import { SubjectCard } from "@/components/teacher/SubjectCard";
-import { Plus } from "lucide-react";
 
 export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any[], role: string }) {
     const { data: subjects } = useRealtimeTable({
         table: 'subjects',
         initialData: initialSubjects,
+        enabled: false,
     });
 
     const groupedSubjects = subjects.reduce((acc: any, subject: any) => {
@@ -23,15 +23,9 @@ export function SubjectsClient({ initialSubjects, role }: { initialSubjects: any
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Les meves assignatures</h1>
-                    <p className="text-zinc-500 mt-2">{role === 'student' ? 'Assignatures agrupades pel teu curs o classe.' : 'Gestiona les teves classes i el contingut acadèmic.'}</p>
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Assignatures</h1>
+                    <p className="text-zinc-500 mt-2">{role === 'student' ? 'Les assignatures on estàs matriculat, agrupades per curs quan toca.' : 'Les assignatures que imparteixes, separades per categoria.'}</p>
                 </div>
-                {role === 'teacher' && (
-                    <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 font-medium text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto">
-                        <Plus className="w-5 h-5" />
-                        Assignatura nova
-                    </button>
-                )}
             </div>
 
             <div className="space-y-12">

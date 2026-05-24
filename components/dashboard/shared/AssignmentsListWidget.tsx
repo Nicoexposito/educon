@@ -1,10 +1,11 @@
 "use client";
 
-import { FileText, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 
 interface PendingItem {
     id: string;
+    href: string;
     title: string;
     subtitle: string;
     date: string; // Due date or submitted date
@@ -20,7 +21,8 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
             // Item is a submission to grade
             return {
                 id: item.id,
-                title: item.assignment?.title || 'Tasca sense títol',
+                href: item.assignment_id ? `/dashboard/assignments/${item.assignment_id}` : "/dashboard/assignments",
+                title: item.assignment?.title || 'Treball sense títol',
                 subtitle: `Per ${item.student?.full_name || 'Estudiant'} • ${item.assignment?.subject?.name || 'Matèria'}`,
                 date: formatDate(item.submitted_at),
                 status: 'ungraded',
@@ -31,6 +33,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
             const isSubmitted = item.status === 'submitted';
             return {
                 id: item.id,
+                href: item.id ? `/dashboard/assignments/${item.id}` : "/dashboard/assignments",
                 title: item.title,
                 subtitle: item.subject?.name || 'Assignatura',
                 date: formatDate(item.due_date),
@@ -53,7 +56,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                 <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
                     {displayItems.length > 0 ? displayItems.map((item) => (
                         <Link
-                            href="/dashboard/assignments"
+                            href={item.href}
                             key={item.id}
                             className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors flex gap-4 items-center group cursor-pointer block"
                         >
@@ -81,7 +84,7 @@ export function AssignmentsListWidget({ items, title, role }: { items: any[], ti
                         </Link>
                     )) : (
                          <div className="p-8 text-center text-zinc-400 text-sm">
-                            <p>Estàs al dia! No hi ha tasques pendents.</p>
+                            <p>{role === "teacher" ? "Estàs al dia. No hi ha treballs pendents de corregir." : "Estàs al dia. No hi ha treballs pendents d'entregar."}</p>
                         </div>
                     )}
                 </div>

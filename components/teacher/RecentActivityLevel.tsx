@@ -7,7 +7,7 @@ export function RecentActivityLevel({ items = [] }: { items?: any[] }) {
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col h-full shadow-xs hover:shadow-md transition-shadow">
              <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                 <div>
-                    <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">Últimas Assignatures</h3>
+                    <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">Últimes assignatures</h3>
                     <p className="text-sm text-zinc-500">Assistència i estat de la classe</p>
                 </div>
                 <BookOpen className="w-5 h-5 text-zinc-400" />

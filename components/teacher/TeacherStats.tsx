@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, BookOpen, Clock, AlertCircle, TrendingUp, TrendingDown, Book, Calendar } from 'lucide-react';
+import { Users, BookOpen, TrendingUp, TrendingDown, Book, Calendar } from 'lucide-react';
 
 export function TeacherStats({ stats }: { stats: any }) {
     const pendingTasks = stats?.assignmentsPending || 0;
@@ -26,15 +26,15 @@ export function TeacherStats({ stats }: { stats: any }) {
                 color="amber"
             />
             <KpiCard
-                title="Tasques per corregir"
+                title="Entrega de treballs"
                 value={pendingTasks.toString()}
                 icon={<BookOpen className="w-4 h-4" aria-hidden="true" />}
-                trend={pendingTasks > 0 ? "Requereix acció" : "Al dia"}
+                trend={pendingTasks > 0 ? "Per corregir" : "Al dia"}
                 trendUp={pendingTasks === 0}
                 color="emerald"
             />
             <KpiCard
-                title="Esdeveniments Próximos"
+                title="Esdeveniments pròxims"
                 value={upcomingEvents.toString()}
                 icon={<Calendar className="w-4 h-4" aria-hidden="true" />}
                 trend="Programats"

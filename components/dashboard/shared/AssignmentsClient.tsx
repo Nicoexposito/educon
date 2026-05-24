@@ -20,8 +20,8 @@ const TEACHER_TABS: { key: TabKey; label: string; icon: React.ElementType }[] = 
 ];
 
 const STUDENT_TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-    { key: "pending", label: "Per lliurar", icon: Clock },
-    { key: "submitted", label: "Lliurades", icon: CheckCircle2 },
+    { key: "pending", label: "Per entregar", icon: Clock },
+    { key: "submitted", label: "Entregades", icon: CheckCircle2 },
     { key: "not_submitted", label: "Sense lliurar", icon: AlertCircle },
 ];
 
@@ -50,7 +50,7 @@ function getAssignmentStatusForTab(assignment: any, role: string): TabKey {
         const dueDate = assignment.due_date ? new Date(assignment.due_date) : new Date(0);
         const lateDate = assignment.late_due_date ? new Date(assignment.late_due_date) : null;
 
-        // El límit absolut després del qual la tasca es considera "perduda"
+        // El límit absolut després del qual el treball es considera tancat.
         const absoluteMaxLimit = lateDate || dueDate;
 
         if (now > absoluteMaxLimit) {
@@ -219,12 +219,12 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="mb-1 text-2xl font-bold tracking-tight sm:text-3xl">
-                        {role === "teacher" ? "Gestió de tasques" : "Les meves tasques"}
+                        {role === "teacher" ? "Entrega de treballs" : "Entrega de treballs"}
                     </h1>
                     <p className="text-zinc-500">
                         {role === "teacher"
-                            ? "Revisa, qualifica i crea tasques per als teus alumnes."
-                            : "Consulta les teves tasques pendents i lliurades."}
+                            ? "Revisa, qualifica i crea treballs per als teus alumnes."
+                            : "Consulta els treballs pendents d'entregar i els ja lliurats."}
                     </p>
                 </div>
                 {role === "teacher" && (
@@ -233,7 +233,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                         className="flex w-full items-center justify-center gap-2 self-start rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white shadow-md shadow-indigo-500/20 transition-colors hover:bg-indigo-700 active:scale-95 sm:w-auto"
                     >
                         <Plus className="w-5 h-5" />
-                        Tasca nova
+                        Treball nou
                     </button>
                 )}
             </div>
@@ -280,7 +280,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                 {sortedAssignments.length === 0 && (
                     <div className="rounded-2xl border border-dashed border-zinc-300 bg-white px-6 py-14 text-center dark:border-zinc-800 dark:bg-zinc-900">
                         <FileText className="mx-auto mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-600" />
-                        <p className="font-medium text-zinc-500">No hi ha tasques en aquesta categoria.</p>
+                        <p className="font-medium text-zinc-500">No hi ha treballs en aquesta categoria.</p>
                         <p className="mt-1 text-sm text-zinc-400">Prova canviant de pestanya.</p>
                     </div>
                 )}
@@ -294,9 +294,9 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                             <tr>
                                 <SortableHeader label="Títol" column="title" onSort={handleSort} sortIcon={<SortIcon column="title" />} />
                                 <SortableHeader label="Assignatura" column="subject" onSort={handleSort} sortIcon={<SortIcon column="subject" />} />
-                                <SortableHeader label="Data de lliurament" column="due_date" onSort={handleSort} sortIcon={<SortIcon column="due_date" />} />
+                                <SortableHeader label="Data d'entrega" column="due_date" onSort={handleSort} sortIcon={<SortIcon column="due_date" />} />
                                 <SortableHeader label="Estat" column="status" onSort={handleSort} sortIcon={<SortIcon column="status" />} />
-                                <th className="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100 text-right">Acción</th>
+                                <th className="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100 text-right">Acció</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -336,7 +336,7 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                             onClick={() => router.push(`/dashboard/assignments/${assignment.id}`)}
                                             className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm hover:underline transition-colors"
                                         >
-                                            {role === "teacher" ? "Veure tasca" : (assignment.status === "graded" ? "Veure nota" : assignment.status === "submitted" ? "Veure lliurament" : "Lliurar")}
+                                            {role === "teacher" ? "Veure treball" : (assignment.status === "graded" ? "Veure nota" : assignment.status === "submitted" ? "Veure entrega" : "Entregar")}
                                         </button>
                                     </td>
                                 </tr>
@@ -345,8 +345,8 @@ export default function AssignmentsClient({ assignments: initialAssignments, rol
                                 <tr>
                                     <td colSpan={5} className="px-6 py-16 text-center">
                                         <FileText className="w-10 h-10 mx-auto text-zinc-300 dark:text-zinc-600 mb-3" />
-                                        <p className="text-zinc-500 font-medium">No hi ha tasques en aquesta categoria.</p>
-                                        <p className="text-zinc-400 text-sm mt-1">Prueba cambiando de pestaña.</p>
+                                        <p className="text-zinc-500 font-medium">No hi ha treballs en aquesta categoria.</p>
+                                        <p className="text-zinc-400 text-sm mt-1">Prova canviant de pestanya.</p>
                                     </td>
                                 </tr>
                             )}
@@ -377,7 +377,7 @@ function AssignmentMobileCard({ assignment, role, onOpen }: { assignment: any; r
 
             <div className="mt-4 grid gap-3">
                 <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="font-semibold text-zinc-500">Entrega</span>
+                    <span className="font-semibold text-zinc-500">Data d&apos;entrega</span>
                     <span className="font-bold text-zinc-900 dark:text-zinc-100">
                         {new Date(assignment.due_date).toLocaleDateString("ca-ES", { day: "numeric", month: "short", year: "numeric" })}
                     </span>
@@ -409,7 +409,7 @@ function AssignmentMobileCard({ assignment, role, onOpen }: { assignment: any; r
                 onClick={onOpen}
                 className="mt-4 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-700"
             >
-                {role === "teacher" ? "Veure tasca" : (assignment.status === "graded" ? "Veure nota" : assignment.status === "submitted" ? "Veure lliurament" : "Lliurar")}
+                {role === "teacher" ? "Veure treball" : (assignment.status === "graded" ? "Veure nota" : assignment.status === "submitted" ? "Veure entrega" : "Entregar")}
             </button>
         </article>
     );
@@ -486,7 +486,7 @@ function StudentStatusBadge({ status, grade, dueDate, lateDueDate }: {
     if (status === "returned") {
         return (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                <RotateCcw className="w-3.5 h-3.5" /> Devuelta
+                <RotateCcw className="w-3.5 h-3.5" /> Retornada
             </span>
         );
     }

@@ -42,6 +42,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
     const [isAIPending, startAITransition] = useTransition();
     const [isAssignmentPending, startAssignmentTransition] = useTransition();
     const [isApplyingAI, setIsApplyingAI] = useState(false);
+    const [aiSetupOpen, setAISetupOpen] = useState(false);
     const [aiReviewOpen, setAIReviewOpen] = useState(false);
     const [aiMsg, setAiMsg] = useState("");
     const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
@@ -100,6 +101,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
 
         if (aiCandidates.length === 0) {
             setAiMsg("No hi ha lliuraments pendents per corregir amb IA.");
+            setAISetupOpen(false);
             return;
         }
 
@@ -138,6 +140,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
 
             setAiSuggestions(enriched);
             setSelectedSuggestionIds(new Set(enriched.map((item) => item.submissionId).filter((id): id is string => Boolean(id))));
+            setAISetupOpen(false);
             setAIReviewOpen(true);
         });
     };
@@ -458,10 +461,10 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
                     <div className="w-full max-w-lg overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
                         <div className="border-b border-zinc-100 p-6 dark:border-zinc-800">
-                            <p className="text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-300">Eliminar tasca</p>
-                            <h2 className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">Eliminar aquesta tasca?</h2>
+                            <p className="text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-300">Eliminar treball</p>
+                            <h2 className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">Eliminar aquest treball?</h2>
                             <p className="mt-2 text-sm leading-6 text-zinc-500">
-                                També s'eliminaran els lliuraments associats. Aquesta acció no es pot desfer.
+                                També s&apos;eliminaran els lliuraments associats. Aquesta acció no es pot desfer.
                             </p>
                         </div>
                         <div className="flex flex-col gap-3 p-5 sm:flex-row sm:justify-end">
@@ -480,6 +483,71 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                             >
                                 {isAssignmentPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                 Eliminar definitivament
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {aiSetupOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="flex items-start justify-between gap-4 border-b border-zinc-100 p-6 dark:border-zinc-800">
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-violet-600 dark:text-violet-300">Correcció IA</p>
+                                <h2 className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">Vols analitzar els lliuraments?</h2>
+                                <p className="mt-2 text-sm leading-6 text-zinc-500">
+                                    Es revisaran {aiCandidates.length} lliuraments pendents. La IA només generarà propostes: després hauràs de revisar-les i decidir quines aplicar.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setAISetupOpen(false)}
+                                disabled={isAIPending}
+                                className="rounded-xl p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                                aria-label="Tancar configuració IA"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-5 p-6">
+                            <label className="block">
+                                <span className="mb-2 block text-xs font-black uppercase tracking-widest text-zinc-500">Idioma del feedback</span>
+                                <select
+                                    value={aiLanguage}
+                                    onChange={(event) => setAiLanguage(event.target.value as typeof aiLanguage)}
+                                    disabled={isAIPending}
+                                    className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-900 outline-none transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                                >
+                                    {AI_LANGUAGE_OPTIONS.map((option) => (
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4 text-sm leading-6 text-violet-950 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-100">
+                                La IA no qualificarà automàticament. Primer veuràs les notes, el comentari privat per al professor i el feedback que rebrà cada alumne.
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3 border-t border-zinc-100 p-5 dark:border-zinc-800 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setAISetupOpen(false)}
+                                disabled={isAIPending}
+                                className="rounded-xl border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                            >
+                                Cancel·lar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleBulkAI}
+                                disabled={isAIPending}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-violet-500/20 transition-colors hover:bg-violet-700 disabled:opacity-50"
+                            >
+                                {isAIPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                {isAIPending ? "Analitzant..." : "Analitzar ara"}
                             </button>
                         </div>
                     </div>
@@ -518,27 +586,17 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                             {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                             {isDownloading ? "Preparant..." : `Descargar (${selectedDownloadIds.size})`}
                         </button>
-                        <label className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
-                            Idioma IA
-                            <select
-                                value={aiLanguage}
-                                onChange={(event) => setAiLanguage(event.target.value as typeof aiLanguage)}
-                                disabled={isAIPending}
-                                className="bg-transparent text-sm font-black tracking-normal text-zinc-900 outline-none dark:text-zinc-100"
-                            >
-                                {AI_LANGUAGE_OPTIONS.map((option) => (
-                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
-                        </label>
                         <button
                             type="button"
-                            onClick={handleBulkAI}
+                            onClick={() => {
+                                setAiMsg("");
+                                setAISetupOpen(true);
+                            }}
                             disabled={isAIPending || aiCandidates.length === 0}
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black text-white shadow-md shadow-violet-500/20 transition-all hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500 disabled:shadow-none dark:disabled:bg-zinc-800"
                         >
-                            {isAIPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                            {isAIPending ? "Analitzant..." : "Corregir todos con IA"}
+                            <Sparkles className="h-4 w-4" />
+                            Corregir amb IA
                         </button>
                         <div className="flex items-center gap-2">
                             <Filter className="w-4 h-4 text-zinc-400" />
@@ -578,9 +636,9 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                                 </th>
                                 <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Alumne</th>
                                 <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Estat</th>
-                                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Data de lliurament</th>
+                                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Data d&apos;entrega</th>
                                 <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Nota</th>
-                                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Acción</th>
+                                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Acció</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -606,7 +664,13 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <img src={student.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.full_name)}&background=random`} alt={student.full_name} className="w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700" />
+                                            <span
+                                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-indigo-50 bg-cover bg-center text-xs font-black text-indigo-700 dark:border-zinc-700 dark:bg-indigo-500/10 dark:text-indigo-300"
+                                                style={student.avatar_url ? { backgroundImage: `url(${student.avatar_url})` } : undefined}
+                                                aria-hidden="true"
+                                            >
+                                                {!student.avatar_url && getInitials(student.full_name || student.email || "A")}
+                                            </span>
                                             <div>
                                                 <p className="font-semibold text-zinc-900 dark:text-zinc-100">{student.full_name}</p>
                                                 <p className="text-xs text-zinc-500">{student.email}</p>
@@ -658,7 +722,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                             {filteredStudents.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-16 text-center text-zinc-500">
-                                        No s'han trobat alumnes amb els filtres actuals.
+	                                        No s&apos;han trobat alumnes amb els filtres actuals.
                                     </td>
                                 </tr>
                             )}
@@ -724,11 +788,11 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
 
                                                     <div className="mt-4 grid gap-4 lg:grid-cols-2">
                                                         <div>
-                                                            <p className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Para el profesor</p>
+                                                            <p className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Per al professor</p>
                                                             <p className="whitespace-pre-line rounded-xl bg-white p-4 text-sm leading-6 text-zinc-700 ring-1 ring-zinc-200 dark:bg-zinc-950 dark:text-zinc-300 dark:ring-zinc-800">{suggestion.teacherComment}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Para el alumno</p>
+                                                            <p className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Per a l&apos;alumne</p>
                                                             <p className="whitespace-pre-line rounded-xl bg-white p-4 text-sm leading-6 text-zinc-700 ring-1 ring-zinc-200 dark:bg-zinc-950 dark:text-zinc-300 dark:ring-zinc-800">{suggestion.studentFeedback}</p>
                                                         </div>
                                                     </div>
@@ -751,7 +815,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
 
                         <div className="flex flex-col gap-3 border-t border-zinc-100 p-5 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-sm font-semibold text-zinc-500">
-                                {selectedSuggestionIds.size} de {aiSuggestions.length} propuestas seleccionadas
+                                {selectedSuggestionIds.size} de {aiSuggestions.length} propostes seleccionades
                             </p>
                             <div className="flex gap-3">
                                 <button
@@ -759,7 +823,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                                     onClick={() => setAIReviewOpen(false)}
                                     className="rounded-xl border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                 >
-                                    Cancelar
+                                    Cancel·lar
                                 </button>
                                 <button
                                     type="button"
@@ -768,7 +832,7 @@ export default function TeacherAssignmentView({ assignment, students }: TeacherA
                                     className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-violet-500/20 transition-colors hover:bg-violet-700 disabled:opacity-50"
                                 >
                                     {isApplyingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                                    Aplicar seleccionadas
+                                    Aplicar seleccionades
                                 </button>
                             </div>
                         </div>
@@ -801,4 +865,13 @@ function getHttpUrl(value?: string | null) {
     } catch {
         return "";
     }
+}
+
+function getInitials(value: string) {
+    return value
+        .split(/[\s@._-]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("");
 }

@@ -11,6 +11,7 @@ interface SubjectCardProps {
 
 export function SubjectCard({ subject, role }: SubjectCardProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const studentCount = subject.student_count ?? subject.students_count ?? 0;
     const scheduleText = subject.schedules?.length
         ? subject.schedules.map((s: any) => `${s.day_of_week} ${String(s.start_time).slice(0, 5)}-${String(s.end_time).slice(0, 5)}`).join(', ')
         : subject.schedule || "Horari no definit";
@@ -35,17 +36,17 @@ export function SubjectCard({ subject, role }: SubjectCardProps) {
                         </button>
                         {isMenuOpen && (
                             <div className="absolute right-0 top-8 z-20 w-48 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl">
-                                <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={FolderOpen} label="Veure assignatura" />
-                                {role === 'teacher' ? (
-                                    <>
-                                        <MenuLink href={`/dashboard/assignments/new?subject=${subject.id}`} icon={FileText} label="Crear tasca" />
+                                        <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={FolderOpen} label="Veure assignatura" />
+                                        {role === 'teacher' ? (
+                                            <>
+                                        <MenuLink href={`/dashboard/assignments/new?subject=${subject.id}`} icon={FileText} label="Crear treball" />
                                         <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={ClipboardCheck} label="Passar llista" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={FileText} label="Lliurar tasques" />
+                                            </>
+                                        ) : (
+                                            <>
+                                        <MenuLink href={`/dashboard/subjects/${subject.id}`} icon={FileText} label="Entregar treballs" />
                                         <MenuLink href="/dashboard/attendance" icon={ClipboardCheck} label="Veure assistencia" />
-                                    </>
+                                            </>
                                 )}
                             </div>
                         )}
@@ -57,28 +58,26 @@ export function SubjectCard({ subject, role }: SubjectCardProps) {
                         {subject.name}
                     </h3>
                     <p className="text-sm text-zinc-500 line-clamp-2">
-                        {subject.description || "Curs acadèmic 2024-2025"}
+                        {subject.description || "Sense descripció"}
                     </p>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                <div className="grid gap-2 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                     <div className="flex items-center gap-1.5">
                         <Clock className="w-4 h-4" />
                         <span className="line-clamp-1">{scheduleText}</span>
                     </div>
-                    {role === 'teacher' && (
-                        <div className="flex items-center gap-1.5">
-                            <Users className="w-4 h-4" />
-                            <span>{subject.student_count ?? subject.students_count ?? "—"} Alumnes</span>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                        <Users className="w-4 h-4" />
+                        <span>{studentCount} alumnes</span>
+                    </div>
                 </div>
 
                 <Link
                     href={`/dashboard/subjects/${subject.id}`}
                     className="mt-auto w-full py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 font-medium flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all"
                 >
-                    {role === 'teacher' ? 'Gestionar' : 'Entrar'}
+                    Veure
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
             </div>

@@ -30,9 +30,9 @@ export function SubjectDetailsClient({
     const [isPendingAttendance, startAttendanceTransition] = useTransition();
     const [attendanceMsg, setAttendanceMsg] = useState<string | null>(null);
 
-    // Only subscribe to assignments and resources related to this subject
-    const { data: assignments } = useRealtimeTable({ table: 'assignments', initialData: initialAssignments });
-    const { data: resources } = useRealtimeTable({ table: 'resources', initialData: initialResources });
+    // Only subscribe to rows related to this subject.
+    const { data: assignments } = useRealtimeTable({ table: 'assignments', initialData: initialAssignments, filter: `subject_id=eq.${initialSubject.id}` });
+    const { data: resources } = useRealtimeTable({ table: 'resources', initialData: initialResources, filter: `subject_id=eq.${initialSubject.id}` });
     // For students, the relation is through enrollments, which is harder to track purely via useRealtimeTable without custom filters, so we keep initialStudents static or just don't make it real-time for now to keep it simple.
 
     const filteredAssignments = assignments.filter(a => a.subject_id === initialSubject.id);
@@ -86,7 +86,7 @@ export function SubjectDetailsClient({
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
                              <span className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">
-                                Curs 2024-25
+                                {initialSubject.category || "Assignatura"}
                              </span>
                             <h1 className="mb-2 text-3xl font-bold sm:text-4xl">{initialSubject.name}</h1>
                             <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl">{initialSubject.description || "No hi ha cap descripció disponible."}</p>
@@ -94,7 +94,7 @@ export function SubjectDetailsClient({
                             <div className="mt-6 grid gap-3 text-sm font-medium sm:grid-cols-3 lg:flex lg:items-center lg:gap-6">
                                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                                     <BookOpen className="w-4 h-4" />
-                                    <span>{filteredAssignments.length} Tasques</span>
+                                    <span>{filteredAssignments.length} treballs</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                                     <Users className="w-4 h-4" />
@@ -110,7 +110,7 @@ export function SubjectDetailsClient({
                         {role === 'teacher' && (
                              <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 sm:w-auto">
                                 <Plus className="w-5 h-5" />
-                                Crear tasca
+                                Treball nou
                             </Link>
                         )}
                     </div>
@@ -125,11 +125,11 @@ export function SubjectDetailsClient({
                         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-indigo-600" />
-                                Tasques y Lliuraments
+                                Entrega de treballs
                             </h2>
                              {role === 'teacher' && (
                                 <Link href={`/dashboard/assignments/new?subject=${initialSubject.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/10 px-3 py-1.5 rounded-lg transition-colors">
-                                    + Crear tasca
+                                    + Treball nou
                                 </Link>
                             )}
                         </div>
@@ -149,7 +149,7 @@ export function SubjectDetailsClient({
                                 </Link>
                             ))}
                             {filteredAssignments.length === 0 && (
-                                <div className="text-center py-8 text-zinc-400 text-sm">No hi ha tasques assignades.</div>
+                                <div className="text-center py-8 text-zinc-400 text-sm">No hi ha treballs publicats.</div>
                             )}
                         </div>
                     </div>
@@ -222,10 +222,17 @@ export function SubjectDetailsClient({
                                         <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold text-xs">
                                             {student.full_name ? student.full_name.split(' ').map((part: string) => part[0]).slice(0, 2).join('').toUpperCase() : student.email ? student.email.substring(0, 2).toUpperCase() : 'ST'}
                                         </div>
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <div className="text-sm font-medium truncate">{student.full_name || "Estudiant"}</div>
                                             <div className="text-xs text-zinc-400 truncate">{student.email}</div>
+                                            <div className="text-xs text-zinc-400 truncate">{student.phone || "Sense telèfon"}</div>
                                         </div>
+                                        <Link
+                                            href={`/dashboard/students/${student.id}`}
+                                            className="shrink-0 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-semibold text-zinc-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-indigo-900 dark:hover:bg-indigo-950"
+                                        >
+                                            Veure
+                                        </Link>
                                     </div>
                                 ))}
                             </div>
@@ -237,7 +244,7 @@ export function SubjectDetailsClient({
                             <div className="flex items-center justify-between gap-3 mb-4">
                                 <h2 className="text-lg font-bold flex items-center gap-2">
                                     <ClipboardCheck className="w-5 h-5 text-emerald-500" />
-                                    Passar llista de hoy
+                                    Passar llista d&apos;avui
                                 </h2>
                                 <button
                                     onClick={handleAttendanceSave}
@@ -274,14 +281,14 @@ export function SubjectDetailsClient({
 
                     {role === 'teacher' && (
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-                            <h2 className="text-lg font-bold mb-4">Eines d'IA</h2>
+                            <h2 className="text-lg font-bold mb-4">Eines d&apos;IA</h2>
                             <div className="space-y-3">
                                 <AIPlaceholder
                                     label="Generar resum"
                                     description="Crea un resum del contingut actual."
                                 />
                                 <AIPlaceholder
-                                    label="Suggerir tasques"
+                                    label="Suggerir treballs"
                                     description="Genera idees d'avaluació basades en el temari."
                                 />
                             </div>

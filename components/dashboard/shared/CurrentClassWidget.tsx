@@ -3,7 +3,8 @@
 import React, { useMemo } from 'react';
 import { Clock, MapPin, ArrowRight } from "lucide-react";
 import Link from 'next/link';
-import { flattenTodaySchedules, formatScheduleTime, isScheduleActive, type ScheduleEntry } from '@/lib/schedule-utils';
+import { flattenTodaySchedules, formatScheduleTime, isScheduleActive, minutesUntilSchedule, type ScheduleEntry } from '@/lib/schedule-utils';
+import { useCurrentTime } from '@/lib/hooks/useCurrentTime';
 
 type CurrentSubject = {
     id?: string;
@@ -17,16 +18,49 @@ type CurrentSubject = {
 };
 
 export function CurrentClassWidget({ subjects }: { subjects: CurrentSubject[] }) {
+    const now = useCurrentTime();
+    const todaysClasses = useMemo(() => {
+        if (!subjects || subjects.length === 0) return [];
+        return flattenTodaySchedules(subjects, now);
+    }, [subjects, now]);
+
     const currentClass = useMemo(() => {
-        if (!subjects || subjects.length === 0) return null;
-        const now = new Date();
-        return flattenTodaySchedules(subjects, now).find((subject) => isScheduleActive(subject, now)) || null;
-    }, [subjects]);
+        return todaysClasses.find((subject) => isScheduleActive(subject, now)) || null;
+    }, [todaysClasses, now]);
+
+    const nextClass = useMemo(() => {
+        return todaysClasses.find((subject) => minutesUntilSchedule(subject, now) > 0) || null;
+    }, [todaysClasses, now]);
 
     if (!currentClass) {
+        const nextLabel = nextClass
+            ? `Propera: ${nextClass.name || "classe"} · ${formatScheduleTime(nextClass.activeSchedule)}`
+            : todaysClasses.length > 0
+                ? "No queden més classes avui."
+                : "Avui no tens classes programades.";
+
         return (
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex items-center justify-center text-muted-foreground h-full">
-                <p className="text-sm text-center">No tens classes actives en aquest moment.</p>
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex h-full flex-col justify-between">
+                <div>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" aria-hidden="true" />
+                        Sense classe ara
+                    </span>
+                    <h2
+                        className="mt-5 text-2xl font-bold leading-tight text-foreground"
+                        style={{ fontFamily: 'var(--font-display, var(--font-geist-sans))' }}
+                    >
+                        No tens classe ara
+                    </h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{nextLabel}</p>
+                </div>
+                <Link
+                    href="/dashboard/schedule"
+                    className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                    Veure horari
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
             </div>
         );
     }

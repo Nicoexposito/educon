@@ -149,7 +149,6 @@ export async function getDashboardData(userId: string, role: string) {
             { data: events },
             { data: gradedSubmissions },
             { data: gradeRows },
-            { data: assignments },
             { data: allFutureAssignments },
             { data: attendanceSummaryRows },
             { data: attendanceRows },
@@ -176,13 +175,7 @@ export async function getDashboardData(userId: string, role: string) {
                 .select(`${ASSIGNMENT_LIST_SELECT}, subject:subjects(name)`)
                 .in('subject_id', querySubjectIds)
                 .gt('due_date', now)
-                .order('due_date', { ascending: true })
-                .limit(5),
-            supabase
-                .from('assignments')
-                .select('id')
-                .in('subject_id', querySubjectIds)
-                .gt('due_date', now),
+                .order('due_date', { ascending: true }),
             supabase
                 .from('attendance')
                 .select('status')
@@ -216,7 +209,8 @@ export async function getDashboardData(userId: string, role: string) {
                 .in('assignment_id', assignmentIds)
             : { data: [] as any[] };
         const submittedIds = new Set((currentSubmissions || []).map((row: any) => row.assignment_id));
-        const assignmentsPending = (allFutureAssignments || []).filter((assignment: any) => !submittedIds.has(assignment.id)).length;
+        const pendingAssignments = (allFutureAssignments || []).filter((assignment: any) => !submittedIds.has(assignment.id));
+        const assignmentsPending = pendingAssignments.length;
         const attendanceTotal = attendanceSummaryRows?.length || 0;
         const attendancePresent = (attendanceSummaryRows || [])
             .filter((row: { status?: string | null }) => row.status === 'present' || row.status === 'late')
@@ -250,7 +244,7 @@ export async function getDashboardData(userId: string, role: string) {
             courses,
             subjects,
             events: events || [],
-            assignments: assignments || [],
+            assignments: pendingAssignments.slice(0, 5),
             gradeChart,
             recentSubjectsAttendance,
             stats: {
@@ -358,6 +352,58 @@ async function getScheduleAssignments(userId: string, role: string, subjectIds: 
     return assignments || [];
 }
 
+export async function getSuroData(userId: string, role: string) {
+    const supabase = await createClient();
+    const subjects = await getSubjectsForUser(userId, role);
+    const subjectIds = subjects.map((subject: any) => subject.id).filter(Boolean);
+
+    if (subjectIds.length === 0) {
+        return {
+            subjects: [],
+            items: [],
+            stats: { subjects: 0, items: 0, attachments: 0, events: 0 },
+        };
+    }
+
+    const [{ data: subjectDetails }, suroResult] = await Promise.all([
+        supabase
+            .from('subjects')
+            .select('id, teacher:users!teacher_id(id, full_name, email)')
+            .in('id', subjectIds),
+        supabase
+            .from('suro_items')
+            .select('id, subject_id, teacher_id, item_type, title, description, attachment_url, event_start, event_end, created_at, updated_at, subject:subjects(id, name, category, color, teacher:users!teacher_id(id, full_name, email)), teacher:users!teacher_id(id, full_name, email)')
+            .in('subject_id', subjectIds)
+            .order('created_at', { ascending: false })
+            .limit(80),
+    ]);
+
+    const teacherBySubjectId = new Map(
+        (subjectDetails || []).map((subject: any) => [subject.id, firstRelation(subject.teacher)]),
+    );
+    const missingSchema = isMissingSuroSchemaError(suroResult.error?.message);
+    if (suroResult.error && !missingSchema) {
+        console.error('Suro query error:', suroResult.error.message);
+    }
+
+    const enrichedSubjects = subjects.map((subject: any) => ({
+        ...subject,
+        teacher: teacherBySubjectId.get(subject.id) || null,
+    }));
+    const items = missingSchema ? [] : suroResult.data || [];
+
+    return {
+        subjects: enrichedSubjects,
+        items,
+        stats: {
+            subjects: enrichedSubjects.length,
+            items: items.length,
+            attachments: items.filter((item: any) => Boolean(item.attachment_url)).length,
+            events: items.filter((item: any) => item.item_type === 'event').length,
+        },
+    };
+}
+
 export async function getSubjectDetails(subjectId: string, role: string) {
     const supabase = await createClient();
     // Get subject metadata
@@ -388,7 +434,7 @@ export async function getSubjectDetails(subjectId: string, role: string) {
     if (role === 'teacher') {
         const { data: enrollments } = await supabase
             .from('enrollments')
-            .select('student:users(id, full_name, email, avatar_url)')
+            .select('student:users(id, full_name, email, phone, avatar_url)')
             .eq('subject_id', subjectId);
 
         students = (enrollments || [])
@@ -396,7 +442,7 @@ export async function getSubjectDetails(subjectId: string, role: string) {
     } else {
         const { data: enrollments } = await supabase
             .from('enrollments')
-            .select('student:users(id, full_name, email, avatar_url)')
+            .select('student:users(id, full_name, email, phone, avatar_url)')
             .eq('subject_id', subjectId);
 
         students = (enrollments || [])
@@ -486,7 +532,7 @@ export async function getSubjectStudents(subjectId: string) {
     const supabase = await createClient();
     const { data: enrollments } = await supabase
         .from('enrollments')
-        .select('student:users(id, full_name, email)')
+        .select('student:users(id, full_name, email, phone)')
         .eq('subject_id', subjectId);
     return enrollments?.map((e: any) => e.student) || [];
 }
@@ -517,14 +563,14 @@ export async function getGradesData(userId: string) {
     const supabase = await createClient();
     const { data: submissions } = await supabase
         .from('submissions')
-        .select('id, grade, feedback, submitted_at, assignment:assignments(title, due_date, subject:subjects(id, name))')
+        .select('id, assignment_id, grade, feedback, file_url, student_comment, submitted_at, status, assignment:assignments(id, title, due_date, content_url, subject:subjects(id, name))')
         .eq('student_id', userId)
         .not('grade', 'is', null)
         .order('submitted_at', { ascending: false });
 
     const { data: gradeRows } = await supabase
         .from('student_grades')
-        .select('id, score, feedback, grade_item:grade_items(name, max_score, weight, subject:subjects(id, name))')
+        .select('id, score, feedback, created_at, grade_item:grade_items(name, max_score, weight, subject:subjects(id, name))')
         .eq('student_id', userId);
 
     return { submissions: submissions || [], gradeRows: gradeRows || [] };
@@ -642,6 +688,11 @@ function buildStudentCourseContext(courseRows: any[] | null | undefined) {
 function isMissingCoursesSchemaError(message?: string | null) {
     if (!message) return false;
     return /courses|course_students|course_subjects|schema cache|relationship/i.test(message);
+}
+
+function isMissingSuroSchemaError(message?: string | null) {
+    if (!message) return false;
+    return /suro_items|schema cache|relationship/i.test(message);
 }
 
 function formatSubjectSchedule(subject: any) {

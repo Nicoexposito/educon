@@ -43,7 +43,8 @@ export function Sidebar({ role, profile, isMobileOpen, setIsMobileOpen }: Sideba
     const roleLabel = getRoleLabel(role);
 
     useEffect(() => {
-        setPendingHref(null);
+        const timeout = window.setTimeout(() => setPendingHref(null), 0);
+        return () => window.clearTimeout(timeout);
     }, [pathname]);
 
     const commonItems = role === 'admin'
@@ -53,6 +54,7 @@ export function Sidebar({ role, profile, isMobileOpen, setIsMobileOpen }: Sideba
         : [
             { icon: LayoutDashboard, label: "Tauler", href: "/dashboard" },
             { icon: Calendar, label: "Horari", href: "/dashboard/schedule" },
+            { icon: Megaphone, label: "Suro", href: "/dashboard/suro" },
         ];
 
     const roleItems = role === 'admin'
@@ -66,11 +68,11 @@ export function Sidebar({ role, profile, isMobileOpen, setIsMobileOpen }: Sideba
         : role === 'teacher'
             ? [
                 { icon: BookOpen, label: "Les meves classes", href: "/dashboard/subjects" },
-                { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
+                { icon: FileText, label: "Treballs", href: "/dashboard/assignments" },
             ]
             : [
                 { icon: BookOpen, label: "Les meves assignatures", href: "/dashboard/subjects" },
-                { icon: FileText, label: "Tasques", href: "/dashboard/assignments" },
+                { icon: FileText, label: "Treballs", href: "/dashboard/assignments" },
                 { icon: ClipboardCheck, label: "Assistències", href: "/dashboard/attendance" },
                 { icon: Award, label: "Qualificacions", href: "/dashboard/grades" },
             ];

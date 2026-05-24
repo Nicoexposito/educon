@@ -47,10 +47,10 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
 
             const result = await createAssignment(formData);
             if (result.success) {
-                setMsg({ type: "success", text: "Tasca creada correctament." });
+                setMsg({ type: "success", text: "Treball creat correctament." });
                 setTimeout(() => router.push('/dashboard/assignments'), 1000);
             } else {
-                setMsg({ type: "error", text: result.error || "Error en crear la tasca." });
+                setMsg({ type: "error", text: result.error || "Error en crear el treball." });
             }
         });
     };
@@ -64,8 +64,8 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div className="min-w-0">
-                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Crear tasca nova</h2>
-                        <p className="text-sm text-zinc-500">Configura els detalls de l'activitat per als teus alumnes.</p>
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Crear treball nou</h2>
+                        <p className="text-sm text-zinc-500">Configura els detalls de l&apos;activitat per als teus alumnes.</p>
                     </div>
                 </div>
             </div>
@@ -86,7 +86,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                     {/* General Info */}
                     <div className="space-y-6">
                         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                            <FileText className="w-4 h-4" /> Información General
+                            <FileText className="w-4 h-4" /> Informació general
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -106,7 +106,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Títol de la tasca</label>
+                                <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Títol del treball</label>
                                 <input
                                     type="text"
                                     value={title}
@@ -124,7 +124,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={4}
-                                placeholder="Descriu què han de fer els alumnes, el format de lliurament, etc."
+                                placeholder="Descriu què han de fer els alumnes, el format d'entrega, etc."
                                 className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm resize-none"
                             />
                         </div>
@@ -226,7 +226,7 @@ export default function CreateAssignmentForm({ subjects, teacherId, initialSubje
                             ) : (
                                 <Save className="w-5 h-5" />
                             )}
-                            Crear tasca
+                            Crear treball
                         </button>
                     </div>
                 </form>

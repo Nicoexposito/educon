@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
     Calendar, FileText, Download, CheckCircle2,
     AlertCircle, Clock, Loader2, Send, RotateCcw,
-    FileUp, ExternalLink, Bookmark, Upload
+    FileUp, Bookmark, Upload
 } from "lucide-react";
 import { submitAssignment } from "@/lib/actions";
 
@@ -160,7 +160,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         <FileText className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-indigo-900 dark:text-indigo-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">Doc_Activitat.pdf</p>
+                                        <p className="font-bold text-indigo-900 dark:text-indigo-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">Material adjunt</p>
                                         <p className="text-xs font-medium text-indigo-600/70 dark:text-indigo-400/70">Fes clic per descarregar</p>
                                     </div>
                                 </div>
@@ -189,7 +189,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         </span>
                                     ) : isReturned ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
-                                            <RotateCcw className="w-3.5 h-3.5" /> Devuelta
+                                            <RotateCcw className="w-3.5 h-3.5" /> Retornada
                                         </span>
                                     ) : isSubmitted ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
@@ -197,7 +197,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         </span>
                                     ) : isLate ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400">
-                                            <AlertCircle className="w-3.5 h-3.5" /> Cerrada
+                                            <AlertCircle className="w-3.5 h-3.5" /> Tancada
                                         </span>
                                     ) : isStrictlyLate ? (
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
@@ -229,7 +229,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                                         <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">El_meu_lliurament.pdf</p>
+                                                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">El teu fitxer entregat</p>
                                                         <p className="text-[10px] text-zinc-400">Fes clic per obrir</p>
                                                     </div>
                                                 </a>
@@ -259,7 +259,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                 Comentaris del professor
                             </h3>
                             <div className="text-sm italic text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                                "{assignment.feedback}"
+                                {assignment.feedback}
                             </div>
                         </div>
                     )}
@@ -324,7 +324,7 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                     className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-500/20 transition-all active:scale-[0.98] disabled:opacity-50"
                                 >
                                     {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                                    {isReturned ? 'Tornar a lliurar' : 'Lliurar tasca'}
+                                    {isReturned ? 'Tornar a entregar' : 'Entregar treball'}
                                 </button>
                             </form>
                         </div>

@@ -1,7 +1,10 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import { Clock, MapPin, MoreHorizontal, ArrowRight } from 'lucide-react';
 import { currentDayName, flattenTodaySchedules, formatScheduleTime, isScheduleActive, minutesUntilSchedule, type ScheduledSubject, type ScheduleEntry } from '@/lib/schedule-utils';
+import { useCurrentTime } from '@/lib/hooks/useCurrentTime';
 
 type SubjectScheduleCard = {
     id?: string;
@@ -15,7 +18,7 @@ type SubjectScheduleCard = {
 type TodayClass = ScheduledSubject<SubjectScheduleCard>;
 
 export function TodayClasses({ subjects }: { subjects: SubjectScheduleCard[] }) {
-    const now = new Date();
+    const now = useCurrentTime();
     const todaysClasses = flattenTodaySchedules(subjects, now);
     const visibleClasses = todaysClasses
         .filter((subject) => isScheduleActive(subject, now) || minutesUntilSchedule(subject, now) > 0)
@@ -50,7 +53,7 @@ export function TodayClasses({ subjects }: { subjects: SubjectScheduleCard[] }) 
                 ) : (
                     <div className="flex flex-col items-center justify-center h-48 text-zinc-400">
                         <Clock className="w-10 h-10 mb-3 opacity-20" />
-                        <p>No hi ha classes programades</p>
+                        <p>{todaysClasses.length > 0 ? "No queden més classes avui" : "Avui no hi ha classes"}</p>
                     </div>
                 )}
             </div>
