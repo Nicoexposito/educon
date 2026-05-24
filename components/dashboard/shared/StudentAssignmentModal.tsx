@@ -165,8 +165,11 @@ export default function StudentAssignmentModal({ assignment, userId, onClose }: 
                                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">El teu lliurament</p>
                                     <div className="bg-white dark:bg-zinc-900/50 p-3 rounded-xl text-sm border border-zinc-200 dark:border-zinc-800">
                                         {submittedFileUrl ? (
-                                            <a href={submittedFileUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline flex items-center gap-1.5">
-                                                <ExternalLink className="w-3.5 h-3.5" /> Veure el fitxer lliurat
+                                            <a href={submittedFileUrl} target="_blank" rel="noopener noreferrer" className="flex max-w-full items-center gap-2 text-indigo-600 underline">
+                                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                <span className="min-w-0 truncate" title={getFileLabel(submittedFileUrl)}>
+                                                    {getFileLabel(submittedFileUrl)}
+                                                </span>
                                             </a>
                                         ) : (
                                             "Sense fitxer adjunt."
@@ -279,6 +282,16 @@ function getSubmissionComment(assignment: any) {
     const legacyContent = typeof assignment.file_url === "string" ? assignment.file_url.trim() : "";
     if (!legacyContent || getHttpUrl(legacyContent)) return "";
     return legacyContent;
+}
+
+function getFileLabel(url: string) {
+    try {
+        const parsed = new URL(url);
+        const lastPart = parsed.pathname.split("/").filter(Boolean).pop();
+        return lastPart ? decodeURIComponent(lastPart) : "Veure el fitxer lliurat";
+    } catch {
+        return "Veure el fitxer lliurat";
+    }
 }
 
 function getHttpUrl(value?: string | null) {

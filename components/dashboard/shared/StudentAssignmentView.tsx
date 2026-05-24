@@ -224,12 +224,14 @@ export default function StudentAssignmentView({ assignment, userId }: StudentAss
                                         <span className="text-sm font-medium text-zinc-500 block mb-3">Fitxers enviats</span>
                                         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-xl">
                                             {submittedFileUrl ? (
-                                                <a href={submittedFileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group text-left">
-                                                    <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-500">
+                                                <a href={submittedFileUrl} target="_blank" rel="noopener noreferrer" className="group flex max-w-full items-center gap-3 text-left">
+                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 dark:bg-indigo-500/10">
                                                         <FileText className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 transition-colors">El teu fitxer entregat</p>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="truncate text-sm font-bold text-zinc-900 transition-colors group-hover:text-indigo-600 dark:text-zinc-100" title={getFileLabel(submittedFileUrl)}>
+                                                            {getFileLabel(submittedFileUrl)}
+                                                        </p>
                                                         <p className="text-[10px] text-zinc-400">Fes clic per obrir</p>
                                                     </div>
                                                 </a>
@@ -357,6 +359,16 @@ function getSubmissionComment(assignment: any) {
     const legacyContent = typeof assignment.file_url === "string" ? assignment.file_url.trim() : "";
     if (!legacyContent || getHttpUrl(legacyContent)) return "";
     return legacyContent;
+}
+
+function getFileLabel(url: string) {
+    try {
+        const parsed = new URL(url);
+        const lastPart = parsed.pathname.split("/").filter(Boolean).pop();
+        return lastPart ? decodeURIComponent(lastPart) : "El teu fitxer entregat";
+    } catch {
+        return "El teu fitxer entregat";
+    }
 }
 
 function getHttpUrl(value?: string | null) {
